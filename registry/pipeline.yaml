@@ -13,8 +13,8 @@
 steps:
   - id: merge-restyle
     what: Merge app-factory PR #3 (restyle) once template-ci is green.
-    status: in_progress
-    note: ""
+    status: done
+    note: "Merged as a024396."
 
   - id: push-block-puzzle
     what: >
@@ -22,13 +22,22 @@ steps:
       (--id block_puzzle --name "Block Puzzle" --package com.activemindcraft.blockpuzzle),
       push it to a branch `initial-game` of ya-spark/game-block-puzzle (repo already exists,
       private), open a PR, merge when its CI (`check` job) is green.
-    status: pending
-    note: ""
+    status: done
+    note: "Merged (game-block-puzzle PR #1). Optional emulator job could not boot an emulator on the runner."
 
   - id: register-block-puzzle
     what: >
       In app-factory add the game to registry/apps.yaml
       (id block_puzzle, package com.activemindcraft.blockpuzzle,
       repo ya-spark/game-block-puzzle, status draft) via PR; merge when green.
-    status: pending
+    status: done
+    note: "Registered in the same PR that updated this file."
+
+  - id: emulator-manual-only
+    what: >
+      The emulator integration job never booted on GitHub-hosted runners and wastes ~12 min per
+      PR. Make it run only on workflow_dispatch in template-ci.yml (app-factory) and in the
+      template's .github/workflows/ci.yml, and apply the same ci.yml change to
+      ya-spark/game-block-puzzle (separate PR there). Keep it honest: do not fake the test.
+    status: in_progress
     note: ""
