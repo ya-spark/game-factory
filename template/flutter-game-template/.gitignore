@@ -53,3 +53,10 @@ android/key.properties
 *.keystore
 *service-account*.json
 *.p12
+*.pem
+.env
+.env.*
+google-services.json
+
+# Claude Code local settings
+.claude/settings.local.json

@@ -1,6 +1,37 @@
+# OS / editor
 .DS_Store
-*.jks
-*.keystore
-key.properties
+Thumbs.db
+*.swp
+*~
+.idea/
+*.iml
+.vscode/
+
+# Logs and temp
+*.log
+*.tmp
+
+# Python caches (factory scripts and their tests)
 __pycache__/
 *.pyc
+
+# Flutter/Dart build output, in case a template or generated game is built in place
+.dart_tool/
+.flutter-plugins-dependencies
+**/build/
+**/.gradle/
+**/local.properties
+
+# Secrets: never commit
+.env
+.env.*
+*.jks
+*.keystore
+*.p12
+*.pem
+key.properties
+*service-account*.json
+google-services.json
+
+# Claude Code local settings
+.claude/settings.local.json
