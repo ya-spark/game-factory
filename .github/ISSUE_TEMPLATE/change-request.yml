@@ -1,0 +1,17 @@
+name: Change request
+description: Change an existing game or the factory itself.
+title: "[change] "
+body:
+  - type: input
+    id: target
+    attributes:
+      label: Which game or part of the factory?
+      description: A game id such as block_puzzle or blockfall, or "factory".
+    validations:
+      required: true
+  - type: textarea
+    id: change
+    attributes:
+      label: What should change?
+    validations:
+      required: true

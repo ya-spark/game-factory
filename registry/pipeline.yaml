@@ -56,3 +56,10 @@ steps:
       submodules, plus a weekly bump workflow.
     status: done
     note: "Merged (game-studio PR #1). Pins: app-factory, game-block-puzzle. Add game-block-fall after its first PR merges. The bump workflow needs the STUDIO_SUBMODULE_TOKEN secret from the user."
+
+  - id: issue-inbox
+    what: >
+      GitHub issue forms (new game, change request) as the inbox; the hourly runner and the
+      /new-app skill turn issues into the full flow (docs/INBOX.md).
+    status: done
+    note: "Built in the issue-inbox PR. Untested end to end until the first real issue."

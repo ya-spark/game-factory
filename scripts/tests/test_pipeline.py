@@ -22,6 +22,12 @@ class PipelineTests(unittest.TestCase):
         self.assertEqual(len(pl.STAGE_IDS), 9)
         self.assertTrue(all(s["status"] == "pending" for s in g["stages"].values()))
 
+    def test_issue_number_is_recorded_and_shown(self):
+        g = pl.init("g_two", "ya-spark/game-g-two", games_dir=self.dir, issue=12)
+        self.assertEqual(g["issue"], 12)
+        self.assertIn("issue #12", pl.render(g))
+        self.assertEqual(self.init("g_three")["issue"], "")  # optional
+
     def test_init_rejects_bad_input_and_duplicates(self):
         with self.assertRaises(pl.PipelineError):
             pl.init("Bad-Id", "ya-spark/x", games_dir=self.dir)

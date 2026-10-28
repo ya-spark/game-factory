@@ -1,0 +1,38 @@
+name: New game
+description: Describe a game. The factory runs the whole pipeline from this text.
+title: "[new-game] "
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Write the idea in your own words. Claude replies on this issue with at most four
+        questions if something essential is missing, writes a spec for you to approve
+        (reply `approve`), then builds, tests and prepares the game. Only issues written by
+        the repo owner are processed.
+  - type: input
+    id: name
+    attributes:
+      label: Game name (original; no existing game names or trademarks)
+    validations:
+      required: true
+  - type: textarea
+    id: idea
+    attributes:
+      label: The idea
+      description: Genre, how it plays, what makes it different, who it is for.
+    validations:
+      required: true
+  - type: textarea
+    id: features
+    attributes:
+      label: Must-have features
+      description: Screens, power-ups, levels, controls, retention features to switch off (all are on by default).
+  - type: textarea
+    id: avoid
+    attributes:
+      label: What you do not want
+  - type: textarea
+    id: refs
+    attributes:
+      label: References
+      description: Paste or drag in screenshots or links of similar games. They set the genre and layout, not the look.
