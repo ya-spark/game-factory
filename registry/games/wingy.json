@@ -30,10 +30,10 @@
     },
     "asset": {
       "agent": "asset-agent",
-      "status": "pending",
+      "status": "done",
       "gate": "assets/LICENSES.md lists every asset, license check green",
-      "pr": "",
-      "note": "",
+      "pr": "https://github.com/ya-spark/game-wingy/pull/9",
+      "note": "Icon, feature graphic, launcher icons, synthesized sfx listed in LICENSES.md; screenshots and sfx playback pending",
       "updated": "2026-10-28"
     },
     "test": {
