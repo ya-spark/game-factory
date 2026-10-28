@@ -14,10 +14,10 @@
     },
     "repo": {
       "agent": "repo-agent",
-      "status": "pending",
+      "status": "done",
       "gate": "empty repo filled, first PR merged, CI green",
-      "pr": "",
-      "note": "",
+      "pr": "https://github.com/ya-spark/game-wingy/pull/2",
+      "note": "Generated, CI green, merged. Play name availability unchecked (sandbox blocks play.google.com).",
       "updated": "2026-10-28"
     },
     "coder": {

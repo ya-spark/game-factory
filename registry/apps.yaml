@@ -12,3 +12,7 @@ apps:
     repo: ya-spark/game-block-fall
     package: com.activemindcraft.blockfall
     status: draft
+  - id: wingy
+    repo: ya-spark/game-wingy
+    package: com.activemindcraft.wingy
+    status: draft
