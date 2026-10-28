@@ -1,0 +1,34 @@
+# Work queue for the hourly factory-runner (a scheduled Claude task).
+# Each run: read this file, do the FIRST step whose status is `pending` (or finish an
+# `in_progress` one), update its status in a PR to app-factory, merge that PR when CI is green.
+# Statuses: pending | in_progress | done | blocked (blocked needs a human; say why in `note`).
+#
+# Guardrails (the runner must never, without the user asking in a conversation):
+#   - publish to Google Play, enable real ads / IAP, spend money
+#   - create, read, print or commit secrets (keystores, service accounts, real AdMob IDs in debug)
+#   - push directly to `main` (always branch + PR; merge only when CI is green)
+#   - create GitHub repos in ya-spark (the integration gets 403: ask the user to create them)
+# Add new steps at the bottom. One step per run is fine.
+
+steps:
+  - id: merge-restyle
+    what: Merge app-factory PR #3 (restyle) once template-ci is green.
+    status: in_progress
+    note: ""
+
+  - id: push-block-puzzle
+    what: >
+      Generate Block Puzzle from the template with scripts/new_game.py
+      (--id block_puzzle --name "Block Puzzle" --package com.activemindcraft.blockpuzzle),
+      push it to a branch `initial-game` of ya-spark/game-block-puzzle (repo already exists,
+      private), open a PR, merge when its CI (`check` job) is green.
+    status: pending
+    note: ""
+
+  - id: register-block-puzzle
+    what: >
+      In app-factory add the game to registry/apps.yaml
+      (id block_puzzle, package com.activemindcraft.blockpuzzle,
+      repo ya-spark/game-block-puzzle, status draft) via PR; merge when green.
+    status: pending
+    note: ""
