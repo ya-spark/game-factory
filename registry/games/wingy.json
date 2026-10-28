@@ -1,0 +1,80 @@
+{
+  "id": "wingy",
+  "repo": "ya-spark/game-wingy",
+  "package": "com.activemindcraft.wingy",
+  "issue": 11,
+  "stages": {
+    "spec": {
+      "agent": "spec-agent",
+      "status": "awaiting_approval",
+      "gate": "user approved docs/SPEC.md",
+      "pr": "",
+      "note": "Spec PR awaiting owner approval on issue #11",
+      "updated": "2026-10-28"
+    },
+    "repo": {
+      "agent": "repo-agent",
+      "status": "pending",
+      "gate": "empty repo filled, first PR merged, CI green",
+      "pr": "",
+      "note": "",
+      "updated": "2026-10-28"
+    },
+    "coder": {
+      "agent": "coder-agent",
+      "status": "pending",
+      "gate": "feature PRs merged, CI green",
+      "pr": "",
+      "note": "",
+      "updated": "2026-10-28"
+    },
+    "asset": {
+      "agent": "asset-agent",
+      "status": "pending",
+      "gate": "assets/LICENSES.md lists every asset, license check green",
+      "pr": "",
+      "note": "",
+      "updated": "2026-10-28"
+    },
+    "test": {
+      "agent": "test-agent",
+      "status": "pending",
+      "gate": "unit, widget and bot tests green",
+      "pr": "",
+      "note": "",
+      "updated": "2026-10-28"
+    },
+    "build": {
+      "agent": "build-agent",
+      "status": "pending",
+      "gate": "signed .aab built by release.yml (needs secrets)",
+      "pr": "",
+      "note": "",
+      "updated": "2026-10-28"
+    },
+    "listing": {
+      "agent": "listing-agent",
+      "status": "pending",
+      "gate": "store/ drafts complete, policy check passed",
+      "pr": "",
+      "note": "",
+      "updated": "2026-10-28"
+    },
+    "publish": {
+      "agent": "publish-agent",
+      "status": "pending",
+      "gate": "user approved the release",
+      "pr": "",
+      "note": "",
+      "updated": "2026-10-28"
+    },
+    "monitor": {
+      "agent": "monitor-agent",
+      "status": "pending",
+      "gate": "ongoing",
+      "pr": "",
+      "note": "",
+      "updated": "2026-10-28"
+    }
+  }
+}
