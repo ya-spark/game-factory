@@ -21,10 +21,10 @@
     },
     "coder": {
       "agent": "coder-agent",
-      "status": "pending",
+      "status": "done",
       "gate": "feature PRs merged, CI green",
-      "pr": "",
-      "note": "",
+      "pr": "https://github.com/ya-spark/game-block-fall/pull/4",
+      "note": "Chunks 1-3 merged: rules engine, Flame view + UI, save v3/retention/power-up ads/bot. Device checks (real ads, haptics, feel) pending.",
       "updated": "2026-10-28"
     },
     "asset": {

@@ -8,3 +8,7 @@ apps:
     repo: ya-spark/game-block-puzzle
     package: com.activemindcraft.blockpuzzle
     status: draft
+  - id: blockfall
+    repo: ya-spark/game-block-fall
+    package: com.activemindcraft.blockfall
+    status: draft
