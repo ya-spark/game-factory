@@ -39,5 +39,5 @@ steps:
       PR. Make it run only on workflow_dispatch in template-ci.yml (app-factory) and in the
       template's .github/workflows/ci.yml, and apply the same ci.yml change to
       ya-spark/game-block-puzzle (separate PR there). Keep it honest: do not fake the test.
-    status: in_progress
-    note: ""
+    status: done
+    note: "Merged: app-factory PR #5 and game-block-puzzle PR #2."
