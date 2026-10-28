@@ -39,8 +39,8 @@ steps:
       PR. Make it run only on workflow_dispatch in template-ci.yml (app-factory) and in the
       template's .github/workflows/ci.yml, and apply the same ci.yml change to
       ya-spark/game-block-puzzle (separate PR there). Keep it honest: do not fake the test.
-    status: in_progress
-    note: ""
+    status: done
+    note: "Merged: app-factory PR #5 and game-block-puzzle PR #2."
 
   - id: stage-agents
     what: >
@@ -50,3 +50,9 @@ steps:
     status: done
     note: ""
 
+  - id: master-repo
+    what: >
+      Set up ya-spark/game-studio as the master repo with app-factory and every game as
+      submodules, plus a weekly bump workflow.
+    status: done
+    note: "Merged (game-studio PR #1). Pins: app-factory, game-block-puzzle. Add game-block-fall after its first PR merges. The bump workflow needs the STUDIO_SUBMODULE_TOKEN secret from the user."
