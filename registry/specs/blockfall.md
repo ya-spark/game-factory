@@ -1,6 +1,6 @@
 # Blockfall - game spec
 
-Status: awaiting user approval. This is the contract for all later stages. Copy to `docs/SPEC.md` in `ya-spark/game-block-fall` (repo-agent).
+Status: APPROVED by the user on 2026-10-28. This is the contract for all later stages. Copy to `docs/SPEC.md` in `ya-spark/game-block-fall` (repo-agent).
 
 - id: `blockfall`, display name: **Blockfall**, package: `com.activemindcraft.blockfall`, repo: `ya-spark/game-block-fall`
 - Base template: block puzzle template (`template/flutter-game-template`). No falling-blocks template exists yet.

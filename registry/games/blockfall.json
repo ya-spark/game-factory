@@ -5,10 +5,10 @@
   "stages": {
     "spec": {
       "agent": "spec-agent",
-      "status": "awaiting_approval",
+      "status": "done",
       "gate": "user approved docs/SPEC.md",
       "pr": "",
-      "note": "registry/specs/blockfall.md written, waiting for the user's approval",
+      "note": "Approved by the user on 2026-10-28 (Blockfall; Prism cells twist; Sweep, Slow, Bomb; clockwise rotate only)",
       "updated": "2026-10-28"
     },
     "repo": {
