@@ -22,10 +22,10 @@
     },
     "coder": {
       "agent": "coder-agent",
-      "status": "pending",
+      "status": "done",
       "gate": "feature PRs merged, CI green",
-      "pr": "",
-      "note": "",
+      "pr": "https://github.com/ya-spark/game-wingy/pull/5",
+      "note": "Rules (PR3), core retention data (PR4), Flame view + UI (PR5) merged, CI green. Sounds not bundled (no audio package in template): left for asset stage. lib/core retention data extended per SPEC.",
       "updated": "2026-10-28"
     },
     "asset": {
