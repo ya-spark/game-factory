@@ -1,0 +1,89 @@
+name: template-ci
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  FLUTTER_VERSION: "3.47.8"
+
+jobs:
+  template:
+    # Required check: analyze, format, tests, safety scripts, debug APK build.
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: template/flutter-game-template
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: stable
+          cache: true
+      - run: flutter pub get
+      - name: No secrets committed
+        run: bash scripts/no_secrets_check.sh
+      - run: dart format --output=none --set-exit-if-changed .
+      - run: flutter analyze
+      - run: flutter test
+      - name: Ad safety check
+        run: bash scripts/ad_safety_check.sh
+      - name: Ad safety self-test (script must fail on violations)
+        run: bash scripts/test_ad_safety_check.sh
+      - name: Assets license check
+        run: bash scripts/check_asset_licenses.sh
+      - name: Release workflow stops on missing secrets
+        run: |
+          grep -q 'Missing secret' .github/workflows/release.yml
+          for s in PLAY_SERVICE_ACCOUNT_JSON ANDROID_KEYSTORE_BASE64 ANDROID_KEYSTORE_PASSWORD ANDROID_KEY_ALIAS ANDROID_KEY_PASSWORD; do
+            grep -q "$s" .github/workflows/release.yml
+          done
+      - name: Debug APK builds
+        run: flutter build apk --debug
+
+  # Optional, manual only (workflow_dispatch). Runs the template's integration_test bot on an
+  # Android emulator. Non-blocking: needs KVM on the hosted runner.
+  emulator:
+    if: github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    timeout-minutes: 40
+    defaults:
+      run:
+        working-directory: template/flutter-game-template
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: stable
+          cache: true
+      - run: flutter pub get
+      - name: Enable KVM
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+      - uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 34
+          arch: x86_64
+          target: google_apis
+          profile: pixel_6
+          disable-animations: true
+          working-directory: template/flutter-game-template
+          script: flutter test integration_test

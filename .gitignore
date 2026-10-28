@@ -1,0 +1,4 @@
+.DS_Store
+*.jks
+*.keystore
+key.properties

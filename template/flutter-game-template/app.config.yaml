@@ -1,0 +1,55 @@
+# Per-game configuration. The factory's repo agent fills in the PLACEHOLDER values.
+# Read by: lib/core/config/app_config.dart (runtime), android/app/build.gradle.kts (build),
+#          scripts/ad_safety_check.sh (CI).
+app:
+  id: block_puzzle
+  display_name: Block Puzzle
+  package_name: com.example.blockpuzzle # PLACEHOLDER: set per game before first Play upload
+
+theme:
+  seed_color: "#5B6CFF"
+  dark: true
+
+# Per-platform switches. Only Android is built in v1; iOS/web keep the same Dart code.
+platforms:
+  android:
+    enabled: true
+  ios:
+    enabled: false
+  web:
+    enabled: false
+
+# AdMob. debug.* MUST be Google's sample IDs; release.* MUST NOT be sample IDs.
+# scripts/ad_safety_check.sh enforces both in CI.
+admob:
+  debug:
+    app_id: ca-app-pub-3940256099942544~3347511713
+    banner: ca-app-pub-3940256099942544/6300978111
+    interstitial: ca-app-pub-3940256099942544/1033173712
+    rewarded: ca-app-pub-3940256099942544/5224354917
+  release:
+    app_id: PLACEHOLDER_ADMOB_APP_ID # ca-app-pub-XXXXXXXXXXXXXXXX~YYYYYYYYYY
+    banner: PLACEHOLDER_ADMOB_BANNER_ID
+    interstitial: PLACEHOLDER_ADMOB_INTERSTITIAL_ID
+    rewarded: PLACEHOLDER_ADMOB_REWARDED_ID
+
+# Ad pacing (see lib/core/ads/ad_frequency.dart).
+ads:
+  interstitial_min_interval_seconds: 90
+  interstitial_every_n_game_overs: 2
+  max_interstitials_per_session: 6
+  no_interstitial_first_seconds: 60
+  banner_enabled: true
+
+# Retention features, all ON by default.
+retention:
+  daily_reward: true
+  streaks: true
+  daily_challenges: true
+  achievements: true
+
+# Google Play Games Services (v1: stubs that fall back to local storage).
+play_games:
+  enabled: false
+  app_id: PLACEHOLDER_PLAY_GAMES_APP_ID
+  leaderboard_high_score: PLACEHOLDER_LEADERBOARD_ID
