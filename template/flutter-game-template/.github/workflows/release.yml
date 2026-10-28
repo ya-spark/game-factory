@@ -1,0 +1,107 @@
+# SKELETON release pipeline. Copy into each game repo.
+# Builds a signed Android App Bundle and (when enabled) uploads it to a Play track.
+# It stops with a clear message while any required secret is unset. See docs/PLAY_SETUP.md
+# in the app-factory repo for how to create each secret.
+name: release
+
+on:
+  workflow_dispatch:
+    inputs:
+      track:
+        description: Play track
+        type: choice
+        options: [internal, alpha, beta, production]
+        default: internal
+      upload:
+        description: Upload to Google Play (otherwise only build the AAB)
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+env:
+  FLUTTER_VERSION: "3.47.8"
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    environment: production # add required reviewers on this environment for a manual gate
+    env:
+      PLAY_SERVICE_ACCOUNT_JSON: ${{ secrets.PLAY_SERVICE_ACCOUNT_JSON }}
+      ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+      ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+      ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+      ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Check required secrets
+        shell: bash
+        run: |
+          missing=()
+          for name in PLAY_SERVICE_ACCOUNT_JSON ANDROID_KEYSTORE_BASE64 ANDROID_KEYSTORE_PASSWORD ANDROID_KEY_ALIAS ANDROID_KEY_PASSWORD; do
+            if [ -z "${!name:-}" ]; then missing+=("$name"); fi
+          done
+          if [ ${#missing[@]} -gt 0 ]; then
+            echo "::error title=Missing secret::Release stopped. These repository secrets are not set: ${missing[*]}. See docs/PLAY_SETUP.md (service account + upload keystore) and add them under Settings > Secrets and variables > Actions."
+            exit 1
+          fi
+          echo "All required secrets are set."
+
+      - name: Check real AdMob IDs are configured
+        shell: bash
+        run: |
+          if awk '/^admob:/{a=1;next} /^[^ #]/{a=0} a && /^  release:/{r=1;next} a && /^  [a-z]+:/{r=0} a&&r' app.config.yaml | grep -q PLACEHOLDER; then
+            echo "::error title=AdMob placeholders::app.config.yaml admob.release still has PLACEHOLDER values. Create the AdMob app + ad units and fill them in (docs/PLAY_SETUP.md)."
+            exit 1
+          fi
+          bash scripts/ad_safety_check.sh
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: stable
+          cache: true
+      - run: flutter pub get
+      - run: flutter analyze
+      - run: flutter test
+
+      - name: Write signing config (runner only, never committed)
+        shell: bash
+        run: |
+          keystore="$RUNNER_TEMP/upload.jks"
+          echo "$ANDROID_KEYSTORE_BASE64" | base64 -d > "$keystore"
+          {
+            echo "storeFile=$keystore"
+            echo "storePassword=$ANDROID_KEYSTORE_PASSWORD"
+            echo "keyAlias=$ANDROID_KEY_ALIAS"
+            echo "keyPassword=$ANDROID_KEY_PASSWORD"
+          } > android/key.properties
+
+      - name: Build signed app bundle
+        run: flutter build appbundle --release --build-number ${{ github.run_number }}
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: app-release-aab
+          path: build/app/outputs/bundle/release/app-release.aab
+          retention-days: 30
+
+      - name: Upload to Google Play
+        if: ${{ inputs.upload }}
+        uses: r0adkll/upload-google-play@v1
+        with:
+          serviceAccountJsonPlainText: ${{ env.PLAY_SERVICE_ACCOUNT_JSON }}
+          packageName: ${{ vars.ANDROID_PACKAGE_NAME }} # set repo variable to the package in app.config.yaml
+          releaseFiles: build/app/outputs/bundle/release/app-release.aab
+          track: ${{ inputs.track }}
+          status: draft # change to "completed" once the first manual release exists and the flow is trusted
+
+      - name: Remove signing material
+        if: always()
+        run: rm -f android/key.properties "$RUNNER_TEMP/upload.jks"

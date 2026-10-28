@@ -1,0 +1,6 @@
+# Registry of games produced by the factory. One entry per game, e.g.:
+#   - id: block-puzzle
+#     repo: ya-spark/game-block-puzzle
+#     package: com.yaspark.blockpuzzle
+#     status: draft   # draft | internal | closed-test | production
+apps: []

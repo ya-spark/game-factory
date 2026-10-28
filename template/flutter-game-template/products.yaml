@@ -1,0 +1,13 @@
+# In-app products. IDs must match the products created in Play Console.
+# `type`: non_consumable | consumable. Consumables grant `coins`.
+products:
+  - id: remove_ads
+    type: non_consumable
+    title: Remove Ads
+    description: Removes banner and interstitial ads. Rewarded ads stay optional.
+    grants: remove_ads
+  - id: coins_500
+    type: consumable
+    title: Coin Pack
+    description: 500 coins.
+    coins: 500
