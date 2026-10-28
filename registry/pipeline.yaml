@@ -41,3 +41,12 @@ steps:
       ya-spark/game-block-puzzle (separate PR there). Keep it honest: do not fake the test.
     status: in_progress
     note: ""
+
+  - id: stage-agents
+    what: >
+      Build the nine stage subagents (.claude/agents), the /new-app orchestrator skill and
+      per-game stage tracking (scripts/pipeline.py, registry/games/<id>.json). The hourly
+      runner then uses `pipeline.py next` for per-game work.
+    status: done
+    note: ""
+

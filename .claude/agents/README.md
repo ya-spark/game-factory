@@ -1,15 +1,19 @@
-# Agents (planned subagents)
+# Agents
 
-Placeholder. Definitions will be added in later milestones.
+One subagent per pipeline stage, started in order by the `/new-app` skill
+(`.claude/skills/new-app/SKILL.md`) or by the hourly factory-runner. Per-game progress is
+tracked in `registry/games/<id>.json` with `scripts/pipeline.py`.
 
-| Agent | Role |
-|-------|------|
-| spec | Q&A with the user, produces `docs/SPEC.md` |
-| repo | Creates the game repo from the template |
-| coder | Implements the game |
-| asset | Creates/collects assets and fills `assets/LICENSES.md` |
-| test | Writes and runs tests, interprets CI |
-| build | Produces signed release builds via GitHub Actions |
-| listing | Writes the Play Store listing, privacy policy, data safety |
-| publish | Uploads to Play tracks |
-| monitor | Watches vitals, reviews, ads/IAP metrics |
+| Stage | Agent | Gate |
+|-------|-------|------|
+| 1 spec | [spec-agent](spec-agent.md) | user approves SPEC.md |
+| 2 repo | [repo-agent](repo-agent.md) | first PR merged, CI green (user creates the empty repo) |
+| 3 coder | [coder-agent](coder-agent.md) | features merged, CI green |
+| 4 asset | [asset-agent](asset-agent.md) | LICENSES.md complete |
+| 5 test | [test-agent](test-agent.md) | tests green |
+| 6 build | [build-agent](build-agent.md) | signed .aab (needs secrets) |
+| 7 listing | [listing-agent](listing-agent.md) | drafts consistent with code |
+| 8 publish | [publish-agent](publish-agent.md) | user approves the release |
+| 9 monitor | [monitor-agent](monitor-agent.md) | ongoing |
+
+The agent files are written but have not been run end to end on a new game yet.

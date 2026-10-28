@@ -29,3 +29,22 @@ python3 scripts/new_game.py --id my_game --name "My Game" \
 Tests: `python3 -m unittest discover -s scripts/tests`. CI (`template-ci` job `generator`)
 also generates a sample game and runs analyze, format, tests, safety scripts and a debug APK
 build in it.
+
+## pipeline.py
+
+Per-game stage tracking. State is one file per game, `registry/games/<id>.json`, with the nine
+stages (spec, repo, coder, asset, test, build, listing, publish, monitor), each `pending`,
+`in_progress`, `awaiting_approval`, `done`, `blocked` or `skipped`, plus PR link, note and date.
+
+```bash
+python3 scripts/pipeline.py init my_game --repo ya-spark/game-my-game --package com.activemindcraft.mygame
+python3 scripts/pipeline.py status [my_game] [--json]
+python3 scripts/pipeline.py next [--json]     # first actionable (game, stage, agent)
+python3 scripts/pipeline.py set my_game spec awaiting_approval --note "SPEC.md written"
+```
+
+A stage can only move to `in_progress`, `awaiting_approval` or `done` when all earlier stages are
+`done` or `skipped`; `blocked` needs a note saying what is required; a note is cleared when the
+status changes without a new one. `next` skips a game whose next stage is `blocked` or
+`awaiting_approval`.
+

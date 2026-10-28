@@ -1,0 +1,79 @@
+{
+  "id": "block_puzzle",
+  "repo": "ya-spark/game-block-puzzle",
+  "package": "com.activemindcraft.blockpuzzle",
+  "stages": {
+    "spec": {
+      "agent": "spec-agent",
+      "status": "skipped",
+      "gate": "user approved docs/SPEC.md",
+      "pr": "",
+      "note": "Template sample game; no spec agent existed yet. Write docs/SPEC.md before major changes.",
+      "updated": "2026-10-28"
+    },
+    "repo": {
+      "agent": "repo-agent",
+      "status": "done",
+      "gate": "empty repo filled, first PR merged, CI green",
+      "pr": "https://github.com/ya-spark/game-block-puzzle/pull/1",
+      "note": "Generated from the template; repo created by the user",
+      "updated": "2026-10-28"
+    },
+    "coder": {
+      "agent": "coder-agent",
+      "status": "done",
+      "gate": "feature PRs merged, CI green",
+      "pr": "",
+      "note": "Sample game and retention kit come from the template",
+      "updated": "2026-10-28"
+    },
+    "asset": {
+      "agent": "asset-agent",
+      "status": "done",
+      "gate": "assets/LICENSES.md lists every asset, license check green",
+      "pr": "",
+      "note": "No bundled assets; everything is drawn in code",
+      "updated": "2026-10-28"
+    },
+    "test": {
+      "agent": "test-agent",
+      "status": "done",
+      "gate": "unit, widget and bot tests green",
+      "pr": "",
+      "note": "Unit and widget tests green in CI; emulator run is manual",
+      "updated": "2026-10-28"
+    },
+    "build": {
+      "agent": "build-agent",
+      "status": "blocked",
+      "gate": "signed .aab built by release.yml (needs secrets)",
+      "pr": "",
+      "note": "Needs the 5 release secrets and real AdMob IDs (Play setup deferred)",
+      "updated": "2026-10-28"
+    },
+    "listing": {
+      "agent": "listing-agent",
+      "status": "pending",
+      "gate": "store/ drafts complete, policy check passed",
+      "pr": "",
+      "note": "",
+      "updated": "2026-10-28"
+    },
+    "publish": {
+      "agent": "publish-agent",
+      "status": "blocked",
+      "gate": "user approved the release",
+      "pr": "",
+      "note": "Needs Play developer account, first manual release and your approval",
+      "updated": "2026-10-28"
+    },
+    "monitor": {
+      "agent": "monitor-agent",
+      "status": "blocked",
+      "gate": "ongoing",
+      "pr": "",
+      "note": "Starts after the first release",
+      "updated": "2026-10-28"
+    }
+  }
+}

@@ -33,3 +33,4 @@ game template (`template/flutter-game-template/`). Games are generated from the 
 - Keep Android-first, but keep logic in pure Dart and platform specifics behind interfaces and
   `app.config.yaml` `platforms:` so iOS/web can be added later.
 - New games are generated with `scripts/new_game.py` (see `scripts/README.md`); never hand-copy the template.
+- Per-game stage state lives in `registry/games/<id>.json`; read and change it only with `scripts/pipeline.py`. New games start with the `/new-app` skill and the stage agents in `.claude/agents/`.
