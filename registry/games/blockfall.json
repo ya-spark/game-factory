@@ -13,10 +13,10 @@
     },
     "repo": {
       "agent": "repo-agent",
-      "status": "in_progress",
+      "status": "done",
       "gate": "empty repo filled, first PR merged, CI green",
       "pr": "https://github.com/ya-spark/game-block-fall/pull/1",
-      "note": "Project generated; first PR open in the game repo, waiting for its CI",
+      "note": "Merged: game-block-fall PR #1; added to game-studio",
       "updated": "2026-10-28"
     },
     "coder": {
