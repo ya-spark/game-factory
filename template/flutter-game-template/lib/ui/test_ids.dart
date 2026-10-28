@@ -23,6 +23,8 @@ abstract final class TestIds {
   static const gameOverRetry = Key('game.over.retry');
   static const gameOverHome = Key('game.over.home');
   static const gameBanner = Key('game.banner');
+  static const gameStreak = Key('game.streak');
+  static const gameCombo = Key('game.combo');
 
   // Daily reward
   static const dailyClaim = Key('daily.claim');

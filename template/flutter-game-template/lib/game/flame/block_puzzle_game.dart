@@ -4,6 +4,7 @@ import 'dart:ui';
 import 'package:flame/components.dart';
 import 'package:flame/events.dart';
 import 'package:flame/game.dart';
+import 'package:flutter/painting.dart' show HSLColor;
 
 import '../layout.dart';
 import '../rules/game_state.dart';
@@ -21,7 +22,7 @@ class BlockPuzzleGame extends FlameGame {
     /// Test hook: start from a prepared state instead of a fresh game.
     GameState? initialState,
   }) : _generator = generator,
-       _background = background ?? const Color(0xFF14172B) {
+       _background = background ?? const Color(0x00000000) {
     state =
         initialState ?? GameState(bestScore: bestScore, generator: generator);
   }
@@ -81,13 +82,14 @@ class PuzzleView extends PositionComponent
     with DragCallbacks, HasGameReference<BlockPuzzleGame> {
   late PuzzleLayout layout = PuzzleLayout(1, 1);
 
+  /// Gem colors, one per piece color index.
   static const List<Color> palette = [
-    Color(0xFFFF6B6B),
-    Color(0xFFFFB84D),
-    Color(0xFF4DD4AC),
-    Color(0xFF4DA3FF),
-    Color(0xFFB77CFF),
-    Color(0xFFFF7CC8),
+    Color(0xFF2EC4B6), // teal
+    Color(0xFFFF6B5E), // coral
+    Color(0xFFFFC145), // amber
+    Color(0xFF8E7DFF), // violet
+    Color(0xFF4CC9F0), // sky
+    Color(0xFF9BDE5B), // lime
   ];
 
   int? _dragSlot;
@@ -171,10 +173,12 @@ class PuzzleView extends PositionComponent
   void render(Canvas canvas) {
     final cs = layout.cellSize;
     final board = game.state.board;
-    final gridPaint = Paint()..color = const Color(0xFF22274A);
-    final linePaint = Paint()
-      ..color = const Color(0xFF2E3560)
-      ..style = PaintingStyle.stroke;
+    final gridPaint = Paint()..color = const Color(0xFF0A1A22);
+    final emptyPaint = Paint()..color = const Color(0xFF132A34);
+    final outline = Paint()
+      ..color = const Color(0x332EC4B6)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 1.5;
 
     canvas.drawRRect(
       RRect.fromRectAndRadius(
@@ -184,9 +188,21 @@ class PuzzleView extends PositionComponent
           layout.boardSizePx + 8,
           layout.boardSizePx + 8,
         ),
-        const Radius.circular(10),
+        const Radius.circular(16),
       ),
       gridPaint,
+    );
+    canvas.drawRRect(
+      RRect.fromRectAndRadius(
+        Rect.fromLTWH(
+          layout.boardLeft - 4,
+          layout.boardTop - 4,
+          layout.boardSizePx + 8,
+          layout.boardSizePx + 8,
+        ),
+        const Radius.circular(16),
+      ),
+      outline,
     );
     for (var r = 0; r < board.size; r++) {
       for (var c = 0; c < board.size; c++) {
@@ -196,7 +212,10 @@ class PuzzleView extends PositionComponent
           cs,
           cs,
         );
-        canvas.drawRect(rect, linePaint);
+        canvas.drawRRect(
+          RRect.fromRectAndRadius(rect.deflate(1), const Radius.circular(7)),
+          emptyPaint,
+        );
         if (board.isFilled(r, c)) {
           _drawBlock(
             canvas,
@@ -306,23 +325,41 @@ class PuzzleView extends PositionComponent
     }
   }
 
+  /// Glossy rounded "gem": diagonal gradient, soft bottom shade, small specular dot.
   void _drawBlock(Canvas canvas, Rect rect, Color color) {
-    final inner = rect.deflate(1.5);
+    final r = rect.deflate(1.5);
+    final radius = Radius.circular(r.width * 0.26);
+    final rrect = RRect.fromRectAndRadius(r, radius);
+    final hsl = HSLColor.fromColor(color);
+    final light = hsl
+        .withLightness((hsl.lightness + 0.12).clamp(0.0, 1.0))
+        .toColor();
+    final dark = hsl
+        .withLightness((hsl.lightness - 0.12).clamp(0.0, 1.0))
+        .toColor();
     canvas.drawRRect(
-      RRect.fromRectAndRadius(inner, const Radius.circular(4)),
-      Paint()..color = color,
-    );
-    canvas.drawRRect(
-      RRect.fromRectAndRadius(
-        Rect.fromLTWH(
-          inner.left + 2,
-          inner.top + 2,
-          inner.width - 4,
-          inner.height * 0.28,
+      rrect,
+      Paint()
+        ..shader = Gradient.linear(
+          r.topLeft,
+          r.bottomRight,
+          [light, color, dark],
+          const [0.0, 0.55, 1.0],
         ),
-        const Radius.circular(3),
-      ),
-      Paint()..color = const Color(0x33FFFFFF),
+    );
+    // Soft bottom edge.
+    canvas.drawRRect(
+      rrect.shift(Offset.zero),
+      Paint()
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 1
+        ..color = const Color(0x22000000),
+    );
+    // Specular dot.
+    canvas.drawCircle(
+      Offset(r.left + r.width * 0.3, r.top + r.height * 0.27),
+      r.width * 0.09,
+      Paint()..color = const Color(0xB3FFFFFF),
     );
   }
 }

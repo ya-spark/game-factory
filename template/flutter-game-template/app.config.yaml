@@ -7,7 +7,7 @@ app:
   package_name: com.example.blockpuzzle # PLACEHOLDER: set per game before first Play upload
 
 theme:
-  seed_color: "#5B6CFF"
+  seed_color: "#2EC4B6"
   dark: true
 
 # Per-platform switches. Only Android is built in v1; iOS/web keep the same Dart code.
