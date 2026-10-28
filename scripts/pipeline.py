@@ -4,7 +4,7 @@
 State lives in registry/games/<game_id>.json (one file per game), so every session, subagent
 and the hourly runner sees the same truth. Commands:
 
-  pipeline.py init <game_id> --repo ya-spark/game-x [--package com.x.y]
+  pipeline.py init <game_id> --repo ya-spark/game-x [--package com.x.y] [--issue N]
   pipeline.py status [<game_id>] [--json]
   pipeline.py next [--json]            first actionable (game, stage) across all games
   pipeline.py set <game_id> <stage> <status> [--note TEXT] [--pr URL]
@@ -66,7 +66,7 @@ def save(game: dict, games_dir: Path = GAMES_DIR) -> None:
 
 
 def init(game_id: str, repo: str, package: str = "", games_dir: Path = GAMES_DIR,
-         today: str | None = None) -> dict:
+         today: str | None = None, issue: int | None = None) -> dict:
     if _path(game_id, games_dir).exists():
         raise PipelineError(f"game {game_id!r} already tracked")
     if not REPO_RE.match(repo):
@@ -76,6 +76,7 @@ def init(game_id: str, repo: str, package: str = "", games_dir: Path = GAMES_DIR
         "id": game_id,
         "repo": repo,
         "package": package,
+        "issue": issue if issue else "",  # app-factory issue that asked for this game
         "stages": {
             sid: {"agent": agent, "status": "pending", "gate": gate, "pr": "", "note": "",
                   "updated": day}
@@ -138,7 +139,8 @@ def set_status(game_id: str, stage: str, status: str, note: str | None = None,
 
 
 def render(game: dict) -> str:
-    lines = [f"{game['id']}  ({game['repo']})"]
+    issue = f"  issue #{game['issue']}" if game.get("issue") else ""
+    lines = [f"{game['id']}  ({game['repo']}){issue}"]
     for sid in STAGE_IDS:
         st = game["stages"][sid]
         extra = f"  - {st['note']}" if st["note"] else ""
@@ -154,6 +156,7 @@ def main(argv: list[str] | None = None) -> int:
     p.add_argument("game_id")
     p.add_argument("--repo", required=True)
     p.add_argument("--package", default="")
+    p.add_argument("--issue", type=int)
     p = sub.add_parser("status")
     p.add_argument("game_id", nargs="?")
     p.add_argument("--json", action="store_true")
@@ -168,7 +171,7 @@ def main(argv: list[str] | None = None) -> int:
     a = ap.parse_args(argv)
     try:
         if a.cmd == "init":
-            print(render(init(a.game_id, a.repo, a.package)))
+            print(render(init(a.game_id, a.repo, a.package, issue=a.issue)))
         elif a.cmd == "set":
             print(render(set_status(a.game_id, a.stage, a.status, a.note, a.pr)))
         elif a.cmd == "status":
