@@ -144,7 +144,7 @@ class AppConfig {
       appId: app['id'] as String,
       displayName: app['display_name'] as String,
       packageName: app['package_name'] as String,
-      themeSeedColor: _parseColor(theme['seed_color'] as String? ?? '#5B6CFF'),
+      themeSeedColor: _parseColor(theme['seed_color'] as String? ?? '#2EC4B6'),
       themeDark: theme['dark'] as bool? ?? true,
       platforms: PlatformsConfig(
         android: enabled(platforms['android']),

@@ -21,7 +21,7 @@ class GameApp extends StatelessWidget {
           colorScheme: ColorScheme.fromSeed(
             seedColor: seed,
             brightness: cfg.themeDark ? Brightness.dark : Brightness.light,
-          ),
+          ).copyWith(surface: cfg.themeDark ? const Color(0xFF0F2430) : null),
         ),
         home: const HomeScreen(),
       ),
