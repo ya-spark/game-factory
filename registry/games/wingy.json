@@ -46,18 +46,18 @@
     },
     "build": {
       "agent": "build-agent",
-      "status": "pending",
+      "status": "blocked",
       "gate": "signed .aab built by release.yml (needs secrets)",
       "pr": "",
-      "note": "",
+      "note": "Needs the 5 release secrets and real AdMob IDs",
       "updated": "2026-10-28"
     },
     "listing": {
       "agent": "listing-agent",
-      "status": "pending",
+      "status": "blocked",
       "gate": "store/ drafts complete, policy check passed",
-      "pr": "",
-      "note": "",
+      "pr": "https://github.com/ya-spark/game-wingy/pull/12",
+      "note": "Drafts done and merged (PR 12); awaiting owner review of store text and privacy policy placeholders (developer name, contact, date, hosting URL). Marked blocked because pipeline.py refuses awaiting_approval while build is blocked.",
       "updated": "2026-10-28"
     },
     "publish": {
