@@ -1,8 +1,8 @@
 # Blockfall - game spec
 
-Status: awaiting user approval. This is the contract for all later stages. Copy to `docs/SPEC.md` in `ya-spark/game-tetris` (repo-agent).
+Status: awaiting user approval. This is the contract for all later stages. Copy to `docs/SPEC.md` in `ya-spark/game-block-fall` (repo-agent).
 
-- id: `blockfall`, display name: **Blockfall**, package: `com.activemindcraft.blockfall`, repo: `ya-spark/game-tetris`
+- id: `blockfall`, display name: **Blockfall**, package: `com.activemindcraft.blockfall`, repo: `ya-spark/game-block-fall`
 - Base template: block puzzle template (`template/flutter-game-template`). No falling-blocks template exists yet.
 - Naming rule: the strings "Tetris" and "Block Blast", their logos, art, sounds, and piece letter-names-as-branding must not appear in code, assets, listing or keywords. Pieces are called by the original names in section 4.
 
@@ -171,7 +171,7 @@ App-level (widget/integration tests via test IDs):
 21. Power-up with 0 stock opens refill sheet; `game.refill.coins` deducts the price (60/40/50) and adds 1; `game.refill.ad` adds 1 via a fake AdService; max 3 ad refills per game.
 22. Daily reward cycles 7 days with the rewards in section 5; streak freeze covers one missed day; 3 daily challenges generated per day and claimable; each achievement unlocks on its condition (unit tests with fake clock).
 23. Shop lists `remove_ads` and `coins_500`; `remove_ads` removes banner and interstitial but keeps rewarded; pause on app background.
-24. `flutter analyze`, `dart format`, `flutter test`, `scripts/ad_safety_check.sh` pass; `assets/LICENSES.md` lists every asset; no occurrences of "Tetris" or "Block Blast" in the repo (CI grep).
+24. `flutter analyze`, `dart format`, `flutter test`, `scripts/ad_safety_check.sh` pass; `assets/LICENSES.md` lists every asset; no occurrences of "Tetris" or "Block Blast" in the repo outside `docs/SPEC.md` (CI grep excludes that file, which states the naming rule).
 
 ## Reuse versus new
 - **Reused unchanged from `lib/core/`**: ads (`AdService`, `AdFrequency`, AdMob impl), purchase (`PurchaseService`, products.yaml loading), save (`SaveService`), identity, leaderboard, notifications, analytics (no-op), remote_config, profile, clock, config, retention (`daily_reward`, `streaks`, `achievements`, `daily_challenges` with new templates/achievement definitions added).

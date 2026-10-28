@@ -1,6 +1,6 @@
 {
   "id": "blockfall",
-  "repo": "ya-spark/game-tetris",
+  "repo": "ya-spark/game-block-fall",
   "package": "com.activemindcraft.blockfall",
   "stages": {
     "spec": {
