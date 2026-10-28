@@ -38,10 +38,10 @@
     },
     "test": {
       "agent": "test-agent",
-      "status": "pending",
+      "status": "done",
       "gate": "unit, widget and bot tests green",
-      "pr": "",
-      "note": "",
+      "pr": "https://github.com/ya-spark/game-wingy/pull/11",
+      "note": "110 unit/widget/bot tests green in CI (analyze, format, ad safety, licenses). Widget bot with real taps on game.field; ads-fail and no-sign-in flows covered. Emulator job not run (no emulator in sandbox, manual per spec).",
       "updated": "2026-10-28"
     },
     "build": {
