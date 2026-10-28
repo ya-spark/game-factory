@@ -32,3 +32,4 @@ game template (`template/flutter-game-template/`). Games are generated from the 
   `flutter test`, `bash scripts/ad_safety_check.sh`.
 - Keep Android-first, but keep logic in pure Dart and platform specifics behind interfaces and
   `app.config.yaml` `platforms:` so iOS/web can be added later.
+- New games are generated with `scripts/new_game.py` (see `scripts/README.md`); never hand-copy the template.
