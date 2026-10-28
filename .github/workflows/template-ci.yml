@@ -51,6 +51,53 @@ jobs:
       - name: Debug APK builds
         run: flutter build apk --debug
 
+  # Proves the generator output is a working project: unit tests, then generate a sample game
+  # and run the same gates (including a debug APK build) inside it.
+  generator:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Generator unit tests
+        run: python3 -m unittest discover -s scripts/tests -v
+      - name: Generate sample game
+        run: |
+          python3 scripts/new_game.py --id sample_game --name "Sample Game" \
+            --package com.yaspark.samplegame --seed-color "#3366CC" \
+            --out "$RUNNER_TEMP/sample_game"
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: stable
+          cache: true
+      - name: flutter pub get
+        working-directory: ${{ runner.temp }}/sample_game
+        run: flutter pub get
+      - name: Format
+        working-directory: ${{ runner.temp }}/sample_game
+        run: dart format --output=none --set-exit-if-changed .
+      - name: Analyze
+        working-directory: ${{ runner.temp }}/sample_game
+        run: flutter analyze
+      - name: Tests
+        working-directory: ${{ runner.temp }}/sample_game
+        run: flutter test
+      - name: Ad safety check
+        working-directory: ${{ runner.temp }}/sample_game
+        run: bash scripts/ad_safety_check.sh
+      - name: Assets license check
+        working-directory: ${{ runner.temp }}/sample_game
+        run: bash scripts/check_asset_licenses.sh
+      - name: Debug APK builds
+        working-directory: ${{ runner.temp }}/sample_game
+        run: flutter build apk --debug
+
   # Optional, manual only (workflow_dispatch). Runs the template's integration_test bot on an
   # Android emulator. Non-blocking: needs KVM on the hosted runner.
   emulator:
