@@ -37,10 +37,10 @@
     },
     "test": {
       "agent": "test-agent",
-      "status": "pending",
+      "status": "done",
       "gate": "unit, widget and bot tests green",
-      "pr": "",
-      "note": "",
+      "pr": "https://github.com/ya-spark/game-block-fall/pull/6",
+      "note": "Spec s12 criteria audited against existing tests; added naming_check.sh CI step. CI green. Device checks (real ads, haptics, fps, integration bot) manual.",
       "updated": "2026-10-28"
     },
     "build": {
