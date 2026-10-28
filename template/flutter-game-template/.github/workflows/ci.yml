@@ -64,12 +64,13 @@ jobs:
           path: build/app/outputs/flutter-apk/app-debug.apk
           retention-days: 7
 
-  # OPTIONAL and non-blocking. Needs hardware acceleration (KVM) for the Android emulator.
-  # GitHub-hosted ubuntu runners expose /dev/kvm on current images, but it is slow and can be
-  # flaky, so a failure here does not fail the workflow. Remove `continue-on-error` once the
-  # job has proven stable for your repo.
+  # OPTIONAL, manual only (Actions tab -> ci -> Run workflow). The Android emulator needs
+  # hardware acceleration (KVM). On GitHub-hosted runners it did not boot in our first run
+  # ("Timeout waiting for emulator to boot"), so it no longer runs on every PR. Run the
+  # integration test on a real device or a local emulator, or use a runner with KVM.
   emulator-integration-test:
     name: emulator integration test (optional)
+    if: github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
     continue-on-error: true
     timeout-minutes: 40

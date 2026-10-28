@@ -3,4 +3,8 @@
 #     repo: ya-spark/game-block-puzzle
 #     package: com.yaspark.blockpuzzle
 #     status: draft   # draft | internal | closed-test | production
-apps: []
+apps:
+  - id: block_puzzle
+    repo: ya-spark/game-block-puzzle
+    package: com.activemindcraft.blockpuzzle
+    status: draft
