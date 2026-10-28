@@ -29,10 +29,10 @@
     },
     "asset": {
       "agent": "asset-agent",
-      "status": "pending",
+      "status": "done",
       "gate": "assets/LICENSES.md lists every asset, license check green",
-      "pr": "",
-      "note": "",
+      "pr": "https://github.com/ya-spark/game-block-fall/pull/5",
+      "note": "Icon 512, feature graphic 1024x500, launcher icons generated in code (scripts/gen_store_art.py); no bundled assets, no audio in v1. License check green. Screenshots not captured yet (need emulator/device).",
       "updated": "2026-10-28"
     },
     "test": {
