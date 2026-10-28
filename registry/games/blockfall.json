@@ -45,18 +45,18 @@
     },
     "build": {
       "agent": "build-agent",
-      "status": "pending",
+      "status": "blocked",
       "gate": "signed .aab built by release.yml (needs secrets)",
       "pr": "",
-      "note": "",
+      "note": "Needs the 5 release secrets and real AdMob IDs",
       "updated": "2026-10-28"
     },
     "listing": {
       "agent": "listing-agent",
-      "status": "pending",
+      "status": "awaiting_approval",
       "gate": "store/ drafts complete, policy check passed",
-      "pr": "",
-      "note": "",
+      "pr": "https://github.com/ya-spark/game-block-fall/pull/7",
+      "note": "Store text, privacy policy, data safety drafted; owner must review store text and fill developer name/contact",
       "updated": "2026-10-28"
     },
     "publish": {
