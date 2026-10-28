@@ -33,7 +33,7 @@
       "status": "done",
       "gate": "assets/LICENSES.md lists every asset, license check green",
       "pr": "https://github.com/ya-spark/game-wingy/pull/9",
-      "note": "Icons, store graphics, 15 synthesized sfx (CC0), licenses listed, check green. Sounds not wired to playback (needs audio package); screenshots need a device.",
+      "note": "Icon, feature graphic, launcher icons, synthesized sfx listed in LICENSES.md; screenshots and sfx playback pending",
       "updated": "2026-10-28"
     },
     "test": {
