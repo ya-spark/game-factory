@@ -6,10 +6,10 @@
   "stages": {
     "spec": {
       "agent": "spec-agent",
-      "status": "awaiting_approval",
+      "status": "done",
       "gate": "user approved docs/SPEC.md",
-      "pr": "",
-      "note": "Spec PR awaiting owner approval on issue #11",
+      "pr": "https://github.com/ya-spark/app-factory/pull/13",
+      "note": "Approved by the owner on PR #13 (2026-10-28)",
       "updated": "2026-10-28"
     },
     "repo": {
