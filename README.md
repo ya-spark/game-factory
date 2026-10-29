@@ -1,4 +1,4 @@
-# app-factory
+# game-factory
 
 Factory scripts, agent definitions and the Flutter + Flame game template used to
 build, test and publish Android games to Google Play (AdMob ads + Play Billing).

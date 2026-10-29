@@ -7,7 +7,7 @@ Status: APPROVED by the user on 2026-10-28. This is the contract for all later s
 - Naming rule: the strings "Tetris" and "Block Blast", their logos, art, sounds, and piece letter-names-as-branding must not appear in code, assets, listing or keywords. Pieces are called by the original names in section 4.
 
 ## 1. Pitch
-Blockfall is a single-player falling-blocks game for Android. Glossy gem pieces drop into a 10-wide well; fill a row and it clears. Hold a piece, peek at the next three, grab power-ups, and race the speed as levels climb. Original twist: **Prism cells**. Some pieces carry one glowing prism gem; clearing a row that contains one doubles that row's score and pays out coins. It targets casual players who want a quick, polished classic with daily goals, and plays well in 3 to 10 minute sessions. Look: midnight-teal gradient, glossy rounded gem blocks, glowing score pill (the app-factory block puzzle identity).
+Blockfall is a single-player falling-blocks game for Android. Glossy gem pieces drop into a 10-wide well; fill a row and it clears. Hold a piece, peek at the next three, grab power-ups, and race the speed as levels climb. Original twist: **Prism cells**. Some pieces carry one glowing prism gem; clearing a row that contains one doubles that row's score and pays out coins. It targets casual players who want a quick, polished classic with daily goals, and plays well in 3 to 10 minute sessions. Look: midnight-teal gradient, glossy rounded gem blocks, glowing score pill (the game-factory block puzzle identity).
 
 ## 2. Core loop
 - Second to second: move, rotate, soft/hard drop the falling piece; decide whether to Hold; read the Next queue.

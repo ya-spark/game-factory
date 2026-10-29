@@ -1,6 +1,6 @@
 # Inbox: start work by writing an issue
 
-Open an issue in `ya-spark/app-factory` (the GitHub mobile app works) using one of the forms:
+Open an issue in `ya-spark/game-factory` (the GitHub mobile app works) using one of the forms:
 
 - **New game** (`[new-game] ...`): the idea in your words.
 - **Change request** (`[change] ...`): which game (or "factory") and what to change.

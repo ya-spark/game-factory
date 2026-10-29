@@ -1,7 +1,7 @@
 # SKELETON release pipeline. Copy into each game repo.
 # Builds a signed Android App Bundle and (when enabled) uploads it to a Play track.
 # It stops with a clear message while any required secret is unset. See docs/PLAY_SETUP.md
-# in the app-factory repo for how to create each secret.
+# in the game-factory repo for how to create each secret.
 name: release
 
 on:

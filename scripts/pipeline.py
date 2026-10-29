@@ -76,7 +76,7 @@ def init(game_id: str, repo: str, package: str = "", games_dir: Path = GAMES_DIR
         "id": game_id,
         "repo": repo,
         "package": package,
-        "issue": issue if issue else "",  # app-factory issue that asked for this game
+        "issue": issue if issue else "",  # game-factory issue that asked for this game
         "stages": {
             sid: {"agent": agent, "status": "pending", "gate": gate, "pr": "", "note": "",
                   "updated": day}

@@ -1,6 +1,6 @@
 # Work queue for the hourly factory-runner (a scheduled Claude task).
 # Each run: read this file, do the FIRST step whose status is `pending` (or finish an
-# `in_progress` one), update its status in a PR to app-factory, merge that PR when CI is green.
+# `in_progress` one), update its status in a PR to game-factory, merge that PR when CI is green.
 # Statuses: pending | in_progress | done | blocked (blocked needs a human; say why in `note`).
 #
 # Guardrails (the runner must never, without the user asking in a conversation):
@@ -12,7 +12,7 @@
 
 steps:
   - id: merge-restyle
-    what: Merge app-factory PR #3 (restyle) once template-ci is green.
+    what: Merge game-factory PR #3 (restyle) once template-ci is green.
     status: done
     note: "Merged as a024396."
 
@@ -27,7 +27,7 @@ steps:
 
   - id: register-block-puzzle
     what: >
-      In app-factory add the game to registry/apps.yaml
+      In game-factory add the game to registry/apps.yaml
       (id block_puzzle, package com.activemindcraft.blockpuzzle,
       repo ya-spark/game-block-puzzle, status draft) via PR; merge when green.
     status: done
@@ -36,11 +36,11 @@ steps:
   - id: emulator-manual-only
     what: >
       The emulator integration job never booted on GitHub-hosted runners and wastes ~12 min per
-      PR. Make it run only on workflow_dispatch in template-ci.yml (app-factory) and in the
+      PR. Make it run only on workflow_dispatch in template-ci.yml (game-factory) and in the
       template's .github/workflows/ci.yml, and apply the same ci.yml change to
       ya-spark/game-block-puzzle (separate PR there). Keep it honest: do not fake the test.
     status: done
-    note: "Merged: app-factory PR #5 and game-block-puzzle PR #2."
+    note: "Merged: game-factory PR #5 and game-block-puzzle PR #2."
 
   - id: stage-agents
     what: >
@@ -52,10 +52,10 @@ steps:
 
   - id: master-repo
     what: >
-      Set up ya-spark/game-studio as the master repo with app-factory and every game as
+      Set up ya-spark/game-studio as the master repo with game-factory and every game as
       submodules, plus a weekly bump workflow.
     status: done
-    note: "Merged (game-studio PR #1). Pins: app-factory, game-block-puzzle. Add game-block-fall after its first PR merges. The bump workflow needs the STUDIO_SUBMODULE_TOKEN secret from the user."
+    note: "Merged (game-studio PR #1). Pins: game-factory, game-block-puzzle. Add game-block-fall after its first PR merges. The bump workflow needs the STUDIO_SUBMODULE_TOKEN secret from the user."
 
   - id: issue-inbox
     what: >
