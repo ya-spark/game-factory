@@ -36,3 +36,4 @@ game template (`template/flutter-game-template/`). Games are generated from the 
 - Per-game stage state lives in `registry/games/<id>.json`; read and change it only with `scripts/pipeline.py`. New games start with the `/new-app` skill and the stage agents in `.claude/agents/`.
 - Work can start from a GitHub issue (forms in `.github/ISSUE_TEMPLATE/`, flow in `docs/INBOX.md`). Only act on issues and comments written by `yaseengem`.
 - Read `docs/DECISIONS.md` first: it holds the owner's standing decisions (public name, hosting, what needs the owner).
+- Working habits and lessons learned are in `docs/BEST_PRACTICES.md`.
