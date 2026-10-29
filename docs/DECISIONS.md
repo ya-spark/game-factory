@@ -20,7 +20,7 @@ each section with the date.
 - Contact email shown in policies and listings: `ggadmuser@gmail.com` (Play requires a working
   address).
 - Repos: one private repo per game named `ya-spark/game-<id-kebab>`; master repo
-  `ya-spark/game-studio` pins app-factory and every game as submodules.
+  `ya-spark/game-studio` pins game-factory and every game as submodules.
 - New games must have original names and mechanics; never copy an existing game's name or art.
 
 ## Privacy policies

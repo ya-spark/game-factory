@@ -164,7 +164,7 @@ def rewrite_dart_package(out: Path, game_id: str) -> None:
     _sub_file(
         out / "pubspec.yaml",
         r'^description:.*$',
-        f'description: "{game_id} (generated from the app-factory Flutter + Flame template)."',
+        f'description: "{game_id} (generated from the game-factory Flutter + Flame template)."',
         1,
         re.M,
     )

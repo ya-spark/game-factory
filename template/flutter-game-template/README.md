@@ -1,6 +1,6 @@
 # Flutter game template
 
-Flutter + Flame Android game template of the app-factory. Sample game: **Block Puzzle**
+Flutter + Flame Android game template of the game-factory. Sample game: **Block Puzzle**
 (8x8 grid, three pieces, drag and drop). Game repos are generated from this folder.
 
 ```
