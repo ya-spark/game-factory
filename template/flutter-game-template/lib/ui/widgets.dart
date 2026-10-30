@@ -49,7 +49,11 @@ class MenuButton extends StatelessWidget {
     return SizedBox(
       width: 260,
       height: 52,
-      child: Badge(isLabelVisible: badge, smallSize: 12, child: child),
+      child: Badge(
+        isLabelVisible: badge,
+        smallSize: 12,
+        child: SizedBox.expand(child: child),
+      ),
     );
   }
 }
