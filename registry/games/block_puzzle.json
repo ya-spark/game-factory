@@ -61,19 +61,19 @@
     },
     "publish": {
       "agent": "publish-agent",
-      "status": "blocked",
+      "status": "pending",
       "gate": "user approved the release",
       "pr": "",
-      "note": "Needs Play developer account, first manual release and your approval",
-      "updated": "2026-10-28"
+      "note": "Secrets in place and first manual upload done (owner, 2026-10-31). Internal track via tag v1.0.1.",
+      "updated": "2026-10-31"
     },
     "monitor": {
       "agent": "monitor-agent",
-      "status": "blocked",
+      "status": "pending",
       "gate": "ongoing",
       "pr": "",
-      "note": "Starts after the first release",
-      "updated": "2026-10-28"
+      "note": "Starts after the internal release.",
+      "updated": "2026-10-31"
     }
   }
 }
