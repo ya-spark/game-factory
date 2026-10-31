@@ -94,9 +94,9 @@ class MenuButton extends StatelessWidget {
     return SizedBox(
       width: 290,
       height: height,
-      child: Badge(
-        isLabelVisible: badge,
-        smallSize: 16,
+      child: _BadgeDot(
+        show: badge,
+        size: 16,
         backgroundColor: KidColors.coral,
         child: DecoratedBox(
           decoration: BoxDecoration(
@@ -174,5 +174,44 @@ class PopIn extends StatelessWidget {
     builder: (context, t, child) =>
         Transform.scale(scale: t.clamp(0.0, 1.5), child: child),
     child: child,
+  );
+}
+
+/// Small notification dot on a button's corner. Unlike [Badge] it never takes part
+/// in hit testing, so the button underneath stays tappable.
+class _BadgeDot extends StatelessWidget {
+  const _BadgeDot({
+    required this.show,
+    required this.size,
+    required this.backgroundColor,
+    required this.child,
+  });
+  final bool show;
+  final double size;
+  final Color backgroundColor;
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) => Stack(
+    clipBehavior: Clip.none,
+    children: [
+      Positioned.fill(child: child),
+      if (show)
+        Positioned(
+          top: -2,
+          right: 6,
+          child: IgnorePointer(
+            child: Container(
+              width: size,
+              height: size,
+              decoration: BoxDecoration(
+                color: backgroundColor,
+                shape: BoxShape.circle,
+                border: Border.all(color: Colors.white, width: 2),
+              ),
+            ),
+          ),
+        ),
+    ],
   );
 }
