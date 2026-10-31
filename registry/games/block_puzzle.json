@@ -45,11 +45,11 @@
     },
     "build": {
       "agent": "build-agent",
-      "status": "blocked",
+      "status": "pending",
       "gate": "signed .aab built by release.yml (needs secrets)",
       "pr": "",
-      "note": "Needs the 5 release secrets and real AdMob IDs (Play setup deferred)",
-      "updated": "2026-10-28"
+      "note": "Secrets and real AdMob IDs in place (owner, 2026-10-31). First tag build v1.0.1 in progress.",
+      "updated": "2026-10-31"
     },
     "listing": {
       "agent": "listing-agent",
