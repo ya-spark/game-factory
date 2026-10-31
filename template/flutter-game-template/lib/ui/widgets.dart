@@ -38,7 +38,11 @@ class StatChip extends StatelessWidget {
       color: Colors.white,
       borderRadius: BorderRadius.circular(24),
       boxShadow: const [
-        BoxShadow(color: Color(0x33000000), blurRadius: 6, offset: Offset(0, 3)),
+        BoxShadow(
+          color: Color(0x33000000),
+          blurRadius: 6,
+          offset: Offset(0, 3),
+        ),
       ],
     ),
     child: Row(
@@ -145,11 +149,7 @@ class MenuButton extends StatelessWidget {
 
 /// One-shot bouncy "pop in" (code-drawn, finite so pumpAndSettle in tests still returns).
 class PopIn extends StatelessWidget {
-  const PopIn({
-    super.key,
-    required this.child,
-    this.delay = Duration.zero,
-  });
+  const PopIn({super.key, required this.child, this.delay = Duration.zero});
   final Widget child;
   final Duration delay;
 

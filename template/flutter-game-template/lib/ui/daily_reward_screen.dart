@@ -28,13 +28,13 @@ class DailyRewardScreen extends StatelessWidget {
               padding: EdgeInsets.fromLTRB(16, 16, 16, 24 + inset),
               child: Column(
                 children: [
-                if (s.config.retention.streaks)
-                  Text(
-                    'Streak: ${profile.displayStreak} days  •  Freezes: ${profile.data.streak.freezes}',
-                    key: TestIds.dailyStreak,
-                  ),
-                const SizedBox(height: 16),
-                GridView.count(
+                  if (s.config.retention.streaks)
+                    Text(
+                      'Streak: ${profile.displayStreak} days  •  Freezes: ${profile.data.streak.freezes}',
+                      key: TestIds.dailyStreak,
+                    ),
+                  const SizedBox(height: 16),
+                  GridView.count(
                     shrinkWrap: true,
                     physics: const NeverScrollableScrollPhysics(),
                     crossAxisCount: 4,
@@ -68,26 +68,26 @@ class DailyRewardScreen extends StatelessWidget {
                         ),
                     ],
                   ),
-                const SizedBox(height: 16),
-                SizedBox(
-                  width: double.infinity,
-                  height: 60,
-                  child: FilledButton(
-                  key: TestIds.dailyClaim,
-                  onPressed: available
-                      ? () async {
-                          final coins = await profile.claimDailyReward();
-                          if (coins != null && context.mounted) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(content: Text('+$coins coins')),
-                            );
-                          }
-                        }
-                      : null,
-                  child: Text(available ? 'Claim' : 'Come back tomorrow'),
+                  const SizedBox(height: 16),
+                  SizedBox(
+                    width: double.infinity,
+                    height: 60,
+                    child: FilledButton(
+                      key: TestIds.dailyClaim,
+                      onPressed: available
+                          ? () async {
+                              final coins = await profile.claimDailyReward();
+                              if (coins != null && context.mounted) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(content: Text('+$coins coins')),
+                                );
+                              }
+                            }
+                          : null,
+                      child: Text(available ? 'Claim' : 'Come back tomorrow'),
+                    ),
                   ),
-                ),
-              ],
+                ],
               ),
             ),
           );
