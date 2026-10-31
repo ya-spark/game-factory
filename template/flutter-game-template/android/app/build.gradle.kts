@@ -87,7 +87,7 @@ android {
             // R8 shrinking is on in release; keep rules live in proguard-rules.pro (WorkManager needs them).
             isMinifyEnabled = true
             isShrinkResources = true
-            proguardFiles(getDefaultProguardFile("proguard-android.txt"), "proguard-rules.pro")
+            proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
             // Release is never signed with the debug key. Without key.properties the output is unsigned.
             if (keystorePropertiesFile.exists()) {
                 signingConfig = signingConfigs.getByName("release")
