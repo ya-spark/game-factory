@@ -114,6 +114,8 @@ jobs:
           name="${app_id}-v${version}-b${{ github.run_number }}"
           package=$(awk '/^app:/{a=1;next} a&&/^  package_name:/{print $2;exit}' app.config.yaml | tr -d "\"'")
           echo "PACKAGE_NAME=${package}" >> "$GITHUB_ENV"
+          # The Play release name is always the pubspec.yaml version name (no drift).
+          echo "VERSION_NAME=${version}" >> "$GITHUB_ENV"
           mv build/app/outputs/bundle/release/app-release.aab "build/app/outputs/bundle/release/${name}.aab"
           echo "AAB_NAME=${name}" >> "$GITHUB_ENV"
           echo "AAB_PATH=build/app/outputs/bundle/release/${name}.aab" >> "$GITHUB_ENV"
@@ -131,6 +133,7 @@ jobs:
           serviceAccountJsonPlainText: ${{ env.PLAY_SERVICE_ACCOUNT_JSON }}
           packageName: ${{ env.PACKAGE_NAME }} # read from app.config.yaml
           releaseFiles: ${{ env.AAB_PATH }}
+          releaseName: ${{ env.VERSION_NAME }} # label in Play Console = pubspec.yaml version name
           track: ${{ inputs.track || 'internal' }}
           # The internal track always rolls out to internal testers immediately (tag push or manual run).
           # Other tracks stay drafts. Production is only reachable through promote-production.

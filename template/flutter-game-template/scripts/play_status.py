@@ -113,6 +113,20 @@ def summarize(package, pubspec_version, tracks, latest_run=None, latest_success=
             lines.append(f"- Newest live internal version code {live} is newer than the last successful release run #{expected} (uploaded by hand or from another run).")
     elif live is not None:
         lines.append(f"- Newest live internal version code: {live}.")
+    labels = {
+        r.get("name") for t in tracks if t.get("track") == "internal"
+        for r in t.get("releases", []) if r.get("status") in ("completed", "inProgress") and r.get("name")
+    }
+    if labels and name not in labels and live is not None:
+        newest = [
+            r.get("name") for t in tracks if t.get("track") == "internal"
+            for r in t.get("releases", []) if live in _codes(r)
+        ]
+        if newest and newest[0] != name:
+            lines.append(
+                f"- :warning: Play release name `{newest[0]}` for the newest live internal release "
+                f"differs from the pubspec.yaml version name `{name}`."
+            )
     if drafts:
         lines.append(
             f"- :warning: Draft on internal (not rolled out): version code(s) {', '.join(str(c) for c in sorted(set(drafts), reverse=True))}."
