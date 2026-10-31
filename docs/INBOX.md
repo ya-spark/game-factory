@@ -16,7 +16,7 @@ Claude's hourly factory-runner (or a live session) picks it up and runs the whol
 | Reply `approve` (or what to change) | Marks the spec done, or revises it. Then: repo, code, assets, tests, listing, each a PR merged when CI is green. One short comment per finished stage. |
 | Create the empty repo `ya-spark/game-<id>` when asked | Detects the repo itself and continues. |
 | Set secrets / do the Play and AdMob steps when asked | Continues from `blocked` once the requirement exists. |
-| Open a change request | Updates the spec and code through PRs, merges on green, comments and closes the issue. |
+| Open a change request | Updates the spec and code through PRs, merges on green, then (if nothing is needed from you) raises the version, tags it so the build goes to the **internal** testing track automatically, comments the result and closes the issue. Production still needs your approval. |
 
 ## Rules (enforced by the runner's instructions)
 
