@@ -47,7 +47,7 @@ each section with the date.
    secrets in each game repo (`ANDROID_KEYSTORE_BASE64`, `ANDROID_KEYSTORE_PASSWORD`,
    `ANDROID_KEY_ALIAS`, `ANDROID_KEY_PASSWORD`, `PLAY_SERVICE_ACCOUNT_JSON`). Steps in
    `docs/PLAY_SETUP.md`.
-5. Upload the first release of each game by hand in Play Console (needed before the tag build can upload; confirm if done).
+5. ~~Upload the first release of each game by hand in Play Console~~ Done: each game was published once (owner, 2026-10-31), so tag builds can upload to the internal track.
 6. Device checks: ads, haptics, game feel, screenshots (no emulator in the sandbox).
 
 ## Operational notes
