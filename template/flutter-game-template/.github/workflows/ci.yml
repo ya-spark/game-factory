@@ -62,10 +62,18 @@ jobs:
           cache: true
       - run: flutter pub get
       - run: flutter build apk --debug
+      - name: Name the debug APK after the app
+        shell: bash
+        run: |
+          app_id=$(awk '/^app:/{a=1;next} a&&/^  id:/{print $2;exit}' app.config.yaml)
+          version=$(awk '/^version:/{print $2}' pubspec.yaml | cut -d+ -f1)
+          name="${app_id}-v${version}-b${{ github.run_number }}-debug"
+          mv build/app/outputs/flutter-apk/app-debug.apk "build/app/outputs/flutter-apk/${name}.apk"
+          echo "APK_NAME=${name}" >> "$GITHUB_ENV"
       - uses: actions/upload-artifact@v4
         with:
-          name: debug-apk
-          path: build/app/outputs/flutter-apk/app-debug.apk
+          name: ${{ env.APK_NAME }}
+          path: build/app/outputs/flutter-apk/${{ env.APK_NAME }}.apk
           retention-days: 7
 
   # OPTIONAL, manual only (Actions tab -> ci -> Run workflow). The Android emulator needs
