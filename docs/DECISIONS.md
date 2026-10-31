@@ -11,7 +11,7 @@ each section with the date.
 - Merge your own PRs when CI is green. Spec approval is the owner's job (an `approve` reply on
   the issue or the spec PR). Never push to `main`.
 - Do not create repos in `ya-spark` (403). The owner creates them; attach them with `add_repo`.
-- Never touch secrets. Test ad IDs only until the owner supplies real ones.
+- Never touch secrets. Test ad IDs only in debug; the owner has supplied the real release AdMob IDs (in `app.config.yaml` `admob.release`, 2026-10-31).
 
 ## Naming and public identity
 - Public developer/studio name: **Active Mind Craft**. Do not show the owner's personal name or
@@ -34,20 +34,20 @@ each section with the date.
 
 ## Games (state as of 2026-10-29)
 - Block Puzzle (`game-block-puzzle`): sample game from the template.
-- Blockfall (`game-block-fall`): stages spec through listing done; build and publish blocked.
-- Wingy (`game-wingy`): stages spec through listing done; build and publish blocked.
+- Blockfall (`game-block-fall`): stages spec through listing done; build and publish unblocked (secrets and AdMob IDs in place, 2026-10-31), first internal build with tag v1.0.1.
+- Wingy (`game-wingy`): stages spec through listing done; build and publish unblocked (secrets and AdMob IDs in place, 2026-10-31), first internal build with tag v1.0.1.
 - Check `python3 scripts/pipeline.py status` for the current truth.
 
 ## Needs the owner (everything else is automated)
 1. Review the store text drafts in each game's `store/google-play/`.
 2. Create the Google Play developer account (identity verification; 12-tester closed test for 14
    days if it is a personal account created after Nov 2023).
-3. Create an AdMob account; send app IDs and ad unit IDs per game (these are public).
-4. Create the upload keystore and a Play service account; store them only as GitHub Actions
+3. ~~Create an AdMob account; send app IDs and ad unit IDs~~ Done: real release IDs are in `app.config.yaml` (2026-10-31).
+4. ~~Create the upload keystore and a Play service account~~ Done (owner, 2026-10-31): stored only as GitHub Actions
    secrets in each game repo (`ANDROID_KEYSTORE_BASE64`, `ANDROID_KEYSTORE_PASSWORD`,
    `ANDROID_KEY_ALIAS`, `ANDROID_KEY_PASSWORD`, `PLAY_SERVICE_ACCOUNT_JSON`). Steps in
    `docs/PLAY_SETUP.md`.
-5. Upload the first release of each game by hand in Play Console.
+5. ~~Upload the first release of each game by hand in Play Console~~ Done: every game was published once to internal testing (owner, 2026-10-31), so tag builds can upload new versions there.
 6. Device checks: ads, haptics, game feel, screenshots (no emulator in the sandbox).
 
 ## Operational notes
