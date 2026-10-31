@@ -1,0 +1,54 @@
+# READ-ONLY report of what is on each Google Play track (version name, version codes, status),
+# compared with pubspec.yaml and the latest `release` workflow run. Written to the job summary.
+# Nothing on Play is changed: scripts/play_status.py opens an edit, lists the tracks and deletes
+# the edit without committing. Needs the PLAY_SERVICE_ACCOUNT_JSON secret (never printed).
+name: play-status
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  status:
+    runs-on: ubuntu-latest
+    environment: internal # same environment as release: no reviewers, holds the Play secret
+    env:
+      PLAY_SERVICE_ACCOUNT_JSON: ${{ secrets.PLAY_SERVICE_ACCOUNT_JSON }}
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Read the package name
+        shell: bash
+        run: |
+          package=$(awk '/^app:/{a=1;next} a&&/^  package_name:/{print $2;exit}' app.config.yaml | tr -d "\"'")
+          if [ -z "$package" ]; then
+            echo "::error title=No package name::app.config.yaml app.package_name is empty."
+            exit 1
+          fi
+          if [ -z "$PLAY_SERVICE_ACCOUNT_JSON" ]; then
+            echo "::error title=Missing secret::PLAY_SERVICE_ACCOUNT_JSON is not set (see docs/PLAY_SETUP.md in the game-factory repo)."
+            exit 1
+          fi
+          echo "PACKAGE_NAME=${package}" >> "$GITHUB_ENV"
+
+      - name: Find the latest release runs
+        shell: bash
+        run: |
+          fields=number,headSha,conclusion,status,url,createdAt
+          {
+            echo "LATEST_RUN_JSON=$(gh run list --workflow release.yml --limit 1 --json $fields)"
+            echo "LATEST_SUCCESS_JSON=$(gh run list --workflow release.yml --status success --limit 1 --json $fields)"
+          } >> "$GITHUB_ENV"
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: python3 -m pip install --quiet google-api-python-client==2.151.0 google-auth==2.35.0
+
+      - name: Report
+        shell: bash
+        run: python3 scripts/play_status.py --package "$PACKAGE_NAME"
