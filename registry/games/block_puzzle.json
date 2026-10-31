@@ -45,10 +45,10 @@
     },
     "build": {
       "agent": "build-agent",
-      "status": "pending",
+      "status": "done",
       "gate": "signed .aab built by release.yml (needs secrets)",
       "pr": "",
-      "note": "Secrets and real AdMob IDs in place (owner, 2026-10-31). First tag build v1.0.1 in progress.",
+      "note": "1.0.1+2 built and uploaded by release.yml (manual run, internal track); owner moved the draft to published 2026-10-31.",
       "updated": "2026-10-31"
     },
     "listing": {
@@ -64,7 +64,7 @@
       "status": "pending",
       "gate": "user approved the release",
       "pr": "",
-      "note": "Secrets in place and first manual upload done (owner, 2026-10-31). Internal track via tag v1.0.1.",
+      "note": "Internal testing: 1.0.1+2 live (owner, 2026-10-31). Production is the remaining step and needs owner approval via promote-production.",
       "updated": "2026-10-31"
     },
     "monitor": {
