@@ -10,8 +10,8 @@ import play_status as ps  # noqa: E402
 TRACKS = [
     {"track": "production", "releases": []},
     {"track": "internal", "releases": [
-        {"name": "1.0.1", "versionCodes": ["6"], "status": "completed"},
-        {"name": "1.0.0", "versionCodes": ["3"], "status": "completed"},
+        {"name": "1.0.1 (6)", "versionCodes": ["6"], "status": "completed"},
+        {"name": "1.0.0 (3)", "versionCodes": ["3"], "status": "completed"},
     ]},
 ]
 
@@ -45,7 +45,7 @@ class Summary(unittest.TestCase):
         run = {"number": 6, "conclusion": "success", "headSha": "abcdef123", "url": "u"}
         text = ps.summarize("com.x", ("1.0.1", "2"), TRACKS, run, run)
         self.assertIn("matches the last successful release run", text)
-        self.assertIn("| internal | 1.0.1 | 6 | completed |", text)
+        self.assertIn("| internal | 1.0.1 (6) | 6 | completed |", text)
         self.assertNotIn("Draft", text)
 
     def test_draft_and_lag_are_flagged(self):
@@ -61,13 +61,13 @@ class Summary(unittest.TestCase):
     def test_label_mismatch_is_flagged(self):
         tracks = [{"track": "internal", "releases": [{"name": "1.0.0", "versionCodes": ["9"], "status": "completed"}]}]
         text = ps.summarize("com.x", ("1.0.1", "2"), tracks, None, None)
-        self.assertIn("differs from the pubspec.yaml version name", text)
+        self.assertIn("pubspec.yaml version name plus Play version code", text)
         self.assertEqual(ps.label_mismatch(tracks, "1.0.1"), "1.0.0")
-        self.assertIsNone(ps.label_mismatch(tracks, "1.0.0"))
+        self.assertIsNone(ps.label_mismatch([{"track": "internal", "releases": [{"name": "1.0.0 (9)", "versionCodes": ["9"], "status": "completed"}]}], "1.0.0"))
 
     def test_matching_label_is_quiet(self):
         text = ps.summarize("com.x", ("1.0.1", "2"), TRACKS, None, None)
-        self.assertNotIn("differs from the pubspec.yaml version name", text)
+        self.assertNotIn("pubspec.yaml version name plus Play version code", text)
 
     def test_no_releases_and_no_runs(self):
         text = ps.summarize("com.x", ("1.0.0", "1"), [], None, None)
