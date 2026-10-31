@@ -56,11 +56,28 @@ def newest_live_code(tracks, track="internal"):
     return best
 
 
+def expected_label(name, code):
+    """The Play release name the release workflow sets: '<pubspec version name> (<version code>)'."""
+    return f"{name} ({code})"
+
+
+def label_mismatch(tracks, name):
+    """The Play release name of the newest live internal release if it is not '<name> (<code>)', else None."""
+    live = newest_live_code(tracks)
+    if live is None:
+        return None
+    names = [
+        r.get("name") for t in tracks if t.get("track") == "internal"
+        for r in t.get("releases", []) if live in _codes(r) and r.get("name")
+    ]
+    return names[0] if names and names[0] != expected_label(name, live) else None
+
+
 def summarize(package, pubspec_version, tracks, latest_run=None, latest_success=None):
     """Build the Markdown report. `latest_run` / `latest_success` are dicts from `gh run list`."""
     name, build = pubspec_version
     lines = [f"## Google Play status: `{package}`", ""]
-    lines.append(f"pubspec.yaml version: **{name}** (build `{build or '-'}`)")
+    lines.append(f"pubspec.yaml version: **{name}**" + (f" (build `{build}` is ignored by releases)" if build else ""))
     lines.append("")
     lines += ["| Track | Release | Version codes | Status | Rollout |", "|---|---|---|---|---|"]
     any_release = False
@@ -95,8 +112,8 @@ def summarize(package, pubspec_version, tracks, latest_run=None, latest_success=
     else:
         lines.append("- No `release` workflow run found.")
     lines.append(
-        "- The Play version code is the `release` run number (`--build-number`), "
-        "not the `+N` in pubspec.yaml."
+        "- The Play version code is the `release` run number (`--build-number`); "
+        "the Play release name is `<pubspec version name> (<version code>)`."
     )
     if latest_success is not None:
         expected = int(latest_success.get("number"))
@@ -113,6 +130,12 @@ def summarize(package, pubspec_version, tracks, latest_run=None, latest_success=
             lines.append(f"- Newest live internal version code {live} is newer than the last successful release run #{expected} (uploaded by hand or from another run).")
     elif live is not None:
         lines.append(f"- Newest live internal version code: {live}.")
+    mismatch = label_mismatch(tracks, name)
+    if mismatch is not None:
+        lines.append(
+            f"- :x: Play release name `{mismatch}` for the newest live internal release "
+            f"is not `{expected_label(name, live)}` (pubspec.yaml version name plus Play version code)."
+        )
     if drafts:
         lines.append(
             f"- :warning: Draft on internal (not rolled out): version code(s) {', '.join(str(c) for c in sorted(set(drafts), reverse=True))}."
@@ -177,13 +200,15 @@ def main(argv=None):
     try:
         with open(args.pubspec, encoding="utf-8") as fh:
             version = parse_pubspec_version(fh.read())
+        tracks = fetch_tracks(args.package)
         report = summarize(
             args.package,
             version,
-            fetch_tracks(args.package),
+            tracks,
             load_run("LATEST_RUN_JSON"),
             load_run("LATEST_SUCCESS_JSON"),
         )
+        out_of_sync = label_mismatch(tracks, version[0]) is not None
     except StatusError as err:
         print(f"::error title=Play status failed::{err}", file=sys.stderr)
         if args.summary_file:
@@ -194,6 +219,9 @@ def main(argv=None):
     if args.summary_file:
         with open(args.summary_file, "a", encoding="utf-8") as fh:
             fh.write(report)
+    if out_of_sync:
+        print("::error title=Play label out of sync::the Play release name differs from the pubspec.yaml version name", file=sys.stderr)
+        return 1
     return 0
 
 

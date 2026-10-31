@@ -58,6 +58,17 @@ class Summary(unittest.TestCase):
         self.assertIn("Draft on internal", text)
         self.assertIn("may still be a draft", text)
 
+    def test_label_mismatch_is_flagged(self):
+        tracks = [{"track": "internal", "releases": [{"name": "1.0.0", "versionCodes": ["9"], "status": "completed"}]}]
+        text = ps.summarize("com.x", ("1.0.1", "2"), tracks, None, None)
+        self.assertIn("pubspec.yaml version name plus Play version code", text)
+        self.assertEqual(ps.label_mismatch(tracks, "1.0.1"), "1.0.0")
+        self.assertIsNone(ps.label_mismatch([{"track": "internal", "releases": [{"name": "1.0.0 (9)", "versionCodes": ["9"], "status": "completed"}]}], "1.0.0"))
+
+    def test_matching_label_is_quiet(self):
+        text = ps.summarize("com.x", ("1.0.1", "2"), TRACKS, None, None)
+        self.assertNotIn("pubspec.yaml version name plus Play version code", text)
+
     def test_no_releases_and_no_runs(self):
         text = ps.summarize("com.x", ("1.0.0", "1"), [], None, None)
         self.assertIn("No releases found", text)

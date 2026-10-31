@@ -80,3 +80,11 @@ The hard rules stay in `CLAUDE.md`; owner decisions are in `docs/DECISIONS.md`.
   its status line kept current.
 - Keep README and SPEC implementation status in step with merged work.
 - Update `docs/DECISIONS.md` when the owner decides something in conversation.
+
+## Versioning (always in sync)
+- `pubspec.yaml` `version:` is `x.y.z` only. The `+N` build number is not used: releases override it.
+- Play version code = the `release` workflow run number (`--build-number ${{ github.run_number }}`), so it only ever goes up.
+- Play release name = `<version name> (<version code>)`, set by `release.yml` (`releaseName`). Do not edit it in Play Console.
+- Bump `x.y.z` in `pubspec.yaml`, merge, then release. Tag `vX.Y.Z` must equal the pubspec version name.
+- Check with the `play-status` workflow (also runs weekly): it fails if the live internal release name is not `<pubspec version name> (<code>)`.
+- Notes, comments and the registry should quote both numbers, for example "1.0.1 (6)", never "1.0.1+2".

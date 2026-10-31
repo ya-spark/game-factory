@@ -24,6 +24,7 @@ game template (`template/flutter-game-template/`). Games are generated from the 
 6. **Test ad IDs only** in debug and in the template. `scripts/ad_safety_check.sh` enforces it.
 7. **Assets** must be listed in `assets/LICENSES.md` (source, license). CI checks this.
 8. **Pin Flutter** to `.flutter-version`; do not use floating `stable` in workflows.
+9. **Versioning.** `pubspec.yaml` holds only the version name (`x.y.z`, no `+N`) and is the one place it is edited. The Play version code is the `release` workflow run number, and the Play release name is always `<version name> (<version code>)`, set by the workflow. Never hand-edit a label in Play Console; `play-status` goes red if they drift.
 
 ## Workflow
 
