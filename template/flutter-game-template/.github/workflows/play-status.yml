@@ -6,6 +6,8 @@ name: play-status
 
 on:
   workflow_dispatch:
+  schedule:
+    - cron: "0 6 * * 1" # weekly: goes red if the Play release name drifts from pubspec.yaml
 
 permissions:
   contents: read
