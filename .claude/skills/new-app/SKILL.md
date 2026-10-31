@@ -6,7 +6,7 @@ description: Orchestrates a new game end to end, from the user's prompt and a sh
 # /new-app: the orchestrator
 
 You run in the main session. You do the Q&A with the user, then call one stage subagent at a
-time (defined in `.claude/agents/`), record every result with `scripts/pipeline.py`, and stop at
+time (defined in `.claude/agents/new-game/`), record every result with `scripts/pipeline.py`, and stop at
 the gates. All state lives in the repos (`registry/games/<id>.json`), never in your memory, so any
 session, and the hourly factory-runner, can resume it.
 

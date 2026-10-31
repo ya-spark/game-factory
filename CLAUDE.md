@@ -28,8 +28,8 @@ game template (`template/flutter-game-template/`). Games are generated from the 
 
 ## Workflow
 
-- Work on a branch, open a PR, let CI go green, then merge the PR into `main`. Never change or push to `main` directly.
-- After merging into `main`, update the `game-factory` pin in the master repo `game-studio` (branch + PR there). See its `CLAUDE.md`.
+- Branch/PR workflow is suspended for now: changes may be committed and pushed directly to `main`.
+- After changing `main`, update the `game-factory` pin in the master repo `game-studio`. See its `CLAUDE.md`.
 - Before pushing the template: `flutter analyze`, `dart format --set-exit-if-changed .`,
   `flutter test`, `bash scripts/ad_safety_check.sh`.
 - Keep Android-first, but keep logic in pure Dart and platform specifics behind interfaces and
