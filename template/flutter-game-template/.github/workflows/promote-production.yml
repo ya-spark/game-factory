@@ -1,0 +1,78 @@
+# Promotes the build that is ALREADY on a test track (default: internal) to production.
+# Run it by hand once the internal build has been tested. Nothing is rebuilt: the same version
+# code the testers ran is moved, so production gets exactly the tested binary.
+#
+# Safety: the job uses the "production" environment. Add required reviewers there
+# (Settings > Environments > production) so every run waits for an explicit approval. The default
+# status is "draft": the release then waits for you to click Roll out in Play Console.
+# Needs the PLAY_SERVICE_ACCOUNT_JSON secret. The package name is read from app.config.yaml.
+name: promote-production
+
+on:
+  workflow_dispatch:
+    inputs:
+      version_code:
+        description: Version code to promote (empty = the newest rolled-out release on the source track)
+        type: string
+        default: ""
+      from_track:
+        description: Track to promote from
+        type: choice
+        options: [internal, alpha, beta]
+        default: internal
+      status:
+        description: "draft = review and click Roll out in Play Console; inProgress = staged rollout; completed = release to everyone now"
+        type: choice
+        options: [draft, inProgress, completed]
+        default: draft
+      user_fraction:
+        description: Staged rollout fraction, only used when status is inProgress (for example 0.1 = 10%)
+        type: string
+        default: "0.1"
+
+permissions:
+  contents: read
+
+jobs:
+  promote:
+    runs-on: ubuntu-latest
+    environment: production
+    env:
+      PLAY_SERVICE_ACCOUNT_JSON: ${{ secrets.PLAY_SERVICE_ACCOUNT_JSON }}
+      # Inputs go through the environment, never straight into the shell command.
+      IN_VERSION_CODE: ${{ inputs.version_code }}
+      IN_FROM_TRACK: ${{ inputs.from_track }}
+      IN_STATUS: ${{ inputs.status }}
+      IN_USER_FRACTION: ${{ inputs.user_fraction }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Check required secret and read the package name
+        shell: bash
+        run: |
+          if [ -z "${PLAY_SERVICE_ACCOUNT_JSON:-}" ]; then
+            echo "::error title=Missing secret::Promotion stopped. PLAY_SERVICE_ACCOUNT_JSON is not set. See docs/PLAY_SETUP.md in the game-factory repo."
+            exit 1
+          fi
+          package=$(awk '/^app:/{a=1;next} a&&/^  package_name:/{print $2;exit}' app.config.yaml | tr -d "\"'")
+          if [ -z "$package" ]; then
+            echo "::error title=No package name::app.config.yaml has no app.package_name."
+            exit 1
+          fi
+          echo "PACKAGE_NAME=${package}" >> "$GITHUB_ENV"
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: python3 -m pip install --quiet google-api-python-client==2.151.0 google-auth==2.35.0
+
+      - name: Promote to production
+        shell: bash
+        run: |
+          python3 scripts/play_promote.py \
+            --package "$PACKAGE_NAME" \
+            --from-track "$IN_FROM_TRACK" \
+            --to-track production \
+            --version-code "$IN_VERSION_CODE" \
+            --status "$IN_STATUS" \
+            --user-fraction "$IN_USER_FRACTION"

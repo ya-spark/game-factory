@@ -41,6 +41,8 @@ jobs:
         run: bash scripts/check_asset_licenses.sh
       - name: No secrets committed
         run: bash scripts/no_secrets_check.sh
+      - name: Play promote script tests
+        run: python3 scripts/test_play_promote.py
 
   build-debug:
     name: debug APK builds
