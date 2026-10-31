@@ -37,6 +37,7 @@ class DailyRewardScreen extends StatelessWidget {
                   GridView.count(
                     shrinkWrap: true,
                     physics: const NeverScrollableScrollPhysics(),
+                    cacheExtent: 2000,
                     crossAxisCount: 4,
                     childAspectRatio: 0.8,
                     mainAxisSpacing: 8,
