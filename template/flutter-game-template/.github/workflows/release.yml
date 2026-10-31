@@ -1,7 +1,7 @@
 # SKELETON release pipeline. Copy into each game repo.
 # Builds a signed Android App Bundle and uploads it to the INTERNAL Play track.
 #   - Push a version tag (v1.0.1, matching pubspec.yaml) to build and upload automatically.
-#   - Or run it by hand (Actions > release > Run workflow); manual uploads are drafts.
+#   - Or run it by hand (Actions > release > Run workflow); manual uploads to the internal track roll out immediately too.
 # Production is NOT reachable from here: use the promote-production workflow once the internal
 # build has been tested.
 # It stops with a clear message while any required secret is unset. See docs/PLAY_SETUP.md
@@ -132,8 +132,9 @@ jobs:
           packageName: ${{ env.PACKAGE_NAME }} # read from app.config.yaml
           releaseFiles: ${{ env.AAB_PATH }}
           track: ${{ inputs.track || 'internal' }}
-          # Tag pushes roll out to internal testers immediately; manual runs stay drafts.
-          status: ${{ github.event_name == 'push' && 'completed' || 'draft' }}
+          # The internal track always rolls out to internal testers immediately (tag push or manual run).
+          # Other tracks stay drafts. Production is only reachable through promote-production.
+          status: ${{ (github.event_name == 'push' || inputs.track == 'internal') && 'completed' || 'draft' }}
 
       - name: Remove signing material
         if: always()
