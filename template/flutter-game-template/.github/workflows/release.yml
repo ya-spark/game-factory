@@ -22,6 +22,10 @@ on:
         description: Upload to Google Play (otherwise only build the AAB)
         type: boolean
         default: false
+      test_apks:
+        description: Also build an installable release APK (same signing and R8 settings as the bundle) for on-device testing
+        type: boolean
+        default: false
 
 permissions:
   contents: read
@@ -126,6 +130,21 @@ jobs:
           name: ${{ env.AAB_NAME }}
           path: ${{ env.AAB_PATH }}
           retention-days: 30
+
+      - name: Build test APK (release, same settings as the bundle)
+        if: ${{ inputs.test_apks }}
+        shell: bash
+        run: |
+          flutter build apk --release --build-number ${{ github.run_number }}
+          mv build/app/outputs/flutter-apk/app-release.apk "build/${AAB_NAME}-release.apk"
+
+      - name: Upload test APK
+        if: ${{ inputs.test_apks }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ env.AAB_NAME }}-test-apk
+          path: build/*.apk
+          retention-days: 7
 
       - name: Upload to Google Play
         if: ${{ inputs.upload || github.event_name == 'push' }}
