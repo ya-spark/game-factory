@@ -1,16 +1,22 @@
 # SKELETON release pipeline. Copy into each game repo.
-# Builds a signed Android App Bundle and (when enabled) uploads it to a Play track.
+# Builds a signed Android App Bundle and uploads it to the INTERNAL Play track.
+#   - Push a version tag (v1.0.1, matching pubspec.yaml) to build and upload automatically.
+#   - Or run it by hand (Actions > release > Run workflow); manual uploads are drafts.
+# Production is NOT reachable from here: use the promote-production workflow once the internal
+# build has been tested.
 # It stops with a clear message while any required secret is unset. See docs/PLAY_SETUP.md
 # in the game-factory repo for how to create each secret.
 name: release
 
 on:
+  push:
+    tags: ["v*"]
   workflow_dispatch:
     inputs:
       track:
-        description: Play track
+        description: Play track (production is only reachable through promote-production)
         type: choice
-        options: [internal, alpha, beta, production]
+        options: [internal, alpha, beta]
         default: internal
       upload:
         description: Upload to Google Play (otherwise only build the AAB)
@@ -26,7 +32,7 @@ env:
 jobs:
   release:
     runs-on: ubuntu-latest
-    environment: production # add required reviewers on this environment for a manual gate
+    environment: internal # no reviewers here: tag pushes must run unattended
     env:
       PLAY_SERVICE_ACCOUNT_JSON: ${{ secrets.PLAY_SERVICE_ACCOUNT_JSON }}
       ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
@@ -36,11 +42,25 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Tag must match the pubspec version
+        if: ${{ github.event_name == 'push' }}
+        shell: bash
+        run: |
+          version=$(awk '/^version:/{print $2}' pubspec.yaml | cut -d+ -f1)
+          if [ "${GITHUB_REF_NAME}" != "v${version}" ]; then
+            echo "::error title=Tag mismatch::Tag ${GITHUB_REF_NAME} does not match pubspec.yaml version v${version}. Bump the version in pubspec.yaml, merge it, then tag that commit."
+            exit 1
+          fi
+
       - name: Check required secrets
         shell: bash
         run: |
           missing=()
-          for name in PLAY_SERVICE_ACCOUNT_JSON ANDROID_KEYSTORE_BASE64 ANDROID_KEYSTORE_PASSWORD ANDROID_KEY_ALIAS ANDROID_KEY_PASSWORD; do
+          required="ANDROID_KEYSTORE_BASE64 ANDROID_KEYSTORE_PASSWORD ANDROID_KEY_ALIAS ANDROID_KEY_PASSWORD"
+          # The Play service account is only needed when this run uploads to Play
+          # (every tag push, or a manual run with upload ticked).
+          if [ "${{ inputs.upload }}" = "true" ] || [ "${{ github.event_name }}" = "push" ]; then required="PLAY_SERVICE_ACCOUNT_JSON $required"; fi
+          for name in $required; do
             if [ -z "${!name:-}" ]; then missing+=("$name"); fi
           done
           if [ ${#missing[@]} -gt 0 ]; then
@@ -86,21 +106,34 @@ jobs:
       - name: Build signed app bundle
         run: flutter build appbundle --release --build-number ${{ github.run_number }}
 
+      - name: Name the bundle after the app
+        shell: bash
+        run: |
+          app_id=$(awk '/^app:/{a=1;next} a&&/^  id:/{print $2;exit}' app.config.yaml)
+          version=$(awk '/^version:/{print $2}' pubspec.yaml | cut -d+ -f1)
+          name="${app_id}-v${version}-b${{ github.run_number }}"
+          package=$(awk '/^app:/{a=1;next} a&&/^  package_name:/{print $2;exit}' app.config.yaml | tr -d "\"'")
+          echo "PACKAGE_NAME=${package}" >> "$GITHUB_ENV"
+          mv build/app/outputs/bundle/release/app-release.aab "build/app/outputs/bundle/release/${name}.aab"
+          echo "AAB_NAME=${name}" >> "$GITHUB_ENV"
+          echo "AAB_PATH=build/app/outputs/bundle/release/${name}.aab" >> "$GITHUB_ENV"
+
       - uses: actions/upload-artifact@v4
         with:
-          name: app-release-aab
-          path: build/app/outputs/bundle/release/app-release.aab
+          name: ${{ env.AAB_NAME }}
+          path: ${{ env.AAB_PATH }}
           retention-days: 30
 
       - name: Upload to Google Play
-        if: ${{ inputs.upload }}
+        if: ${{ inputs.upload || github.event_name == 'push' }}
         uses: r0adkll/upload-google-play@v1
         with:
           serviceAccountJsonPlainText: ${{ env.PLAY_SERVICE_ACCOUNT_JSON }}
-          packageName: ${{ vars.ANDROID_PACKAGE_NAME }} # set repo variable to the package in app.config.yaml
-          releaseFiles: build/app/outputs/bundle/release/app-release.aab
-          track: ${{ inputs.track }}
-          status: draft # change to "completed" once the first manual release exists and the flow is trusted
+          packageName: ${{ env.PACKAGE_NAME }} # read from app.config.yaml
+          releaseFiles: ${{ env.AAB_PATH }}
+          track: ${{ inputs.track || 'internal' }}
+          # Tag pushes roll out to internal testers immediately; manual runs stay drafts.
+          status: ${{ github.event_name == 'push' && 'completed' || 'draft' }}
 
       - name: Remove signing material
         if: always()
