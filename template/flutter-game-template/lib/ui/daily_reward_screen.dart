@@ -22,18 +22,21 @@ class DailyRewardScreen extends StatelessWidget {
           final claimedThrough = available
               ? today
               : (today == 0 ? DailyRewardEngine.cycleLength : today);
-          return Padding(
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              children: [
+          final inset = MediaQuery.viewPaddingOf(context).bottom;
+          return SafeArea(
+            child: SingleChildScrollView(
+              padding: EdgeInsets.fromLTRB(16, 16, 16, 24 + inset),
+              child: Column(
+                children: [
                 if (s.config.retention.streaks)
                   Text(
                     'Streak: ${profile.displayStreak} days  •  Freezes: ${profile.data.streak.freezes}',
                     key: TestIds.dailyStreak,
                   ),
                 const SizedBox(height: 16),
-                Expanded(
-                  child: GridView.count(
+                GridView.count(
+                    shrinkWrap: true,
+                    physics: const NeverScrollableScrollPhysics(),
                     crossAxisCount: 4,
                     childAspectRatio: 0.8,
                     mainAxisSpacing: 8,
@@ -65,8 +68,11 @@ class DailyRewardScreen extends StatelessWidget {
                         ),
                     ],
                   ),
-                ),
-                FilledButton(
+                const SizedBox(height: 16),
+                SizedBox(
+                  width: double.infinity,
+                  height: 60,
+                  child: FilledButton(
                   key: TestIds.dailyClaim,
                   onPressed: available
                       ? () async {
@@ -79,8 +85,10 @@ class DailyRewardScreen extends StatelessWidget {
                         }
                       : null,
                   child: Text(available ? 'Claim' : 'Come back tomorrow'),
+                  ),
                 ),
               ],
+              ),
             ),
           );
         },

@@ -41,7 +41,7 @@ class GameState {
   }
 
   static const int traySlots = 3;
-  static const int maxRevives = 1;
+  static const int maxRevives = 3;
   static const int maxCombo = 5;
 
   final PieceGenerator _generator;
@@ -59,6 +59,9 @@ class GameState {
 
   /// Pieces offered; a slot is null once used.
   List<Piece?> get tray => List.unmodifiable(_tray);
+
+  /// Ad-based revives left in this run (resets with every new [GameState]).
+  int get revivesRemaining => maxRevives - revivesUsed;
 
   bool get canRevive => isGameOver && revivesUsed < maxRevives;
 
@@ -112,7 +115,7 @@ class GameState {
     isGameOver = !_tray.whereType<Piece>().any(board.canPlaceAnywhere);
   }
 
-  /// One-time revive after a game over (granted by a rewarded ad): empties the two fullest
+  /// Revive after a game over, up to [maxRevives] per run (granted by a rewarded ad): empties the two fullest
   /// rows and deals a fresh tray. Returns false if not allowed.
   bool revive() {
     if (!canRevive) return false;

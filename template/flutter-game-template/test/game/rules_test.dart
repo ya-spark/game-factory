@@ -218,7 +218,7 @@ void main() {
       expect(g.isGameOver, isTrue);
     });
 
-    test('revive is allowed once, empties space and deals a playable tray', () {
+    test('up to three revives per run, then none; new run resets', () {
       final rows = List.filled(8, '########');
       rows[0] = '.#######';
       final g = GameState(
@@ -226,12 +226,22 @@ void main() {
         tray: [p('bar2_0'), p('square2_0'), p('bar3_1')],
         board: Board.fromRows(rows),
       );
+      expect(g.revivesRemaining, 3);
       expect(g.canRevive, isTrue);
       expect(g.revive(), isTrue);
       expect(g.isGameOver, isFalse);
       expect(g.board.filledCount, lessThan(64 - 1));
+      expect(g.revivesRemaining, 2);
+      for (var i = 0; i < 2; i++) {
+        g.isGameOver = true; // simulate running out of moves again
+        expect(g.canRevive, isTrue);
+        expect(g.revive(), isTrue);
+      }
+      expect(g.revivesRemaining, 0);
+      g.isGameOver = true;
       expect(g.canRevive, isFalse);
       expect(g.revive(), isFalse);
+      expect(GameState().revivesRemaining, 3);
     });
 
     test('best score follows the score', () {

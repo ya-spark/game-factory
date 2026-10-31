@@ -181,6 +181,7 @@ void main() {
     expect(ads.rewardedShown, 1);
     expect(game.state.isGameOver, isFalse);
     expect(game.state.revivesUsed, 1);
+    expect(game.state.revivesRemaining, 2);
     expect(find.byKey(TestIds.gameOverDialog), findsNothing);
   });
 
