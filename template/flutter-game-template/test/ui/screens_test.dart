@@ -54,6 +54,8 @@ void main() {
   ) async {
     final s = await buildFakeServices();
     await pumpApp(tester, s);
+    await tester.ensureVisible(find.byKey(TestIds.homeDailyReward));
+    await tester.pumpAndSettle();
     await tester.tap(find.byKey(TestIds.homeDailyReward));
     await tester.pumpAndSettle();
     expect(find.byKey(TestIds.dailyDay(6)), findsOneWidget);
@@ -181,6 +183,7 @@ void main() {
     expect(ads.rewardedShown, 1);
     expect(game.state.isGameOver, isFalse);
     expect(game.state.revivesUsed, 1);
+    expect(game.state.revivesRemaining, 2);
     expect(find.byKey(TestIds.gameOverDialog), findsNothing);
   });
 

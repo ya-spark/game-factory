@@ -20,6 +20,7 @@ abstract final class TestIds {
   static const gameBack = Key('game.back');
   static const gameOverDialog = Key('game.over.dialog');
   static const gameOverRevive = Key('game.over.revive');
+  static const gameOverRevivesLeft = Key('game.over.revivesLeft');
   static const gameOverRetry = Key('game.over.retry');
   static const gameOverHome = Key('game.over.home');
   static const gameBanner = Key('game.banner');
