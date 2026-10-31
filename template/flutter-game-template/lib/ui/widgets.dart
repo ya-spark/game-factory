@@ -122,19 +122,28 @@ class MenuButton extends StatelessWidget {
               onTap: onPressed,
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
+                mainAxisSize: MainAxisSize.min,
                 children: [
                   Icon(icon, color: Colors.white, size: primary ? 36 : 30),
                   const SizedBox(width: 10),
-                  Text(
-                    label,
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: primary ? 28 : 22,
-                      fontWeight: FontWeight.w900,
-                      letterSpacing: 0.5,
-                      shadows: const [
-                        Shadow(color: Color(0x55000000), offset: Offset(0, 2)),
-                      ],
+                  Flexible(
+                    child: FittedBox(
+                      fit: BoxFit.scaleDown,
+                      child: Text(
+                        label,
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: primary ? 28 : 22,
+                          fontWeight: FontWeight.w900,
+                          letterSpacing: 0.5,
+                          shadows: const [
+                            Shadow(
+                              color: Color(0x55000000),
+                              offset: Offset(0, 2),
+                            ),
+                          ],
+                        ),
+                      ),
                     ),
                   ),
                 ],
