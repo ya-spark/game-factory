@@ -74,4 +74,15 @@ described in `docs/INBOX.md`). The hourly runner does this without the user pres
 - **Change requests:** parse the target game (or "factory") and the change. For a game: update
   `registry/specs/<id>.md` and the game's `docs/SPEC.md` if rules change, then the code, via PRs in
   the game repo; merge on green; comment and close. For "factory": a PR in game-factory.
+- **Auto-release to internal testing (game changes, owner-standing decision):** when the change is
+  merged and nothing is needed from the owner, finish the job without asking: (1) in the same PR
+  or a follow-up PR raise the `version:` build number (and patch version for a user-visible
+  change) in `pubspec.yaml`, merged on green; (2) push the matching tag (`vX.Y.Z`) from the
+  merged `main` commit, which makes `release.yml` build the signed bundle and upload it to the
+  **internal** track; (3) if the tag push is refused, run `release.yml` from `main` with
+  `track=internal` and `upload=true` instead (that leaves a draft, so say so in the comment);
+  (4) watch the run and comment the result (marker `released-internal`) and then close the issue.
+  This never promotes beyond internal, never enables real ads or purchases beyond what the
+  config already holds, and never touches secrets. If the release is blocked (missing secrets,
+  first release in Play Console, listing not approved), say exactly what is needed once and stop.
 
