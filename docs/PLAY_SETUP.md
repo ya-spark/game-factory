@@ -23,7 +23,7 @@ These cannot be automated. Tick them off once; items marked *per game* repeat fo
       Nov 2023). Recruit testers, create the closed track, add the tester list. *per game*
 - [ ] **Play Games Services setup** (optional per game): Play Console -> Play Games Services ->
       Setup; create credentials (needs the app's signing SHA-1), achievements and leaderboards;
-      put the Games app ID in `app.config.yaml`. *per game*
+      put the Games app ID in `app.config.yaml`. Step-by-step: `PLAY_GAMES_SETUP.md`. *per game*
 - [ ] **License testers**: Play Console -> Settings -> License testing; add tester Gmail
       accounts so purchases are test purchases. Create in-app products matching `products.yaml`. *per game*
 - [ ] **GitHub secrets**: the five secrets above. Set them **once at the organization level**

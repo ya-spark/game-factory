@@ -63,6 +63,8 @@ android {
         versionName = flutter.versionName
         multiDexEnabled = true
         manifestPlaceholders["appLabel"] = configValue("app", "display_name")
+        // Play Games Services project ID (numeric, from Play Console). A string resource keeps it a string.
+        resValue("string", "game_services_project_id", configValue("play_games", "app_id"))
     }
 
     signingConfigs {

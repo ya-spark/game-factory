@@ -36,9 +36,9 @@ Future<Services> buildFakeServices({
   final services = Services(
     config: config,
     catalog: catalog,
-    identity: PlayGamesIdentityStub(LocalIdentityService(prefs)),
+    identity: LocalIdentityService(prefs),
     saves: MemorySaveService(),
-    leaderboard: PlayGamesLeaderboardStub(LocalLeaderboardService(prefs)),
+    leaderboard: LocalLeaderboardService(prefs),
     ads: ads ?? FakeAdService(),
     purchases: FakePurchaseService(catalog),
     notifications: const NoopNotificationService(),

@@ -15,7 +15,7 @@ import 'profile/profile_store.dart';
 import 'purchase/play_purchase_service.dart';
 import 'purchase/purchase_service.dart';
 import 'remote_config/remote_config_service.dart';
-import 'save/play_games_save_stub.dart';
+import 'save/play_games_save.dart';
 import 'save/save_service.dart';
 
 /// Composition root: every service the game and UI use, behind interfaces.
@@ -54,9 +54,10 @@ class Services {
   }) async {
     final prefs = await SharedPreferences.getInstance();
     final local = LocalIdentityService(prefs);
+    final playGames = config.playGames.enabled;
     final saves = SyncingSaveService(
       LocalSaveService(prefs),
-      PlayGamesCloudSaveStub(),
+      playGames ? PlayGamesCloudSave() : const NoCloudSave(),
     );
     final profile = ProfileStore(saves: saves, retention: config.retention);
     await profile.init();
@@ -72,9 +73,11 @@ class Services {
     final s = Services(
       config: config,
       catalog: catalog,
-      identity: PlayGamesIdentityStub(local),
+      identity: playGames ? PlayGamesIdentityService(local) : local,
       saves: saves,
-      leaderboard: PlayGamesLeaderboardStub(LocalLeaderboardService(prefs)),
+      leaderboard: playGames
+          ? PlayGamesLeaderboardService(LocalLeaderboardService(prefs))
+          : LocalLeaderboardService(prefs),
       ads: ads,
       purchases: purchases,
       notifications: notifications,
@@ -94,6 +97,23 @@ class Services {
     });
   }
 
+  /// Explicit "Sign in with Google Play Games" (settings). True when signed in afterwards.
+  Future<bool> connectPlayGames() async {
+    await identity.signIn();
+    return _syncAfterSignIn();
+  }
+
+  /// Pulls the cloud save and pushes the best score once a Play Games player is known.
+  Future<bool> _syncAfterSignIn() async {
+    if (!identity.isSignedIn) return false;
+    await profile.reload();
+    await leaderboard.submitScore(
+      config.playGames.leaderboardHighScore,
+      profile.data.bestScore,
+    );
+    return true;
+  }
+
   /// Initialises the slow, plugin-backed services after the first frame.
   Future<void> initPlugins() async {
     await Future.wait([
@@ -102,6 +122,8 @@ class Services {
       notifications.initialize(),
       remoteConfig.refresh(),
     ]);
+    await identity.refresh();
+    await _syncAfterSignIn();
   }
 }
 

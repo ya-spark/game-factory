@@ -48,7 +48,8 @@ retention:
   daily_challenges: true
   achievements: true
 
-# Google Play Games Services (v1: stubs that fall back to local storage).
+# Google Play Games Services: sign-in, leaderboard, cloud save. Off = local only.
+# Setup steps: game-factory docs/PLAY_GAMES_SETUP.md. IDs are public, not secrets.
 play_games:
   enabled: false
   app_id: PLACEHOLDER_PLAY_GAMES_APP_ID

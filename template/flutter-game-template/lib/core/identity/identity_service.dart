@@ -1,3 +1,4 @@
+import 'package:games_services/games_services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class PlayerIdentity {
@@ -20,6 +21,9 @@ abstract interface class IdentityService {
 
   /// True if this implementation is a placeholder for a real vendor integration.
   bool get isStub;
+
+  /// Silent check for an existing sign-in (app start). Never throws.
+  Future<void> refresh();
 
   Future<PlayerIdentity> signIn();
   Future<void> signOut();
@@ -45,29 +49,62 @@ class LocalIdentityService implements IdentityService {
   @override
   bool get isStub => false;
   @override
+  Future<void> refresh() async {}
+  @override
   Future<PlayerIdentity> signIn() async => current;
   @override
   Future<void> signOut() async {}
 }
 
-// ---------------------------------------------------------------------------
-// STUB: Google Play Games identity.
-// Not implemented in v1. Falls back to the local guest identity. To implement:
-// use a Play Games plugin (e.g. `games_services`) in this file only, keep the
-// IdentityService interface unchanged, and follow docs/PLAY_SETUP.md (Play Games Services).
-// ---------------------------------------------------------------------------
-class PlayGamesIdentityStub implements IdentityService {
-  PlayGamesIdentityStub(this._fallback);
+/// Google Play Games identity (`games_services`). Android signs the player in automatically at
+/// launch when possible; [signIn] retries explicitly (user tapped "Sign in"). Until a Play Games
+/// player is known the local guest identity is used, so the game always works offline.
+class PlayGamesIdentityService implements IdentityService {
+  PlayGamesIdentityService(this._fallback);
   final IdentityService _fallback;
 
+  PlayerIdentity? _player;
+
   @override
-  PlayerIdentity get current => _fallback.current;
+  PlayerIdentity get current => _player ?? _fallback.current;
   @override
-  bool get isSignedIn => false;
+  bool get isSignedIn => _player != null;
   @override
-  bool get isStub => true;
+  bool get isStub => false;
+
+  /// Silent check at startup; never throws.
   @override
-  Future<PlayerIdentity> signIn() => _fallback.signIn(); // STUB: no Play Games sign-in yet
+  Future<void> refresh() async {
+    try {
+      if (await GamesServices.isSignedIn) await _load();
+    } on Object {
+      _player = null;
+    }
+  }
+
   @override
-  Future<void> signOut() => _fallback.signOut();
+  Future<PlayerIdentity> signIn() async {
+    try {
+      await GamesServices.signIn();
+      if (await GamesServices.isSignedIn) await _load();
+    } on Object {
+      // Cancelled / offline / not configured: stay a guest.
+    }
+    return current;
+  }
+
+  Future<void> _load() async {
+    final id = await GamesServices.getPlayerID();
+    final name = await GamesServices.getPlayerName();
+    if (id == null) return;
+    _player = PlayerIdentity(
+      id: id,
+      displayName: name ?? 'Player',
+      isGuest: false,
+    );
+  }
+
+  /// Play Games has no in-app sign-out on Android (the player manages it in the Play Games app).
+  @override
+  Future<void> signOut() async {}
 }

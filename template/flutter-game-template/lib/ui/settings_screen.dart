@@ -56,15 +56,34 @@ class SettingsScreen extends StatelessWidget {
                 title: const Text('Ad privacy options'),
                 onTap: s.ads.showPrivacyOptions,
               ),
-            ListTile(
-              key: TestIds.settingsPlayGames,
-              title: const Text('Google Play Games'),
-              subtitle: Text(
-                s.identity.isStub
-                    ? 'Not connected yet (playing as ${s.identity.current.displayName})'
-                    : s.identity.current.displayName,
+            if (s.config.playGames.enabled)
+              ListTile(
+                key: TestIds.settingsPlayGames,
+                title: const Text('Google Play Games'),
+                subtitle: Text(
+                  s.identity.isSignedIn
+                      ? 'Signed in as ${s.identity.current.displayName}. Progress is saved to your account.'
+                      : 'Sign in to keep your score and progress',
+                ),
+                trailing: s.identity.isSignedIn
+                    ? const Icon(Icons.check_circle)
+                    : null,
+                onTap: s.identity.isSignedIn
+                    ? null
+                    : () async {
+                        final messenger = ScaffoldMessenger.of(context);
+                        final ok = await s.connectPlayGames();
+                        if (!ok) {
+                          messenger.showSnackBar(
+                            const SnackBar(
+                              content: Text(
+                                'Could not sign in. Try again later.',
+                              ),
+                            ),
+                          );
+                        }
+                      },
               ),
-            ),
             ListTile(
               title: Text(s.config.displayName),
               subtitle: Text(

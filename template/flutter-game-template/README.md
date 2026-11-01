@@ -32,8 +32,13 @@ flutter run                                   # debug: TEST ads only
 See the factory repo's `CLAUDE.md`. In short: interfaces only (no vendor SDK in game/UI code),
 test IDs on every interactive widget, test AdMob IDs in debug, no secrets in the repo.
 
+## Play Games
+
+Sign-in, saved games and the high-score leaderboard use `games_services` when
+`play_games.enabled` is true in `app.config.yaml` (`PlayGamesIdentityService`,
+`PlayGamesCloudSave`, `PlayGamesLeaderboardService`); otherwise everything is local. Setup:
+`docs/PLAY_GAMES_SETUP.md` in the factory.
+
 ## Stubs
 
-Play Games sign-in, saved games, achievements and leaderboards are **stubs** that fall back to
-local storage (`PlayGamesIdentityStub`, `PlayGamesCloudSaveStub`, `PlayGamesLeaderboardStub`).
 Analytics and remote config are no-ops.

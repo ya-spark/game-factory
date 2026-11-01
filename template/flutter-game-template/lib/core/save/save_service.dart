@@ -10,11 +10,20 @@ abstract interface class SaveService {
   Future<void> save(SaveData data);
 }
 
-/// Optional cloud backend (Play Games saved games in v1 stub form).
+/// Optional cloud backend (Play Games saved games, see `play_games_save.dart`).
 abstract interface class CloudSaveBackend {
   /// Raw JSON of the cloud save, or null if none / unavailable.
   Future<String?> read();
   Future<void> write(String json);
+}
+
+/// Used when Play Games is disabled in `app.config.yaml`: no cloud, local storage only.
+class NoCloudSave implements CloudSaveBackend {
+  const NoCloudSave();
+  @override
+  Future<String?> read() async => null;
+  @override
+  Future<void> write(String json) async {}
 }
 
 /// Local storage with versioned JSON. A corrupt primary slot falls back to the backup slot.
@@ -50,7 +59,7 @@ class LocalSaveService implements SaveService {
 }
 
 /// Local-first save with optional cloud mirroring. The newer `savedAtMs` wins on load.
-/// With the v1 stub backend (always empty) this behaves exactly like [LocalSaveService].
+/// With [NoCloudSave] (always empty) this behaves exactly like [LocalSaveService].
 class SyncingSaveService implements SaveService {
   SyncingSaveService(this._local, this._cloud, {DateTime Function()? now})
     : _now = now ?? DateTime.now;

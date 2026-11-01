@@ -105,7 +105,8 @@ void main() {
     await tester.tap(find.byKey(TestIds.settingsSound));
     await tester.pumpAndSettle();
     expect(s.profile.data.soundOn, isFalse);
-    expect(find.byKey(TestIds.settingsPlayGames), findsOneWidget);
+    // Play Games is off in the template config, so its row is hidden.
+    expect(find.byKey(TestIds.settingsPlayGames), findsNothing);
   });
 
   testWidgets('game: dragging a tray piece onto the board places it', (

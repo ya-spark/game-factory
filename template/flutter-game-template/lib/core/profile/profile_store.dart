@@ -51,6 +51,12 @@ class ProfileStore extends ChangeNotifier {
     await _tick();
   }
 
+  /// Re-reads the save (local vs cloud, newer wins). Call after the player signs in to Play Games.
+  Future<void> reload() async {
+    _data = await _saves.load();
+    await _tick();
+  }
+
   /// Call on app start and on resume: refreshes the day, streak and today's challenges.
   Future<void> onAppOpened() => _tick();
 
