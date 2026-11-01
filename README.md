@@ -10,7 +10,7 @@ build, test and publish Android games to Google Play (AdMob ads + Play Billing).
 | `docs/PLAY_SETUP.md` | Manual (human-only) Google Play / AdMob setup checklist. |
 | `scripts/` | Factory scripts (placeholder). |
 | `.claude/agents/`, `.claude/skills/` | Subagent and skill definitions (placeholders). |
-| `.github/workflows/template-ci.yml` | Verifies the template itself on every PR. |
+| `.github/workflows/template-ci.yml` | Verifies the template itself on every push and PR. |
 
 Agents: read `CLAUDE.md` first.
 

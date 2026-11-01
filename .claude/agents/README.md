@@ -11,8 +11,8 @@ tracked in `registry/games/<id>.json` with `scripts/pipeline.py`.
 | Stage | Agent | Gate |
 |-------|-------|------|
 | 1 spec | [spec-agent](new-game/spec-agent.md) | user approves SPEC.md |
-| 2 repo | [repo-agent](new-game/repo-agent.md) | first PR merged, CI green (user creates the empty repo) |
-| 3 coder | [coder-agent](new-game/coder-agent.md) | features merged, CI green |
+| 2 repo | [repo-agent](new-game/repo-agent.md) | first commit on `main`, CI green (user creates the empty repo) |
+| 3 coder | [coder-agent](new-game/coder-agent.md) | features on `main`, CI green |
 | 4 asset | [asset-agent](new-game/asset-agent.md) | LICENSES.md complete |
 | 5 test | [test-agent](new-game/test-agent.md) | tests green |
 | 6 build | [build-agent](new-game/build-agent.md) | signed .aab (needs secrets) |

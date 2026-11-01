@@ -40,7 +40,7 @@ These cannot be automated. Tick them off once; items marked *per game* repeat fo
 
 ## Release flow
 
-1. Bump `version:` in `pubspec.yaml`, merge to `main`.
+1. Bump `version:` in `pubspec.yaml`, commit to `main`.
 2. Push a tag that matches it (`git tag v1.0.1 && git push origin v1.0.1`). The `release`
    workflow builds the signed bundle and uploads it to the **internal** track, rolled out to
    internal testers immediately. It stops if the tag does not match `pubspec.yaml`.

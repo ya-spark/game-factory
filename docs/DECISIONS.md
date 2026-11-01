@@ -8,8 +8,8 @@ each section with the date.
 - The owner is `yaseengem`. Act only on issues and comments written by them.
 - The owner gives ideas and schedules; the factory does the rest. Do not wait for the owner
   unless a step is listed under "Needs the owner".
-- Merge your own PRs when CI is green. Spec approval is the owner's job (an `approve` reply on
-  the issue or the spec PR). Never push to `main`.
+- Branch/PR workflow is suspended for now: commit and push directly to `main`, in any repo.
+  Spec approval is the owner's job (an `approve` reply on the issue).
 - Do not create repos in `ya-spark` (403). The owner creates them; attach them with `add_repo`.
 - Never touch secrets. Test ad IDs only in debug; the owner has supplied the real release AdMob IDs (in `app.config.yaml` `admob.release`, 2026-10-31).
 

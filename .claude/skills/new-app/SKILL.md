@@ -18,7 +18,7 @@ session, and the hourly factory-runner, can resume it.
 2. Derive: `id` (snake_case), repo `ya-spark/game-<id-kebab>`, package `com.activemindcraft.<idwithoutunderscores>`,
    seed color. Check the package id is not already a Play listing (store URL) when you can.
 3. Start tracking: `python3 scripts/pipeline.py init <id> --repo ya-spark/game-<kebab> --package <pkg>`
-   (on a branch + PR to game-factory; merge when CI is green).
+   (commit directly to `main` of game-factory).
 
 ## 2. Run the stages in order
 Use `python3 scripts/pipeline.py next --json` to learn the next (game, stage, agent). Start that
@@ -28,8 +28,8 @@ final message and confirm the stage status with `pipeline.py status <id>`. Then 
 | Stage | Agent | You must stop for |
 |-------|-------|-------------------|
 | spec | spec-agent | the user's approval of `docs/SPEC.md` (then set `done`) |
-| repo | repo-agent | the user creating the empty private repo (GitHub gives us a 403) and turning on auto-merge + a branch rule |
-| coder | coder-agent | nothing; CI green per PR |
+| repo | repo-agent | the user creating the empty private repo (GitHub gives us a 403) and (no branch rule or auto-merge needed while the PR workflow is suspended) |
+| coder | coder-agent | nothing; CI green per push |
 | asset | asset-agent | nothing; license check green |
 | test | test-agent | nothing; CI green |
 | build | build-agent | the five release secrets + real AdMob IDs (blocked until the user sets them) |
@@ -40,12 +40,12 @@ final message and confirm the stage status with `pipeline.py status <id>`. Then 
 ## 3. Rules
 - One subagent at a time per repo (the git proxy allows two concurrent operations per repo).
 - A failed gate goes back to the agent that owns the cause, not forward.
-- Claude merges its own PRs when CI is green. The user approves: the spec, production promotion,
+- Branch/PR workflow is suspended: Claude commits directly to `main` and checks CI is green. The user approves: the spec, production promotion,
   monetization changes, and anything involving accounts, money or secrets.
 - Never publish, enable real ads or purchases, spend money, or touch secrets without the user.
 - If a stage is `blocked`, tell the user exactly the note's text and stop; the hourly runner resumes
   when the status changes.
-- Report briefly after each stage: what changed, PR link, status, what is next.
+- Report briefly after each stage: what changed, commit link, status, what is next.
 
 ## 4. Starting from a GitHub issue (the inbox)
 Work can also start from an issue in `ya-spark/game-factory` (forms in `.github/ISSUE_TEMPLATE/`,
@@ -60,25 +60,25 @@ described in `docs/INBOX.md`). The hourly runner does this without the user pres
   essential is missing (name, genre, key features), post ONE comment (marker `questions`) with at
   most four questions and stop; continue when the owner has replied after it. Otherwise list your
   assumptions in a comment and go on. Run section 1 step 2 and 3 with `--issue <N>`.
-- **Approval:** after spec-agent opens the spec PR, comment the link (marker `spec-ready`) and
+- **Approval:** after spec-agent pushes the spec, comment the link (marker `spec-ready`) and
   set spec `awaiting_approval`. On a later run, if the newest owner comment after it says approve
-  (`approve`, `approved`, `looks good`, thumbs-up), merge the PR and set spec `done`. Any other
+  (`approve`, `approved`, `looks good`, thumbs-up), set spec `done`. Any other
   owner reply is a change request for the spec: have spec-agent revise it and comment again.
 - **Repo stage:** do not wait for a "created" reply. Try `add_repo` for `ya-spark/game-<kebab>`; if
   it succeeds, continue. If it fails, set the stage `blocked` and comment once (marker
   `blocked-repo`) asking for the empty private repo.
 - **Progress:** after each finished stage post one short comment (marker `stage-done:<stage>`) with
-  the PR link. When a stage becomes `blocked` on the user, say exactly what is needed once.
+  the commit link. When a stage becomes `blocked` on the user, say exactly what is needed once.
 - **Finish:** close the issue when the game reaches `build` (blocked on secrets) or `monitor`, with a
   comment summarising what exists and what the owner must do.
 - **Change requests:** parse the target game (or "factory") and the change. For a game: update
-  `registry/specs/<id>.md` and the game's `docs/SPEC.md` if rules change, then the code, via PRs in
-  the game repo; merge on green; comment and close. For "factory": a PR in game-factory.
+  `registry/specs/<id>.md` and the game's `docs/SPEC.md` if rules change, then the code, directly on `main` in
+  the game repo; check CI is green; comment and close. For "factory": commit to game-factory `main`.
 - **Auto-release to internal testing (game changes, owner-standing decision):** when the change is
-  merged and nothing is needed from the owner, finish the job without asking: (1) in the same PR
-  or a follow-up PR raise the `version:` build number (and patch version for a user-visible
-  change) in `pubspec.yaml`, merged on green; (2) push the matching tag (`vX.Y.Z`) from the
-  merged `main` commit, which makes `release.yml` build the signed bundle and upload it to the
+  pushed to `main` and nothing is needed from the owner, finish the job without asking: (1) in the same commit
+  or a follow-up commit raise the `version:` build number (and patch version for a user-visible
+  change) in `pubspec.yaml`, with CI green; (2) push the matching tag (`vX.Y.Z`) from the
+  `main` commit, which makes `release.yml` build the signed bundle and upload it to the
   **internal** track; (3) if the tag push is refused, run `release.yml` from `main` with
   `track=internal` and `upload=true` instead (that leaves a draft, so say so in the comment);
   (4) watch the run and comment the result (marker `released-internal`) and then close the issue.

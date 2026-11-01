@@ -39,27 +39,27 @@ The hard rules stay in `CLAUDE.md`; owner decisions are in `docs/DECISIONS.md`.
 - **Assets:** every asset is listed in `assets/LICENSES.md` (source, license). Prefer assets
   drawn or synthesised in code.
 
-## Git, PRs and CI
-- **Branch + PR, always.** Never push to `main`. Merge your own PR when CI is green.
-- **Wait for the full CI run.** The debug APK build (about 10 to 12 minutes) is the slow job;
-  the analyze/test job is about 2. Do not merge on the fast job alone.
-- **Small PRs per feature or per stage.** The coder stage ships in chunks (rules, view and UI,
-  wiring and retention). Stacked PRs: after a squash-merge, merge `main` into the next branch and
-  verify the tree and tests before pushing.
+## Git and CI
+- **Commit directly to `main`.** The branch/PR workflow is suspended for now. Run the fast checks
+  locally before pushing.
+- **Check the full CI run after pushing.** The debug APK build (about 10 to 12 minutes) is the
+  slow job; the analyze/test job is about 2. Do not call a change done on the fast job alone.
+- **Small commits per feature or per stage.** The coder stage ships in chunks (rules, view and
+  UI, wiring and retention); verify the tree and tests before each push.
 - **Never `git add -A` in `game-studio`.** Submodule folders are empty; move pins with
   `git update-index --add --cacheinfo 160000,<sha>,<path>`.
 - **Do not commit generated noise** (`__pycache__`, build output). The root and template
   `.gitignore` cover it.
 - **Pin Flutter** in workflows (`.flutter-version`); never float `stable`.
-- **Cancelled CI needs a re-run** before you can merge.
+- **Cancelled CI needs a re-run** before you call the change done.
 
 ## Working with the pipeline
 - **State lives in `registry/games/<id>.json`.** Read and change it only with
-  `scripts/pipeline.py`, through a branch + PR like any other change.
-- **One stage agent at a time per repo.** Parallel work on the same repo causes duplicate
-  branches and conflicts; the hourly routine and an interactive session can overlap, so check
-  `pipeline.py status` and open PRs before starting a stage.
-- **Check before you create.** Look for an existing branch, PR or comment marker first.
+  `scripts/pipeline.py`, with a direct commit to `main` like any other change.
+- **One stage agent at a time per repo.** Parallel work on the same repo causes conflicting
+  pushes to `main`; the hourly routine and an interactive session can overlap, so check
+  `pipeline.py status` and recent commits on `main` before starting a stage.
+- **Check before you create.** Look for an existing commit, issue comment marker or open change first.
   Issue comments carry hidden markers (`<!-- factory:... -->`) so nothing is posted twice.
 - **Block with a clear note.** When a step needs the owner, set it `blocked` and say exactly
   what is needed.
