@@ -50,12 +50,17 @@ class StatChip extends StatelessWidget {
       children: [
         Icon(icon, size: 22, color: color ?? KidColors.grape),
         const SizedBox(width: 6),
-        Text(
-          label,
-          style: const TextStyle(
-            fontSize: 16,
-            fontWeight: FontWeight.w800,
-            color: KidColors.ink,
+        Flexible(
+          child: FittedBox(
+            fit: BoxFit.scaleDown,
+            child: Text(
+              label,
+              style: const TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.w800,
+                color: KidColors.ink,
+              ),
+            ),
           ),
         ),
       ],
@@ -213,5 +218,41 @@ class _BadgeDot extends StatelessWidget {
           ),
         ),
     ],
+  );
+}
+
+/// White rounded card that groups a row on the colorful menu screens.
+class KidPanel extends StatelessWidget {
+  const KidPanel({super.key, required this.child});
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) => Container(
+    margin: const EdgeInsets.symmetric(vertical: 6),
+    decoration: BoxDecoration(
+      color: const Color(0xF2FFFFFF),
+      borderRadius: BorderRadius.circular(22),
+      boxShadow: const [
+        BoxShadow(
+          color: Color(0x22000000),
+          blurRadius: 6,
+          offset: Offset(0, 3),
+        ),
+      ],
+    ),
+    clipBehavior: Clip.antiAlias,
+    child: Material(type: MaterialType.transparency, child: child),
+  );
+}
+
+/// Colorful full-page background with safe-area padding for the menu screens.
+class KidPage extends StatelessWidget {
+  const KidPage({super.key, required this.child});
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) => DecoratedBox(
+    decoration: KidColors.background,
+    child: SafeArea(child: child),
   );
 }
