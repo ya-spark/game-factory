@@ -54,6 +54,11 @@ android {
         targetCompatibility = JavaVersion.VERSION_17
     }
 
+    buildFeatures {
+        // AGP 8+ disables resValue() by default; defaultConfig sets game_services_project_id.
+        resValues = true
+    }
+
     defaultConfig {
         applicationId = configValue("app", "package_name")
         // google_mobile_ads requires minSdk 23+; Flutter's default is already >= 24.
