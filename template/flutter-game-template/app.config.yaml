@@ -40,6 +40,9 @@ ads:
   max_interstitials_per_session: 6
   no_interstitial_first_seconds: 60
   banner_enabled: true
+  # Child-directed ad treatment (COPPA / under-age-of-consent) and max ad content rating (G, PG, T, MA).
+  child_directed: true
+  max_ad_content_rating: G
 
 # Retention features, all ON by default.
 retention:

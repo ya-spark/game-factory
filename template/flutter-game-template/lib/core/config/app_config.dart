@@ -42,6 +42,8 @@ class AdPacingConfig {
     this.maxInterstitialsPerSession = 6,
     this.noInterstitialFirstSeconds = 60,
     this.bannerEnabled = true,
+    this.childDirected = true,
+    this.maxAdContentRating = 'G',
   });
 
   final int interstitialMinIntervalSeconds;
@@ -49,6 +51,12 @@ class AdPacingConfig {
   final int maxInterstitialsPerSession;
   final int noInterstitialFirstSeconds;
   final bool bannerEnabled;
+
+  /// Child-directed ads (COPPA / under-age-of-consent): no personalised ads.
+  final bool childDirected;
+
+  /// AdMob max ad content rating: G, PG, T or MA.
+  final String maxAdContentRating;
 }
 
 class RetentionConfig {
@@ -163,6 +171,8 @@ class AppConfig {
         noInterstitialFirstSeconds:
             ads['no_interstitial_first_seconds'] as int? ?? 60,
         bannerEnabled: ads['banner_enabled'] as bool? ?? true,
+        childDirected: ads['child_directed'] as bool? ?? true,
+        maxAdContentRating: ads['max_ad_content_rating'] as String? ?? 'G',
       ),
       retention: RetentionConfig(
         dailyReward: ret['daily_reward'] as bool? ?? true,

@@ -60,6 +60,7 @@ class AdMobAdService implements AdService {
       debugPrint('AdMob: real ad IDs are still placeholders; ads disabled.');
       return;
     }
+    await _applyRequestConfiguration();
     await _gatherConsent();
     if (!_canRequest) return;
     await MobileAds.instance.initialize();
@@ -68,11 +69,30 @@ class AdMobAdService implements AdService {
     _loadRewarded();
   }
 
+  /// Child-directed treatment and content rating, from app.config.yaml `ads:`.
+  Future<void> _applyRequestConfiguration() {
+    final child = pacing.childDirected;
+    final rating = switch (pacing.maxAdContentRating.toUpperCase()) {
+      'PG' => MaxAdContentRating.pg,
+      'T' => MaxAdContentRating.t,
+      'MA' => MaxAdContentRating.ma,
+      _ => MaxAdContentRating.g,
+    };
+    return MobileAds.instance.updateRequestConfiguration(
+      RequestConfiguration(
+        ageRestrictedTreatment: child
+            ? AgeRestrictedTreatment.child
+            : AgeRestrictedTreatment.unspecified,
+        maxAdContentRating: rating,
+      ),
+    );
+  }
+
   /// UMP consent (GDPR/EEA/UK). Shows the form only when required.
   Future<void> _gatherConsent() async {
     final done = Completer<void>();
     ConsentInformation.instance.requestConsentInfoUpdate(
-      ConsentRequestParameters(),
+      ConsentRequestParameters(tagForUnderAgeOfConsent: pacing.childDirected),
       () async {
         await ConsentForm.loadAndShowConsentFormIfRequired((_) {});
         _canRequest = await ConsentInformation.instance.canRequestAds();
