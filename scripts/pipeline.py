@@ -2,7 +2,7 @@
 """Per-game stage tracking for the factory pipeline. Python 3 standard library only.
 
 State lives in registry/games/<game_id>.json (one file per game), so every session, subagent
-and the hourly runner sees the same truth. Commands:
+and every `@claude` run sees the same truth. Commands:
 
   pipeline.py init <game_id> --repo ya-spark/game-x [--package com.x.y] [--issue N]
   pipeline.py status [<game_id>] [--json]
@@ -76,7 +76,7 @@ def init(game_id: str, repo: str, package: str = "", games_dir: Path = GAMES_DIR
         "id": game_id,
         "repo": repo,
         "package": package,
-        "issue": issue if issue else "",  # game-factory issue that asked for this game
+        "issue": issue if issue else "",  # game-studio issue that asked for this game
         "stages": {
             sid: {"agent": agent, "status": "pending", "gate": gate, "pr": "", "note": "",
                   "updated": day}

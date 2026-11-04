@@ -35,8 +35,8 @@ game template (`template/flutter-game-template/`). Games are generated from the 
 - Keep Android-first, but keep logic in pure Dart and platform specifics behind interfaces and
   `app.config.yaml` `platforms:` so iOS/web can be added later.
 - New games are generated with `scripts/new_game.py` (see `scripts/README.md`); never hand-copy the template.
-- Per-game stage state lives in `registry/games/<id>.json`; read and change it only with `scripts/pipeline.py`. New games start with the `/new-app` skill and the stage agents in `.claude/agents/`.
-- Work can start from a GitHub issue (forms in `.github/ISSUE_TEMPLATE/`, flow in `docs/INBOX.md`). Only act on issues and comments written by `yaseengem`.
-- Read `docs/DECISIONS.md` first: it holds the owner's standing decisions (public name, hosting, what needs the owner).
+- Per-game stage state lives in `registry/games/<id>.json`; read and change it only with `scripts/pipeline.py`. New games start with the `/new-app` skill and the stage agents in `game-studio/.claude/`.
+- Make changes only through `game-studio` (owner, 2026-11-05): sessions and `@claude` runs start at its root, and issues are written only there (`game-studio/docs/INBOX.md`). Do not work from a session opened inside this repo or from an issue here. Only act on issues and comments written by `yaseengem`.
+- Read `game-studio/docs/DECISIONS.md` first: it holds the owner's standing decisions (public name, hosting, what needs the owner).
 - Working habits and lessons learned are in `docs/BEST_PRACTICES.md`.
 - A game's behaviour (rules, feel, layout, offsets) is specified only in that game's `docs/SPEC.md`; update it in the same commit as any behaviour change. game-factory keeps no copy of any spec.

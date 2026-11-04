@@ -1,7 +1,7 @@
 # Best practices
 
 Lessons from building the factory and the first games. Short rules, each with the reason.
-The hard rules stay in `CLAUDE.md`; owner decisions are in `docs/DECISIONS.md`.
+The hard rules stay in `CLAUDE.md`; owner decisions are in `game-studio/docs/DECISIONS.md`.
 
 ## Architecture
 - **Services behind interfaces.** Game and UI code depend on `lib/core/` interfaces only; vendor
@@ -57,7 +57,7 @@ The hard rules stay in `CLAUDE.md`; owner decisions are in `docs/DECISIONS.md`.
 - **State lives in `registry/games/<id>.json`.** Read and change it only with
   `scripts/pipeline.py`, with a direct commit to `main` like any other change.
 - **One stage agent at a time per repo.** Parallel work on the same repo causes conflicting
-  pushes to `main`; the hourly routine and an interactive session can overlap, so check
+  pushes to `main`; an `@claude` run and an interactive session can overlap, so check
   `pipeline.py status` and recent commits on `main` before starting a stage.
 - **Check before you create.** Look for an existing commit, issue comment marker or open change first.
   Issue comments carry hidden markers (`<!-- factory:... -->`) so nothing is posted twice.
@@ -73,14 +73,14 @@ The hard rules stay in `CLAUDE.md`; owner decisions are in `docs/DECISIONS.md`.
 - Never publish to Google Play, enable real ads or purchases, or spend money without the owner
   asking in a conversation.
 - Do not put personal names, usernames or private addresses in public content. Use the studio
-  name from `docs/DECISIONS.md`.
+  name from `game-studio/docs/DECISIONS.md`.
 
 ## Writing and docs
 - Specs: `docs/SPEC.md` in the game repo is the only copy and the single source of truth for behaviour
   (rules, feel, layout, offsets). Keep its status line current and update it in the same commit as any
   behaviour change. Nothing is mirrored in game-factory.
 - Keep README and SPEC implementation status in step with merged work.
-- Update `docs/DECISIONS.md` when the owner decides something in conversation.
+- Update `game-studio/docs/DECISIONS.md` when the owner decides something in conversation.
 
 ## Versioning (always in sync)
 - `pubspec.yaml` `version:` is `x.y.z` only. The `+N` build number is not used: releases override it.

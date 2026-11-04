@@ -1,4 +1,5 @@
-# Work queue for the hourly factory-runner (a scheduled Claude task).
+# Historical work queue of the hourly factory-runner, which is disabled (owner, 2026-11-05). Work now
+# starts from `@claude` in a game-studio issue (see game-studio/docs/INBOX.md); this file is a record.
 # Each run: read this file, do the FIRST step whose status is `pending` (or finish an
 # `in_progress` one), update its status in a PR to game-factory, merge that PR when CI is green.
 # Statuses: pending | in_progress | done | blocked (blocked needs a human; say why in `note`).
