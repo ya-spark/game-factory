@@ -12,7 +12,7 @@ Claude's hourly factory-runner (or a live session) picks it up and runs the whol
 | You | Claude |
 |-----|--------|
 | Open a new-game issue | Asks at most four questions in a comment if something essential is missing; otherwise states its assumptions. Starts tracking (`registry/games/<id>.json`, with the issue number). |
-| Reply to the questions | Writes the spec (`registry/specs/<id>.md`) and pushes it to `main`, then comments the link. |
+| Reply to the questions | Writes the spec and posts it in the issue (no game repo exists yet; the repo stage commits it as `docs/SPEC.md` in the game repo's first commit). |
 | Reply `approve` (or what to change) | Marks the spec done, or revises it. Then: repo, code, assets, tests, listing, each pushed to `main` with CI green. One short comment per finished stage. |
 | Create the empty repo `ya-spark/game-<id>` when asked | Detects the repo itself and continues. |
 | Set secrets / do the Play and AdMob steps when asked | Continues from `blocked` once the requirement exists. |

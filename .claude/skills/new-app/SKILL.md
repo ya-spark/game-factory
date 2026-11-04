@@ -72,7 +72,7 @@ described in `docs/INBOX.md`). The hourly runner does this without the user pres
 - **Finish:** close the issue when the game reaches `build` (blocked on secrets) or `monitor`, with a
   comment summarising what exists and what the owner must do.
 - **Change requests:** parse the target game (or "factory") and the change. For a game: update
-  `registry/specs/<id>.md` and the game's `docs/SPEC.md` if rules change, then the code, directly on `main` in
+  the game's `docs/SPEC.md` if rules or behaviour change, then the code, directly on `main` in
   the game repo; check CI is green; comment and close. For "factory": commit to game-factory `main`.
 - **Auto-release to internal testing (game changes, owner-standing decision):** when the change is
   pushed to `main` and nothing is needed from the owner, finish the job without asking: (1) in the same commit

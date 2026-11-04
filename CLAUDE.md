@@ -39,3 +39,4 @@ game template (`template/flutter-game-template/`). Games are generated from the 
 - Work can start from a GitHub issue (forms in `.github/ISSUE_TEMPLATE/`, flow in `docs/INBOX.md`). Only act on issues and comments written by `yaseengem`.
 - Read `docs/DECISIONS.md` first: it holds the owner's standing decisions (public name, hosting, what needs the owner).
 - Working habits and lessons learned are in `docs/BEST_PRACTICES.md`.
+- A game's behaviour (rules, feel, layout, offsets) is specified only in that game's `docs/SPEC.md`; update it in the same commit as any behaviour change. game-factory keeps no copy of any spec.

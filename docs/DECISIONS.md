@@ -57,3 +57,4 @@ each section with the date.
   needs a re-run before merging.
 - Stop-hook warnings about "unpushed commits and no remote branch" on freshly cloned repos are
   usually false alarms: check `git ls-remote --heads origin`, then set the upstream.
+- Specs live only in each game repo's `docs/SPEC.md`, never mirrored in game-factory; behaviour instructions are recorded there with exact values (owner, 2026-11-05).

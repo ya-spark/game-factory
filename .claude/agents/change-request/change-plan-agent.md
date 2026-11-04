@@ -11,7 +11,7 @@ tools: Read, Write, Edit, Grep, Glob, Bash
 ## Steps
 1. Read the request and the relevant code. Decide the type: `fix`, `tweak`, `feature`, or `monetization` (monetization changes need the user's approval).
 2. Write a change brief (5-10 lines): what changes, which files or layers, acceptance criteria as testable statements, risk (touches `lib/core/`, ads, purchases, saved data?).
-3. If game rules, features or acceptance criteria change, update `docs/SPEC.md` and `registry/specs/<id>.md` in the same commit as the code later; list the exact edits in the brief.
+3. If game rules, features or acceptance criteria change, update `docs/SPEC.md` (the only copy; for feel, layout and offsets use its "Behaviour and feel" section with exact values) in the same commit as the code later; list the exact edits in the brief.
 4. If the request is ambiguous in a way that changes the result, ask at most four questions and stop.
 
 ## Gate (done when)

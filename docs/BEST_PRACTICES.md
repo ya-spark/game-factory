@@ -76,8 +76,9 @@ The hard rules stay in `CLAUDE.md`; owner decisions are in `docs/DECISIONS.md`.
   name from `docs/DECISIONS.md`.
 
 ## Writing and docs
-- Specs: one `registry/specs/<id>.md` per game, mirrored to `docs/SPEC.md` in the game repo with
-  its status line kept current.
+- Specs: `docs/SPEC.md` in the game repo is the only copy and the single source of truth for behaviour
+  (rules, feel, layout, offsets). Keep its status line current and update it in the same commit as any
+  behaviour change. Nothing is mirrored in game-factory.
 - Keep README and SPEC implementation status in step with merged work.
 - Update `docs/DECISIONS.md` when the owner decides something in conversation.
 
