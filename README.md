@@ -4,6 +4,8 @@ Factory scripts, registry and the Flutter + Flame game template used to build, t
 Android games to Google Play (AdMob ads + Play Billing). It is a submodule of `game-studio`: the
 skills, agents, issue inbox and decisions live there, and all work starts from there.
 
+The factory is changed only through `game-studio`.
+
 | Path | Purpose |
 |------|---------|
 | `template/flutter-game-template/` | The game template. Game repos are generated from this. |
