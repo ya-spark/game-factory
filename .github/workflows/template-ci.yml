@@ -94,18 +94,25 @@ jobs:
       - name: Assets license check
         working-directory: ${{ runner.temp }}/sample_game
         run: bash scripts/check_asset_licenses.sh
-      - name: Debug APK builds
-        working-directory: ${{ runner.temp }}/sample_game
-        # The runner downloads the Android NDK on every run and that download is sometimes cut
-        # short ("Error reading Zip content"). Retry so a flaky download does not fail CI; a real
-        # build error still fails after the last attempt.
+      # The runner downloads the Android NDK on every run and that download is sometimes cut short
+      # ("Error reading Zip content"). Install the NDK Flutter asks for in its own step and retry
+      # only that, so Gradle finds it and a real build error is not retried.
+      - name: Install the Android NDK (retried)
+        shell: bash
         run: |
+          ndk=$(grep -oP 'val ndkVersion: String = "\K[^"]+' \
+            "$FLUTTER_ROOT/packages/flutter_tools/gradle/src/main/kotlin/FlutterExtension.kt")
+          [ -n "$ndk" ] || { echo "::error::could not read the NDK version from Flutter"; exit 1; }
+          echo "NDK $ndk"
           for attempt in 1 2 3; do
-            flutter build apk --debug && exit 0
-            echo "::warning title=Debug build failed::attempt ${attempt} of 3 failed"
+            "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" "ndk;$ndk" && exit 0
+            echo "::warning title=NDK install failed::attempt ${attempt} of 3 failed"
             sleep 15
           done
           exit 1
+      - name: Debug APK builds
+        working-directory: ${{ runner.temp }}/sample_game
+        run: flutter build apk --debug
 
   # Optional, manual only (workflow_dispatch). Runs the template's integration_test bot on an
   # Android emulator. Non-blocking: needs KVM on the hosted runner.
