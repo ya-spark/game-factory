@@ -96,7 +96,16 @@ jobs:
         run: bash scripts/check_asset_licenses.sh
       - name: Debug APK builds
         working-directory: ${{ runner.temp }}/sample_game
-        run: flutter build apk --debug
+        # The runner downloads the Android NDK on every run and that download is sometimes cut
+        # short ("Error reading Zip content"). Retry so a flaky download does not fail CI; a real
+        # build error still fails after the last attempt.
+        run: |
+          for attempt in 1 2 3; do
+            flutter build apk --debug && exit 0
+            echo "::warning title=Debug build failed::attempt ${attempt} of 3 failed"
+            sleep 15
+          done
+          exit 1
 
   # Optional, manual only (workflow_dispatch). Runs the template's integration_test bot on an
   # Android emulator. Non-blocking: needs KVM on the hosted runner.
