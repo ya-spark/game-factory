@@ -88,6 +88,18 @@ class GenerateTest(unittest.TestCase):
         )
         self.assertIn("package:my_game/", dart)
 
+    def test_features_and_docs_are_carried(self):
+        out = self.tmp / "game"
+        self.gen(out)
+        self.assertTrue((out / "lib/ui/game_over_panel.dart").is_file())
+        self.assertTrue((out / "lib/core/purchase/parent_gate_guard.dart").is_file())
+        self.assertIn("coins_4000", (out / "products.yaml").read_text())
+        self.assertIn("# My Game: game spec\n", (out / "docs/SPEC.md").read_text())
+        new_game.check_features(out)
+        (out / "lib/ui/parent_gate.dart").unlink()
+        with self.assertRaises(new_game.GenError):
+            new_game.check_features(out)
+
     def test_no_leftovers_or_artifacts(self):
         out = self.tmp / "game"
         self.gen(out)

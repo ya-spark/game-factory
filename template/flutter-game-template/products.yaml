@@ -1,13 +1,24 @@
 # In-app products. IDs must match the products created in Play Console.
 # `type`: non_consumable | consumable. Consumables grant `coins`.
+# The old id `remove_ads` is retired in Play; a saved entitlement still counts (see ProductDef.legacyRemoveAdsId).
 products:
-  - id: remove_ads
+  - id: remove_ads_all
     type: non_consumable
     title: Remove Ads
-    description: Removes banner and interstitial ads. Rewarded ads stay optional.
-    grants: remove_ads
+    description: Removes all ads.
+    grants: remove_ads_all
   - id: coins_500
     type: consumable
     title: Coin Pack
-    description: 500 coins.
+    description: 500 coins. Use coins to continue after a game over.
     coins: 500
+  - id: coins_1500
+    type: consumable
+    title: Big Coin Pack
+    description: 1500 coins. Use coins to continue after a game over.
+    coins: 1500
+  - id: coins_4000
+    type: consumable
+    title: Coin Chest
+    description: 4000 coins. Use coins to continue after a game over.
+    coins: 4000

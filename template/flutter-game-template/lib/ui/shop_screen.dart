@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../core/config/products.dart';
 import '../core/services.dart';
+import 'parent_gate.dart';
 import 'test_ids.dart';
 import 'widgets.dart';
 
@@ -38,19 +39,29 @@ class ShopScreen extends StatelessWidget {
                 child: Text('Store unavailable right now.'),
               );
             }
+            // Remove Ads first, then the coin packs in ascending size.
+            final sorted = [...products]
+              ..sort((a, b) {
+                final ra = a.def.coins > 0 ? 1 : 0;
+                final rb = b.def.coins > 0 ? 1 : 0;
+                return ra != rb ? ra - rb : a.def.coins.compareTo(b.def.coins);
+              });
             return ListView(
               padding: const EdgeInsets.fromLTRB(16, 16, 16, 32),
               children: [
-                for (final p in products)
+                for (final p in sorted)
                   KidPanel(
                     child: ListTile(
+                      leading: p.def.coins > 0
+                          ? const CoinIcon(size: 32)
+                          : null,
                       title: Text(p.def.title),
                       subtitle: Text(p.def.description),
                       trailing: _owned(s, p.def)
                           ? const Chip(label: Text('Owned'))
                           : FilledButton(
                               key: TestIds.shopBuy(p.def.id),
-                              onPressed: () => s.purchases.buy(p.def.id),
+                              onPressed: () => _buy(context, s, p.def.id),
                               child: Text(p.price),
                             ),
                     ),
@@ -61,6 +72,13 @@ class ShopScreen extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  /// Real-money purchases always go through the parent gate first.
+  Future<void> _buy(BuildContext context, Services s, String id) async {
+    if (await showParentGate(context, s.parentGate)) {
+      await s.purchases.buy(id);
+    }
   }
 
   bool _owned(Services s, ProductDef d) =>

@@ -68,6 +68,17 @@ Each product takes two rows: row 1 has the id, language, name, description and t
 `available`, `digitalContent`). Add one row per extra country (region plus `CUR amount`) or language.
 Add other countries after the import with the Console's price conversion if no local prices are known.
 
+The template's `products.yaml` already lists these four ids (`remove_ads_all` non-consumable, the
+three coin packs consumable); create them in Play Console with exactly these ids. The retired id
+`remove_ads` is never created again: a saved or restored `remove_ads` entitlement still counts as
+owned in the game. Remove Ads removes all ads, banner, interstitial and rewarded.
+
+Data safety and ads: the app manifest removes the advertising ID permission
+(`com.google.android.gms.permission.AD_ID`, `tools:node="remove"`) because the ads are
+child-directed. The `release` workflow has an information-only step, "Report whether the bundle
+asks for the advertising ID", that prints the bundle's permissions and warns if AD_ID slipped in.
+Answer the Play Console "Advertising ID" declaration accordingly (the app does not use it).
+
 A product ID can never be reused once it has been created and deleted in Play Console (that is why
 the Remove Ads product is `remove_ads_all`). IDs are case-sensitive. Check each imported product is
 Active with a Buy option. The game's `products.yaml` ids must match the Play ids exactly.

@@ -19,6 +19,15 @@ python3 scripts/new_game.py --id my_game --name "My Game" \
   color), the Dart package name and all `package:flutter_game_template/` imports, the Android
   `namespace` and the Kotlin `MainActivity` package and directory. Workflows end up in
   `<out>/.github/workflows` (the new repo root is the Flutter project).
+- Puts the game name in the heading of `docs/SPEC.md`, then checks the copy carries every
+  template feature (audio, share, tips, game over panel, parent gate and shop): the files, the
+  `share:` config key, the test IDs in `lib/ui/test_ids.dart`, the four products in
+  `products.yaml` and the `AD_ID` removal in the Android manifest. A missing one is a
+  generator bug and stops the run.
+- Placeholders a game fills in itself: voice line names in `lib/core/audio/voice_arbiter.dart`
+  and the `assets/voice/` files, tips in `lib/game/tips.dart`, share card look in
+  `lib/ui/share_card.dart`, the coin letters in `CoinIcon`, and the real AdMob and Play IDs
+  (`PLACEHOLDER_*`).
 - Refuses to write into a non-empty `--out`. Fails if any `flutter_game_template` string
   remains.
 - Writes no secrets: `admob.release` and `play_games` values stay `PLACEHOLDER_*`.

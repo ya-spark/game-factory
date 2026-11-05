@@ -22,7 +22,10 @@ class ProductDef {
   /// Special entitlement, e.g. `remove_ads`.
   final String? grants;
 
-  static const String removeAdsGrant = 'remove_ads';
+  static const String removeAdsGrant = 'remove_ads_all';
+
+  /// Retired Play product id (a deleted id cannot be reused). Still counts as owned.
+  static const String legacyRemoveAdsId = 'remove_ads';
 }
 
 class ProductCatalog {

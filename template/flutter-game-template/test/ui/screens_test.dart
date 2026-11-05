@@ -3,6 +3,8 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter_game_template/app.dart';
 import 'package:flutter_game_template/core/ads/ad_service.dart';
+import 'package:flutter_game_template/core/purchase/parent_gate_guard.dart';
+import 'package:flutter_game_template/core/purchase/purchase_service.dart';
 import 'package:flutter_game_template/core/retention/daily_reward.dart';
 import 'package:flutter_game_template/core/services.dart';
 import 'package:flutter_game_template/game/flame/block_puzzle_game.dart';
@@ -12,6 +14,7 @@ import 'package:flutter_game_template/game/rules/piece.dart';
 import 'package:flutter_game_template/game/rules/piece_generator.dart';
 import 'package:flutter_game_template/ui/game_screen.dart';
 import 'package:flutter_game_template/ui/test_ids.dart';
+import 'package:flutter_game_template/ui/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import '../helpers/fake_services.dart';
@@ -27,9 +30,49 @@ Future<void> pumpApp(WidgetTester tester, Services s) async {
 
 /// pumpAndSettle never returns while the Flame game loop is running.
 Future<void> settle(WidgetTester tester) async {
-  for (var i = 0; i < 10; i++) {
+  for (var i = 0; i < 15; i++) {
     await tester.pump(const Duration(milliseconds: 100));
   }
+}
+
+/// Types the correct answer into the open parent gate and submits.
+Future<void> answerGate(WidgetTester tester, Services s) async {
+  await tester.enterText(
+    find.byKey(TestIds.gateAnswer),
+    '${s.parentGate.a * s.parentGate.b}',
+  );
+  await tester.tap(find.byKey(TestIds.gateSubmit));
+  await tester.pumpAndSettle();
+}
+
+/// Opens a game on a board where the first placement ends the game; the game over panel is up.
+Future<BlockPuzzleGame> pumpGameOver(WidgetTester tester, Services s) async {
+  tester.view.physicalSize = const Size(400, 800);
+  tester.view.devicePixelRatio = 1;
+  addTearDown(tester.view.reset);
+  final rows = List.generate(8, (r) => r.isEven ? '.#.#.#.#' : '#.#.#.#.');
+  final game = BlockPuzzleGame(
+    initialState: GameState(
+      generator: PieceGenerator(Random(1)),
+      board: Board.fromRows(rows),
+      tray: [
+        PieceCatalog.dot,
+        PieceCatalog.byId('bar2_0'),
+        PieceCatalog.byId('square2_0'),
+      ],
+    ),
+  );
+  await tester.pumpWidget(
+    ServicesScope(
+      services: s,
+      child: MaterialApp(home: GameScreen(game: game)),
+    ),
+  );
+  final bot = PuzzleBot(tester);
+  await bot.waitForGame();
+  await bot.drag(0, 0, 0);
+  await settle(tester);
+  return game;
 }
 
 void main() {
@@ -87,14 +130,219 @@ void main() {
     await pumpApp(tester, s);
     await tester.tap(find.byKey(TestIds.homeShop));
     await tester.pumpAndSettle();
-    await tester.tap(find.byKey(TestIds.shopBuy('remove_ads')));
+    await tester.tap(find.byKey(TestIds.shopBuy('remove_ads_all')));
     await tester.pumpAndSettle();
+    await answerGate(tester, s);
     expect(s.profile.data.adsRemoved, isTrue);
     expect(s.ads.adsEnabled, isFalse);
-    expect(find.byKey(TestIds.shopBuy('remove_ads')), findsNothing);
+    expect(find.byKey(TestIds.shopBuy('remove_ads_all')), findsNothing);
     await tester.tap(find.byKey(TestIds.shopBuy('coins_500')));
     await tester.pumpAndSettle();
+    await answerGate(tester, s);
     expect(s.profile.data.coins, 500);
+  });
+
+  testWidgets('coin icon replaces the old icon on home and in the shop', (
+    tester,
+  ) async {
+    final s = await buildFakeServices();
+    await pumpApp(tester, s);
+    expect(find.byType(CoinIcon), findsOneWidget);
+    expect(find.byIcon(Icons.monetization_on), findsNothing);
+    await tester.tap(find.byKey(TestIds.homeShop));
+    await tester.pumpAndSettle();
+    expect(find.byType(CoinIcon), findsNWidgets(3)); // the three coin packs
+    expect(find.byIcon(Icons.monetization_on), findsNothing);
+  });
+
+  testWidgets('shop lists all four products, Remove Ads first', (tester) async {
+    final s = await buildFakeServices();
+    await pumpApp(tester, s);
+    await tester.tap(find.byKey(TestIds.homeShop));
+    await tester.pumpAndSettle();
+    final ids = ['remove_ads_all', 'coins_500', 'coins_1500', 'coins_4000'];
+    final ys = [
+      for (final id in ids)
+        tester.getTopLeft(find.byKey(TestIds.shopBuy(id))).dy,
+    ];
+    expect(ys, [...ys]..sort());
+  });
+
+  testWidgets('parent gate: cancel buys nothing; wrong answers lock for 60 s', (
+    tester,
+  ) async {
+    var now = DateTime(2026, 1, 1, 12);
+    final s = await buildFakeServices(
+      parentGate: ParentGateGuard(clock: () => now, random: Random(3)),
+    );
+    await pumpApp(tester, s);
+    await tester.tap(find.byKey(TestIds.homeShop));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(TestIds.shopBuy('coins_500')));
+    await tester.pumpAndSettle();
+    expect(find.byKey(TestIds.gateDialog), findsOneWidget);
+    await tester.tap(find.byKey(TestIds.gateCancel));
+    await tester.pumpAndSettle();
+    expect(s.profile.data.coins, 0);
+
+    await tester.tap(find.byKey(TestIds.shopBuy('coins_500')));
+    await tester.pumpAndSettle();
+    for (var i = 0; i < 3; i++) {
+      expect(find.byKey(TestIds.gateDialog), findsOneWidget);
+      await tester.enterText(find.byKey(TestIds.gateAnswer), '1');
+      await tester.tap(find.byKey(TestIds.gateSubmit));
+      await tester.pumpAndSettle();
+    }
+    expect(find.byKey(TestIds.gateDialog), findsNothing);
+    expect(s.profile.data.coins, 0);
+    expect(s.parentGate.isLocked, isTrue);
+
+    // Still locked 30 s later: the dialog opens but cannot be answered.
+    now = now.add(const Duration(seconds: 30));
+    await tester.tap(find.byKey(TestIds.shopBuy('coins_500')));
+    await tester.pumpAndSettle();
+    expect(find.byKey(TestIds.gateAnswer), findsNothing);
+    await tester.tap(find.byKey(TestIds.gateCancel));
+    await tester.pumpAndSettle();
+    expect(s.profile.data.coins, 0);
+
+    // After the 60 s the gate works again.
+    now = now.add(const Duration(seconds: 31));
+    await tester.tap(find.byKey(TestIds.shopBuy('coins_500')));
+    await tester.pumpAndSettle();
+    await answerGate(tester, s);
+    expect(s.profile.data.coins, 500);
+  });
+
+  test('parent gate guard: factors 6 to 9, wrong then correct', () {
+    final g = ParentGateGuard(random: Random(5));
+    for (var i = 0; i < 50; i++) {
+      g.newQuestion();
+      expect(g.a, inInclusiveRange(6, 9));
+      expect(g.b, inInclusiveRange(6, 9));
+    }
+    expect(g.submit('abc'), GateAnswer.wrong);
+    expect(g.submit('${g.a * g.b}'), GateAnswer.correct);
+  });
+
+  test('parent gate guard: 3 wrong answers lock 60 s, then it unlocks', () {
+    var now = DateTime(2026, 1, 1);
+    final g = ParentGateGuard(clock: () => now, random: Random(1));
+    expect(g.submit('0'), GateAnswer.wrong);
+    expect(g.submit('0'), GateAnswer.wrong);
+    expect(g.submit('0'), GateAnswer.locked);
+    expect(g.isLocked, isTrue);
+    expect(g.lockSecondsLeft, 60);
+    expect(
+      g.submit('${g.a * g.b}'),
+      GateAnswer.locked,
+    ); // right answer, still locked
+    now = now.add(const Duration(seconds: 59));
+    expect(g.isLocked, isTrue);
+    now = now.add(const Duration(seconds: 2));
+    expect(g.isLocked, isFalse);
+    expect(g.submit('${g.a * g.b}'), GateAnswer.correct);
+  });
+
+  testWidgets('remove ads: continue is granted at once without an ad', (
+    tester,
+  ) async {
+    final ads = FakeAdService();
+    final s = await buildFakeServices(ads: ads);
+    await s.profile.addCoins(200);
+    await s.profile.deliverPurchase(
+      const PurchaseUpdate('remove_ads_all', PurchaseStatus.purchased),
+      s.catalog,
+    );
+    final game = await pumpGameOver(tester, s);
+    await tester.tap(find.byKey(TestIds.gameOverRevive));
+    await settle(tester);
+    expect(ads.rewardedShown, 0);
+    expect(find.byKey(TestIds.gameOverContinueCoins), findsNothing);
+    expect(s.profile.data.coins, 200);
+    expect(game.state.isGameOver, isFalse);
+    expect(game.state.revivesUsed, 1);
+  });
+
+  testWidgets('legacy remove_ads entitlement also continues without an ad', (
+    tester,
+  ) async {
+    final ads = FakeAdService();
+    final s = await buildFakeServices(ads: ads);
+    await s.profile.deliverPurchase(
+      const PurchaseUpdate('remove_ads', PurchaseStatus.restored),
+      s.catalog,
+    );
+    expect(s.profile.data.adsRemoved, isTrue);
+    final game = await pumpGameOver(tester, s);
+    await tester.tap(find.byKey(TestIds.gameOverRevive));
+    await settle(tester);
+    expect(ads.rewardedShown, 0);
+    expect(game.state.revivesUsed, 1);
+  });
+
+  testWidgets('under 50 coins: continue goes straight to the ad', (
+    tester,
+  ) async {
+    final ads = FakeAdService();
+    final s = await buildFakeServices(ads: ads);
+    await s.profile.addCoins(continueCoinCost - 1);
+    final game = await pumpGameOver(tester, s);
+    await tester.tap(find.byKey(TestIds.gameOverRevive));
+    await settle(tester);
+    expect(find.byKey(TestIds.gameOverContinueAd), findsNothing);
+    expect(ads.rewardedShown, 1);
+    expect(game.state.revivesUsed, 1);
+    expect(s.profile.data.coins, continueCoinCost - 1);
+  });
+
+  testWidgets('50 coins or more: choice; coins spend exactly 50', (
+    tester,
+  ) async {
+    final ads = FakeAdService();
+    final s = await buildFakeServices(ads: ads);
+    await s.profile.addCoins(120);
+    final game = await pumpGameOver(tester, s);
+    await tester.tap(find.byKey(TestIds.gameOverRevive));
+    await settle(tester);
+    expect(find.byKey(TestIds.gameOverContinueAd), findsOneWidget);
+    expect(find.byKey(TestIds.gameOverContinueCoins), findsOneWidget);
+    await tester.tap(find.byKey(TestIds.gameOverContinueCoins));
+    await settle(tester);
+    expect(ads.rewardedShown, 0);
+    expect(s.profile.data.coins, 120 - continueCoinCost);
+    expect(game.state.revivesUsed, 1);
+    expect(game.state.isGameOver, isFalse);
+  });
+
+  testWidgets('50 coins or more: the ad choice costs no coins', (tester) async {
+    final ads = FakeAdService();
+    final s = await buildFakeServices(ads: ads);
+    await s.profile.addCoins(120);
+    final game = await pumpGameOver(tester, s);
+    await tester.tap(find.byKey(TestIds.gameOverRevive));
+    await settle(tester);
+    await tester.tap(find.byKey(TestIds.gameOverContinueAd));
+    await settle(tester);
+    expect(ads.rewardedShown, 1);
+    expect(s.profile.data.coins, 120);
+    expect(game.state.revivesUsed, 1);
+  });
+
+  testWidgets('coin continues count against the 3 per run limit', (
+    tester,
+  ) async {
+    final s = await buildFakeServices();
+    await s.profile.addCoins(500);
+    final game = await pumpGameOver(tester, s);
+    game.state.revivesUsed = GameState.maxRevives - 1;
+    await tester.tap(find.byKey(TestIds.gameOverRevive));
+    await settle(tester);
+    await tester.tap(find.byKey(TestIds.gameOverContinueCoins));
+    await settle(tester);
+    expect(game.state.revivesUsed, GameState.maxRevives);
+    expect(s.profile.data.coins, 500 - continueCoinCost);
+    expect(game.state.canRevive, isFalse);
   });
 
   testWidgets('settings toggles persist to the profile', (tester) async {

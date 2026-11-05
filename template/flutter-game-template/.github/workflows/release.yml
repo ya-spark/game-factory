@@ -110,6 +110,26 @@ jobs:
       - name: Build signed app bundle
         run: flutter build appbundle --release --build-number ${{ github.run_number }}
 
+      - name: Report whether the bundle asks for the advertising ID
+        if: always()
+        shell: bash
+        run: |
+          # The ads library adds com.google.android.gms.permission.AD_ID; the app manifest removes it.
+          # Information only: look at the built bundle itself and at the app module's merger report.
+          aab=build/app/outputs/bundle/release/app-release.aab
+          if [ -f "$aab" ]; then
+            if unzip -p "$aab" base/manifest/AndroidManifest.xml | strings | grep -q 'permission.AD_ID'; then
+              echo "::warning title=AD_ID in bundle::the built bundle manifest declares AD_ID"
+            else
+              echo "AD_ID is absent from the built bundle manifest"
+            fi
+            echo "permissions in the bundle:"; unzip -p "$aab" base/manifest/AndroidManifest.xml | strings | grep -E '^(android|com\.google)\.?.*permission' | sort -u
+          else
+            echo "no bundle found at $aab"
+          fi
+          report=build/app/outputs/logs/manifest-merger-release-report.txt
+          if [ -f "$report" ]; then grep -n -B2 -A4 'AD_ID' "$report" || echo "AD_ID not mentioned in $report"; else echo "no merger report at $report"; find build/app -name 'manifest-merger*' 2>/dev/null | head; fi
+
       - name: Name the bundle after the app
         shell: bash
         run: |

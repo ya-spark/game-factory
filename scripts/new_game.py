@@ -210,6 +210,54 @@ def move_workflows(out: Path) -> None:
         raise GenError("generator bug: template has no .github/workflows")
 
 
+def rewrite_docs(out: Path, name: str) -> None:
+    """Puts the game name in the heading of docs/SPEC.md (filled in by the spec agent)."""
+    _sub_file(out / "docs" / "SPEC.md", r"^# Game spec$", f"# {name}: game spec", 1, re.M)
+
+
+# What every generated game must carry from the template's features.
+REQUIRED_FILES = (
+    "lib/core/audio/audio_service.dart",
+    "lib/core/audio/voice_arbiter.dart",
+    "lib/core/share/share_service.dart",
+    "lib/core/tips/tip_service.dart",
+    "lib/core/purchase/parent_gate_guard.dart",
+    "lib/ui/share_card.dart",
+    "lib/ui/tip_dialog.dart",
+    "lib/ui/game_over_panel.dart",
+    "lib/ui/parent_gate.dart",
+    "lib/ui/shop_screen.dart",
+    "assets/ambience/night.mp3",
+)
+REQUIRED_TEST_IDS = (
+    "game.over.panel", "game.over.view", "game.over.share", "game.over.continue.ad",
+    "game.over.continue.coins", "gate.dialog", "gate.answer", "gate.submit", "gate.cancel",
+    "settings.volume", "settings.ambience", "settings.voice", "settings.hand",
+    "settings.tips", "settings.shareApp", "tip.home", "tip.close", "tip.dontShow",
+)
+REQUIRED_PRODUCTS = ("remove_ads_all", "coins_500", "coins_1500", "coins_4000")
+
+
+def check_features(out: Path) -> None:
+    """Fails (generator bug) when the copy misses a template feature."""
+    missing = [f for f in REQUIRED_FILES if not (out / f).is_file()]
+    ids = (out / "lib" / "ui" / "test_ids.dart").read_text(encoding="utf-8")
+    missing += [f"test id {t}" for t in REQUIRED_TEST_IDS if f"'{t}'" not in ids]
+    products = (out / "products.yaml").read_text(encoding="utf-8")
+    missing += [f"product {p}" for p in REQUIRED_PRODUCTS if f"id: {p}\n" not in products]
+    cfg = (out / "app.config.yaml").read_text(encoding="utf-8")
+    if not re.search(r"^share:\s*$", cfg, re.M):
+        missing.append("app.config.yaml share: key")
+    manifest = (out / "android/app/src/main/AndroidManifest.xml").read_text(encoding="utf-8")
+    if 'permission.AD_ID" tools:node="remove"' not in manifest:
+        missing.append("AndroidManifest AD_ID removal")
+    release = (out / ".github/workflows/release.yml").read_text(encoding="utf-8")
+    if "Report whether the bundle asks for the advertising ID" not in release:
+        missing.append("release.yml AD_ID report step")
+    if missing:
+        raise GenError(f"generator bug: template feature missing in the copy: {missing}")
+
+
 def leftover_template_refs(out: Path) -> list[str]:
     hits = []
     for f in out.rglob("*"):
@@ -251,6 +299,8 @@ def generate(
     rewrite_dart_package(out, game_id)
     rewrite_android(out, package)
     move_workflows(out)
+    rewrite_docs(out, name)
+    check_features(out)
     left = leftover_template_refs(out)
     if left:
         raise GenError(f"leftover '{TEMPLATE_PKG}' references in: {', '.join(sorted(set(left)))}")

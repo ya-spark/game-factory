@@ -23,11 +23,17 @@ abstract final class KidColors {
 class StatChip extends StatelessWidget {
   const StatChip({
     super.key,
-    required this.icon,
+    this.icon,
+    this.leading,
     required this.label,
     this.color,
-  });
-  final IconData icon;
+  }) : assert(icon != null || leading != null);
+
+  /// Material icon; ignored when [leading] is given.
+  final IconData? icon;
+
+  /// A widget in place of the icon, e.g. [CoinIcon].
+  final Widget? leading;
   final String label;
   final Color? color;
 
@@ -48,7 +54,7 @@ class StatChip extends StatelessWidget {
     child: Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Icon(icon, size: 22, color: color ?? KidColors.grape),
+        leading ?? Icon(icon, size: 22, color: color ?? KidColors.grape),
         const SizedBox(width: 6),
         Flexible(
           child: FittedBox(
@@ -274,4 +280,80 @@ class KidPage extends StatelessWidget {
     decoration: KidColors.background,
     child: SizedBox.expand(child: SafeArea(child: child)),
   );
+}
+
+/// The game's coin: a gold disc with a darker rim, an inner ring, a soft shine and the letters
+/// "MC", drawn in code (no asset files). Games may change the letters in `_CoinPainter`.
+class CoinIcon extends StatelessWidget {
+  const CoinIcon({super.key, this.size = 22});
+  final double size;
+
+  @override
+  Widget build(BuildContext context) => Semantics(
+    label: 'coins',
+    excludeSemantics: true,
+    child: SizedBox(
+      width: size,
+      height: size,
+      child: CustomPaint(painter: _CoinPainter()),
+    ),
+  );
+}
+
+class _CoinPainter extends CustomPainter {
+  static const _rim = Color(0xFFB8860B);
+  static const _gold = Color(0xFFFFC72C);
+  static const _dark = Color(0xFF8A5A00);
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final c = size.center(Offset.zero);
+    final r = size.shortestSide / 2;
+    canvas.drawCircle(c, r, Paint()..color = _rim);
+    canvas.drawCircle(
+      c,
+      r * 0.88,
+      Paint()
+        ..shader = const RadialGradient(
+          center: Alignment(-0.3, -0.4),
+          colors: [Color(0xFFFFE680), _gold],
+        ).createShader(Rect.fromCircle(center: c, radius: r)),
+    );
+    canvas.drawCircle(
+      c,
+      r * 0.7,
+      Paint()
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = r * 0.07
+        ..color = _rim,
+    );
+    // Soft shine, top left.
+    canvas.drawArc(
+      Rect.fromCircle(center: c, radius: r * 0.8),
+      3.4,
+      1.2,
+      false,
+      Paint()
+        ..style = PaintingStyle.stroke
+        ..strokeCap = StrokeCap.round
+        ..strokeWidth = r * 0.12
+        ..color = const Color(0x99FFFFFF),
+    );
+    final tp = TextPainter(
+      text: TextSpan(
+        text: 'MC',
+        style: TextStyle(
+          color: _dark,
+          fontSize: r * 0.85,
+          fontWeight: FontWeight.w900,
+          height: 1,
+        ),
+      ),
+      textDirection: TextDirection.ltr,
+    )..layout();
+    tp.paint(canvas, c - Offset(tp.width / 2, tp.height / 2));
+  }
+
+  @override
+  bool shouldRepaint(_CoinPainter old) => false;
 }

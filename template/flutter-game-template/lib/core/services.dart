@@ -14,6 +14,7 @@ import 'leaderboard/leaderboard_service.dart';
 import 'notifications/local_notification_service.dart';
 import 'notifications/notification_service.dart';
 import 'profile/profile_store.dart';
+import 'purchase/parent_gate_guard.dart';
 import 'purchase/play_purchase_service.dart';
 import 'purchase/purchase_service.dart';
 import 'remote_config/remote_config_service.dart';
@@ -41,7 +42,12 @@ class Services {
     required this.share,
     required this.audio,
     TipService? tips,
-  }) : tips = tips ?? TipService();
+    ParentGateGuard? parentGate,
+  }) : tips = tips ?? TipService(),
+       parentGate = parentGate ?? ParentGateGuard();
+
+  /// Parent gate rules and lock state, shared so the lock survives closing the dialog.
+  final ParentGateGuard parentGate;
 
   final AppConfig config;
   final ProductCatalog catalog;

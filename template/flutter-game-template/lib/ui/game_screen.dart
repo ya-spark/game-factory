@@ -6,7 +6,16 @@ import '../core/ads/ad_service.dart';
 import '../core/profile/profile_store.dart';
 import '../core/services.dart';
 import '../game/flame/block_puzzle_game.dart';
+import 'game_over_panel.dart';
+import 'share_card.dart';
 import 'test_ids.dart';
+import 'widgets.dart';
+
+/// Player-facing name of the second chance on the game over screen (rename it here only).
+const String continueLabel = 'Continue';
+
+/// Coins spent on a continue paid with coins (counts against the same per-run limit as an ad).
+const int continueCoinCost = 50;
 
 class GameScreen extends StatefulWidget {
   const GameScreen({super.key, this.game});
@@ -115,6 +124,38 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
     }
   }
 
+  /// Small choice shown when the player can afford coins: 'ad', 'coins' or null (dismissed).
+  Future<String?> _askContinueChoice() => showDialog<String>(
+    context: context,
+    builder: (ctx) => AlertDialog(
+      title: const Text('Continue?'),
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          SizedBox(
+            width: double.infinity,
+            child: FilledButton.icon(
+              key: TestIds.gameOverContinueAd,
+              icon: const Icon(Icons.smart_display),
+              label: const Text('Watch an ad (free)'),
+              onPressed: () => Navigator.pop(ctx, 'ad'),
+            ),
+          ),
+          const SizedBox(height: 8),
+          SizedBox(
+            width: double.infinity,
+            child: FilledButton.tonalIcon(
+              key: TestIds.gameOverContinueCoins,
+              icon: const CoinIcon(size: 20),
+              label: const Text('Use $continueCoinCost coins'),
+              onPressed: () => Navigator.pop(ctx, 'coins'),
+            ),
+          ),
+        ],
+      ),
+    ),
+  );
+
   Future<void> _showGameOver(Services s) async {
     if (_dialogOpen || !mounted) return;
     _dialogOpen = true;
@@ -122,41 +163,102 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
     final action = await showDialog<String>(
       context: context,
       barrierDismissible: false,
-      builder: (ctx) => AlertDialog(
+      barrierColor: Colors.transparent,
+      builder: (ctx) => GameOverPanel(
         key: TestIds.gameOverDialog,
-        title: const Text('Game over'),
-        content: Text(
-          'Score ${game.state.score}\nBest ${game.state.bestScore}'
-          '${game.state.canRevive ? '\nRevives left: ${game.state.revivesRemaining}' : ''}',
-          key: TestIds.gameOverRevivesLeft,
-        ),
-        actions: [
+        title: 'Game over',
+        details: [
+          Text(
+            'Score ${game.state.score}',
+            style: const TextStyle(fontSize: 30, fontWeight: FontWeight.w900),
+          ),
+          Text('Best ${game.state.bestScore}'),
           if (game.state.canRevive)
-            FilledButton.icon(
-              key: TestIds.gameOverRevive,
-              icon: const Icon(Icons.smart_display),
-              label: Text(
-                'Revive (watch ad) · ${game.state.revivesRemaining} left',
-              ),
-              onPressed: () => Navigator.pop(ctx, 'revive'),
+            Text(
+              'Continues left: ${game.state.revivesRemaining}',
+              key: TestIds.gameOverRevivesLeft,
             ),
-          TextButton(
-            key: TestIds.gameOverRetry,
-            onPressed: () => Navigator.pop(ctx, 'retry'),
-            child: const Text('Play again'),
-          ),
-          TextButton(
-            key: TestIds.gameOverHome,
-            onPressed: () => Navigator.pop(ctx, 'home'),
-            child: const Text('Home'),
-          ),
         ],
+        share: GameOverButton(
+          key: TestIds.gameOverShare,
+          kind: GameOverButtonKind.ghost,
+          size: GameOverButtonSize.compact,
+          icon: Icons.share,
+          semanticLabel: 'Share',
+          onPressed: () async {
+            final png = await captureShareCard(
+              ctx,
+              ShareCardData(
+                gameName: s.config.displayName,
+                headline: 'Score',
+                big: '${game.state.score}',
+                best: game.state.bestScore,
+              ),
+            );
+            await s.share.shareScore(score: game.state.score, image: png);
+          },
+        ),
+        again: GameOverButton(
+          key: TestIds.gameOverRetry,
+          kind: game.state.canRevive
+              ? GameOverButtonKind.secondary
+              : GameOverButtonKind.primary,
+          size: game.state.canRevive
+              ? GameOverButtonSize.regular
+              : GameOverButtonSize.large,
+          icon: Icons.replay,
+          label: 'Play again',
+          onPressed: () => Navigator.pop(ctx, 'retry'),
+        ),
+        home: GameOverButton(
+          key: TestIds.gameOverHome,
+          kind: GameOverButtonKind.ghost,
+          icon: Icons.home,
+          label: 'Home',
+          onPressed: () => Navigator.pop(ctx, 'home'),
+        ),
+        cont: game.state.canRevive
+            ? GameOverButton(
+                key: TestIds.gameOverRevive,
+                kind: GameOverButtonKind.primary,
+                size: GameOverButtonSize.large,
+                icon: Icons.smart_display,
+                label: '$continueLabel · ${game.state.revivesRemaining} left',
+                onPressed: () => Navigator.pop(ctx, 'revive'),
+              )
+            : null,
       ),
     );
     _dialogOpen = false;
     if (!mounted) return;
     switch (action) {
       case 'revive':
+        // Remove Ads owned: no ad at all, the continue is granted at once.
+        if (s.profile.data.adsRemoved) {
+          if (game.revive()) return;
+          _showGameOver(s);
+          return;
+        }
+        var useCoins = false;
+        if (s.profile.data.coins >= continueCoinCost) {
+          final choice = await _askContinueChoice();
+          if (!mounted) return;
+          if (choice == null) {
+            _showGameOver(s);
+            return;
+          }
+          useCoins = choice == 'coins';
+        }
+        if (useCoins) {
+          if (game.state.canRevive &&
+              await s.profile.spendCoins(continueCoinCost)) {
+            if (!mounted) return;
+            if (game.revive()) return;
+          }
+          if (!mounted) return;
+          _showGameOver(s);
+          return;
+        }
         final earned = await s.ads.showRewarded(AdPlacement.revive);
         if (!mounted) return;
         if (earned && game.revive()) return;

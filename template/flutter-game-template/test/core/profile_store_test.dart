@@ -2,16 +2,17 @@ import 'package:flutter_game_template/core/config/app_config.dart';
 import 'package:flutter_game_template/core/config/products.dart';
 import 'package:flutter_game_template/core/profile/profile_store.dart';
 import 'package:flutter_game_template/core/purchase/purchase_service.dart';
+import 'package:flutter_game_template/core/save/save_data.dart';
 import 'package:flutter_game_template/core/save/save_service.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 const _catalog = ProductCatalog([
   ProductDef(
-    id: 'remove_ads',
+    id: 'remove_ads_all',
     type: ProductType.nonConsumable,
     title: 'Remove Ads',
     description: '',
-    grants: 'remove_ads',
+    grants: 'remove_ads_all',
   ),
   ProductDef(
     id: 'coins_500',
@@ -125,10 +126,28 @@ void main() {
   test('remove-ads purchase sets the flag; restore is idempotent', () async {
     final p = make();
     await p.init();
-    const u = PurchaseUpdate('remove_ads', PurchaseStatus.purchased);
+    const u = PurchaseUpdate('remove_ads_all', PurchaseStatus.purchased);
     await p.deliverPurchase(u, _catalog);
     await p.deliverPurchase(u, _catalog);
     expect(p.data.adsRemoved, isTrue);
+  });
+
+  test('the retired remove_ads id still counts as owned', () async {
+    final p = make();
+    await p.init();
+    await p.deliverPurchase(
+      const PurchaseUpdate('remove_ads', PurchaseStatus.restored),
+      _catalog,
+    );
+    expect(p.data.adsRemoved, isTrue);
+  });
+
+  test('a saved legacy entitlement stays owned after a reload', () async {
+    await saves.save(const SaveData(adsRemoved: true, coins: 7));
+    final p = make();
+    await p.init();
+    expect(p.data.adsRemoved, isTrue);
+    expect(p.data.coins, 7);
   });
 
   test('consumable is granted once per purchase id', () async {
@@ -157,7 +176,7 @@ void main() {
     final p = make();
     await p.init();
     await p.deliverPurchase(
-      const PurchaseUpdate('remove_ads', PurchaseStatus.canceled),
+      const PurchaseUpdate('remove_ads_all', PurchaseStatus.canceled),
       _catalog,
     );
     expect(p.data.adsRemoved, isFalse);

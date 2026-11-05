@@ -226,6 +226,11 @@ class ProfileStore extends ChangeNotifier {
         u.status != PurchaseStatus.restored) {
       return;
     }
+    if (u.productId == ProductDef.legacyRemoveAdsId) {
+      // Retired id: a restore (or old purchase) still unlocks the entitlement.
+      if (!_data.adsRemoved) await _commit(_data.copyWith(adsRemoved: true));
+      return;
+    }
     final def = catalog.byId(u.productId);
     if (def == null) return;
     var d = _data;

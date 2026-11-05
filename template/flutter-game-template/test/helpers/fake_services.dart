@@ -9,6 +9,7 @@ import 'package:flutter_game_template/core/identity/identity_service.dart';
 import 'package:flutter_game_template/core/leaderboard/leaderboard_service.dart';
 import 'package:flutter_game_template/core/notifications/notification_service.dart';
 import 'package:flutter_game_template/core/profile/profile_store.dart';
+import 'package:flutter_game_template/core/purchase/parent_gate_guard.dart';
 import 'package:flutter_game_template/core/purchase/purchase_service.dart';
 import 'package:flutter_game_template/core/remote_config/remote_config_service.dart';
 import 'package:flutter_game_template/core/save/save_service.dart';
@@ -23,6 +24,7 @@ Future<Services> buildFakeServices({
   FakeShareService? share,
   FakeAudioService? audio,
   bool tips = false,
+  ParentGateGuard? parentGate,
 }) async {
   SharedPreferences.setMockInitialValues({});
   final prefs = await SharedPreferences.getInstance();
@@ -54,6 +56,7 @@ Future<Services> buildFakeServices({
     profile: profile,
     share: share ?? FakeShareService(),
     audio: audio ?? FakeAudioService(),
+    parentGate: parentGate,
   );
   services.wirePurchases();
   return services;
