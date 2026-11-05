@@ -53,3 +53,21 @@ These cannot be automated. Tick them off once; items marked *per game* repeat fo
 
 `release` run by hand (without a tag) builds the bundle and, if `upload` is ticked, uploads it as a
 draft. It cannot target production. A draft cannot be promoted: roll it out to testers first.
+
+## Importing one-time products from a CSV
+
+Play Console -> Monetize with Play -> Products -> One-time products can import a CSV instead of
+filling the form by hand.
+
+- `docs/play-import/one_time_products_sample.csv` is the format Play gave the owner (39 columns).
+- `docs/play-import/one_time_products_example.csv` is the file used for Block Fall, Block Puzzle and
+  Wingy: `remove_ads_all` 2.99, `coins_500` 0.99, `coins_1500` 2.49, `coins_4000` 4.99 (USD, US only).
+
+Each product takes two rows: row 1 has the id, language, name, description and tax category
+(`Digital app sales`); row 2 has the purchase option (`buy`, `active`, `buy`, region, `USD 1.99`,
+`available`, `digitalContent`). Add one row per extra country (region plus `CUR amount`) or language.
+Add other countries after the import with the Console's price conversion if no local prices are known.
+
+A product ID can never be reused once it has been created and deleted in Play Console (that is why
+the Remove Ads product is `remove_ads_all`). IDs are case-sensitive. Check each imported product is
+Active with a Buy option. The game's `products.yaml` ids must match the Play ids exactly.

@@ -1,0 +1,5 @@
+productId,languageCode,name,description,productTaxCategory,isTokenizedDigitalAsset,ageRating,paymentLocationRestrictionRegions,purchaseOptionId,purchaseOptionState,purchaseOptionType,backwardsCompatible,multiQuantityEnabled,rentalPeriod,rentalInitiationPeriod,region,price,availability,purchaseOptionTags,digitalContentOrServiceClassification,offerId,offerState,preOrderStartTime,preOrderEndTime,preOrderReleaseTime,preOrderPriceChangeBehavior,discountedStartTime,discountedEndTime,discountedPurchaseLimit,gameRewardRedemptionLimit,offerRegion,noOverride,offerRelativeDiscount,offerAbsoluteDiscount,offerAvailability,offerTags,productTags,lastUpdatedTime,icon
+example_product,en-US,Example Product,An example one-time product,Digital app sales,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+example_product,fr-FR,Produit Exemple,Un produit intégré en exemple,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+example_product,,,,,,,,buy,active,buy,true,true,,,US,USD 1.99,available,,digitalContent,,,,,,,,,,,,,,,,,,,
+example_product,,,,,,,,buy,,,,,,,FR,EUR 2.99,available,,,,,,,,,,,,,,,,,,,,,

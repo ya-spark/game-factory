@@ -1,0 +1,9 @@
+productId,languageCode,name,description,productTaxCategory,isTokenizedDigitalAsset,ageRating,paymentLocationRestrictionRegions,purchaseOptionId,purchaseOptionState,purchaseOptionType,backwardsCompatible,multiQuantityEnabled,rentalPeriod,rentalInitiationPeriod,region,price,availability,purchaseOptionTags,digitalContentOrServiceClassification,offerId,offerState,preOrderStartTime,preOrderEndTime,preOrderReleaseTime,preOrderPriceChangeBehavior,discountedStartTime,discountedEndTime,discountedPurchaseLimit,gameRewardRedemptionLimit,offerRegion,noOverride,offerRelativeDiscount,offerAbsoluteDiscount,offerAvailability,offerTags,productTags,lastUpdatedTime,icon
+remove_ads_all,en-US,Remove Ads,Removes all ads from the game with a single purchase.,Digital app sales,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+remove_ads_all,,,,,,,,buy,active,buy,true,false,,,US,USD 2.99,available,,digitalContent,,,,,,,,,,,,,,,,,,,
+coins_500,en-US,Coin Pack,500 coins to use in the game.,Digital app sales,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+coins_500,,,,,,,,buy,active,buy,true,false,,,US,USD 0.99,available,,digitalContent,,,,,,,,,,,,,,,,,,,
+coins_1500,en-US,Big Coin Pack,"1,500 coins to use in the game.",Digital app sales,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+coins_1500,,,,,,,,buy,active,buy,true,false,,,US,USD 2.49,available,,digitalContent,,,,,,,,,,,,,,,,,,,
+coins_4000,en-US,Coin Chest,"4,000 coins to use in the game.",Digital app sales,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+coins_4000,,,,,,,,buy,active,buy,true,false,,,US,USD 4.99,available,,digitalContent,,,,,,,,,,,,,,,,,,,
