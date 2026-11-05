@@ -73,6 +73,31 @@ class RetentionConfig {
   final bool achievements;
 }
 
+enum ShareLinkMode {
+  internalTest,
+  store,
+  off;
+
+  static ShareLinkMode parse(String? v) => switch (v) {
+    'store' => store,
+    'off' => off,
+    _ => internalTest,
+  };
+}
+
+class ShareConfig {
+  const ShareConfig({
+    this.linkMode = ShareLinkMode.internalTest,
+    this.internalTestUrl = '',
+  });
+
+  /// Which link share texts carry; [ShareLinkMode.off] adds none and hides "Share app".
+  final ShareLinkMode linkMode;
+
+  /// Used by [ShareLinkMode.internalTest]; empty behaves like off.
+  final String internalTestUrl;
+}
+
 class PlatformsConfig {
   const PlatformsConfig({
     this.android = true,
@@ -111,6 +136,7 @@ class AppConfig {
     required this.adPacing,
     required this.retention,
     required this.playGames,
+    this.share = const ShareConfig(),
   });
 
   final String appId;
@@ -124,6 +150,20 @@ class AppConfig {
   final AdPacingConfig adPacing;
   final RetentionConfig retention;
   final PlayGamesConfig playGames;
+  final ShareConfig share;
+
+  /// Play Store page of this game, built from the package name.
+  String get storeLink =>
+      'https://play.google.com/store/apps/details?id=$packageName';
+
+  /// The link added to share texts, or null when sharing carries no link (mode off, or
+  /// internal_test with an empty URL).
+  String? get shareLink => switch (share.linkMode) {
+    ShareLinkMode.off => null,
+    ShareLinkMode.store => storeLink,
+    ShareLinkMode.internalTest =>
+      share.internalTestUrl.isEmpty ? null : share.internalTestUrl,
+  };
 
   /// IDs to use for the current build mode. Debug always yields test IDs.
   AdmobIds admobFor({required bool release}) {
@@ -146,6 +186,7 @@ class AppConfig {
     final ads = (root['ads'] as YamlMap?) ?? YamlMap();
     final ret = (root['retention'] as YamlMap?) ?? YamlMap();
     final pg = (root['play_games'] as YamlMap?) ?? YamlMap();
+    final share = (root['share'] as YamlMap?) ?? YamlMap();
     bool enabled(Object? p) =>
         p is YamlMap ? (p['enabled'] as bool? ?? false) : false;
     return AppConfig(
@@ -186,6 +227,10 @@ class AppConfig {
         leaderboardHighScore:
             pg['leaderboard_high_score'] as String? ??
             'PLACEHOLDER_LEADERBOARD_ID',
+      ),
+      share: ShareConfig(
+        linkMode: ShareLinkMode.parse(share['link_mode'] as String?),
+        internalTestUrl: (share['internal_test_url'] as String? ?? '').trim(),
       ),
     );
   }

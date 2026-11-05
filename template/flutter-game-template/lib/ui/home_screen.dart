@@ -7,6 +7,7 @@ import 'game_screen.dart';
 import 'settings_screen.dart';
 import 'shop_screen.dart';
 import 'test_ids.dart';
+import 'tip_dialog.dart';
 import 'widgets.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -21,6 +22,24 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
+    WidgetsBinding.instance.addPostFrameCallback((_) => _maybeShowTip());
+  }
+
+  bool _tipOpen = false;
+
+  /// Opens the tip of the day once per day when the home page is shown (never during play).
+  Future<void> _maybeShowTip() async {
+    if (!mounted || _tipOpen) return;
+    if (!(ModalRoute.of(context)?.isCurrent ?? true)) return; // not during play
+    final s = ServicesScope.of(context);
+    final profile = s.profile;
+    if (!profile.homeTipPending) return;
+    _tipOpen = true;
+    final text = s.tips.tipOfTheDay(profile.today);
+    await profile.closeHomeTip(); // counts as shown for today
+    if (!mounted) return;
+    await showTipDialog(context, text: text);
+    _tipOpen = false;
   }
 
   @override
@@ -33,6 +52,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.resumed) {
       ServicesScope.of(context).profile.onAppOpened();
+      _maybeShowTip();
     }
   }
 

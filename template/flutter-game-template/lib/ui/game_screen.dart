@@ -18,10 +18,55 @@ class GameScreen extends StatefulWidget {
   State<GameScreen> createState() => _GameScreenState();
 }
 
-class _GameScreenState extends State<GameScreen> {
+class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
   BlockPuzzleGame? _game;
   bool _recorded = false;
   bool _dialogOpen = false;
+  Services? _services;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (_services != null) return;
+    final s = _services = ServicesScope.of(context);
+    _applyAudio(s);
+    s.audio.startAmbience(); // loops under the voice, ducked while it speaks
+  }
+
+  /// Pushes the saved sound settings to the audio service (applied immediately).
+  void _applyAudio(Services s) {
+    final d = s.profile.data;
+    s.audio.apply(
+      sound: d.soundOn,
+      volume: d.masterVolume,
+      ambience: d.ambience,
+      voice: d.voiceOn,
+    );
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    final s = _services;
+    if (s == null) return;
+    if (state == AppLifecycleState.resumed) {
+      s.audio.startAmbience();
+    } else {
+      s.audio.pauseAmbience();
+    }
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    _services?.audio.pauseAmbience();
+    super.dispose();
+  }
 
   BlockPuzzleGame _ensureGame(Services s) {
     final existing = _game;
@@ -150,11 +195,19 @@ class _GameScreenState extends State<GameScreen> {
             children: [
               Padding(
                 padding: const EdgeInsets.fromLTRB(12, 8, 16, 0),
+                // Left-handed: back button and best score swap sides.
                 child: Row(
+                  textDirection: s.profile.data.leftHanded
+                      ? TextDirection.rtl
+                      : TextDirection.ltr,
                   children: [
                     IconButton.filledTonal(
                       key: TestIds.gameBack,
-                      icon: const Icon(Icons.chevron_left),
+                      icon: Icon(
+                        s.profile.data.leftHanded
+                            ? Icons.chevron_right
+                            : Icons.chevron_left,
+                      ),
                       onPressed: () => Navigator.of(context).pop(),
                     ),
                     const Spacer(),

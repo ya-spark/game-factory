@@ -10,6 +10,12 @@ class SaveData {
     this.bestScore = 0,
     this.adsRemoved = false,
     this.soundOn = true,
+    this.masterVolume = 1.0,
+    this.ambience = 'morning_birds',
+    this.voiceOn = true,
+    this.leftHanded = false,
+    this.tipsOff = false,
+    this.tipHomeDay = -1,
     this.vibrationOn = true,
     this.remindersOn = false,
     this.lastSeenMs = 0,
@@ -29,6 +35,20 @@ class SaveData {
   final int bestScore;
   final bool adsRemoved;
   final bool soundOn;
+
+  /// Master volume 0..1, ambience track id ('off', 'morning_birds', ...), voice switch.
+  final double masterVolume;
+  final String ambience;
+  final bool voiceOn;
+
+  /// Left-handed layout: controls mirrored to the other side.
+  final bool leftHanded;
+
+  /// Tips are turned off ("Don't show tips again" ticked, or the settings switch is off).
+  final bool tipsOff;
+
+  /// Day index on which the home tip of the day was closed.
+  final int tipHomeDay;
   final bool vibrationOn;
   final bool remindersOn;
 
@@ -51,6 +71,12 @@ class SaveData {
     int? bestScore,
     bool? adsRemoved,
     bool? soundOn,
+    double? masterVolume,
+    String? ambience,
+    bool? voiceOn,
+    bool? leftHanded,
+    bool? tipsOff,
+    int? tipHomeDay,
     bool? vibrationOn,
     bool? remindersOn,
     int? lastSeenMs,
@@ -66,6 +92,12 @@ class SaveData {
     bestScore: bestScore ?? this.bestScore,
     adsRemoved: adsRemoved ?? this.adsRemoved,
     soundOn: soundOn ?? this.soundOn,
+    masterVolume: masterVolume ?? this.masterVolume,
+    ambience: ambience ?? this.ambience,
+    voiceOn: voiceOn ?? this.voiceOn,
+    leftHanded: leftHanded ?? this.leftHanded,
+    tipsOff: tipsOff ?? this.tipsOff,
+    tipHomeDay: tipHomeDay ?? this.tipHomeDay,
     vibrationOn: vibrationOn ?? this.vibrationOn,
     remindersOn: remindersOn ?? this.remindersOn,
     lastSeenMs: lastSeenMs ?? this.lastSeenMs,
@@ -84,6 +116,12 @@ class SaveData {
     'bestScore': bestScore,
     'adsRemoved': adsRemoved,
     'soundOn': soundOn,
+    'masterVolume': masterVolume,
+    'ambience': ambience,
+    'voiceOn': voiceOn,
+    'leftHanded': leftHanded,
+    'tipsOff': tipsOff,
+    'tipHomeDay': tipHomeDay,
     'vibrationOn': vibrationOn,
     'remindersOn': remindersOn,
     'lastSeenMs': lastSeenMs,
@@ -102,6 +140,15 @@ class SaveData {
     bestScore: (j['bestScore'] as num?)?.toInt() ?? 0,
     adsRemoved: j['adsRemoved'] as bool? ?? false,
     soundOn: j['soundOn'] as bool? ?? true,
+    masterVolume: ((j['masterVolume'] as num?)?.toDouble() ?? 1.0).clamp(
+      0.0,
+      1.0,
+    ),
+    ambience: j['ambience'] as String? ?? 'morning_birds',
+    voiceOn: j['voiceOn'] as bool? ?? true,
+    leftHanded: j['leftHanded'] as bool? ?? false,
+    tipsOff: j['tipsOff'] as bool? ?? false,
+    tipHomeDay: (j['tipHomeDay'] as num?)?.toInt() ?? -1,
     vibrationOn: j['vibrationOn'] as bool? ?? true,
     remindersOn: j['remindersOn'] as bool? ?? false,
     lastSeenMs: (j['lastSeenMs'] as num?)?.toInt() ?? 0,

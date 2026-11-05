@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../core/retention/achievements.dart';
 import '../core/services.dart';
+import 'share_card.dart';
 import 'test_ids.dart';
 import 'widgets.dart';
 
@@ -131,7 +132,40 @@ class ChallengesScreen extends StatelessWidget {
                         subtitle: Text(
                           '${a.description}  (${a.valueIn(stats).clamp(0, a.target)}/${a.target})',
                         ),
-                        trailing: Text('+${a.reward}'),
+                        trailing: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            if (profile.data.unlockedAchievements.contains(
+                              a.id,
+                            ))
+                              Builder(
+                                builder: (ctx) => IconButton(
+                                  key: TestIds.achievementShare(a.id),
+                                  tooltip: 'Share',
+                                  icon: const Icon(
+                                    Icons.share,
+                                    color: KidColors.ink,
+                                  ),
+                                  onPressed: () async {
+                                    final png = await captureShareCard(
+                                      ctx,
+                                      ShareCardData(
+                                        gameName: s.config.displayName,
+                                        headline: 'Achievement unlocked',
+                                        big: a.title,
+                                        best: profile.data.bestScore,
+                                      ),
+                                    );
+                                    await s.share.shareAchievement(
+                                      title: a.title,
+                                      image: png,
+                                    );
+                                  },
+                                ),
+                              ),
+                            Text('+${a.reward}'),
+                          ],
+                        ),
                       ),
                   ],
                 ],

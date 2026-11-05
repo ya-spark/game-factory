@@ -44,6 +44,13 @@ ads:
   child_directed: true
   max_ad_content_rating: G
 
+# Sharing through the system share sheet. link_mode: internal_test (link to the internal test
+# page), store (Play Store page of package_name) or off (no link, "Share app" hidden). An empty
+# internal_test_url behaves like off. The owner switches to store when the game is public.
+share:
+  link_mode: internal_test   # internal_test | store | off
+  internal_test_url: ""
+
 # Retention features, all ON by default.
 retention:
   daily_reward: true

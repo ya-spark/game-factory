@@ -42,6 +42,8 @@ dependencies:
   yaml: ^3.1.4
   flutter_timezone: ^5.1.1
   games_services: ^5.3.0
+  audioplayers: ^6.1.0
+  share_plus: 13.3.1
 
 dev_dependencies:
   flutter_test:
@@ -66,3 +68,4 @@ flutter:
     - app.config.yaml
     - products.yaml
     - assets/LICENSES.md
+    - assets/ambience/

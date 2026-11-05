@@ -199,8 +199,23 @@ class ProfileStore extends ChangeNotifier {
   }
 
   Future<void> setSound(bool v) => _commit(_data.copyWith(soundOn: v));
+  Future<void> setMasterVolume(double v) =>
+      _commit(_data.copyWith(masterVolume: v.clamp(0.0, 1.0)));
+  Future<void> setAmbience(String id) => _commit(_data.copyWith(ambience: id));
+  Future<void> setVoice(bool v) => _commit(_data.copyWith(voiceOn: v));
+  Future<void> setLeftHanded(bool v) => _commit(_data.copyWith(leftHanded: v));
   Future<void> setVibration(bool v) => _commit(_data.copyWith(vibrationOn: v));
   Future<void> setReminders(bool v) => _commit(_data.copyWith(remindersOn: v));
+
+  // ---- tips ---------------------------------------------------------------
+
+  /// Tips on/off: the "Don't show tips again" checkbox and the settings switch share this.
+  bool get tipsEnabled => !_data.tipsOff;
+  Future<void> setTipsEnabled(bool v) => _commit(_data.copyWith(tipsOff: !v));
+
+  /// The home tip of the day has not been closed today.
+  bool get homeTipPending => tipsEnabled && _data.tipHomeDay != today;
+  Future<void> closeHomeTip() => _commit(_data.copyWith(tipHomeDay: today));
 
   // ---- purchases ----------------------------------------------------------
 
