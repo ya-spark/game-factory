@@ -230,8 +230,8 @@ REQUIRED_FILES = (
     "assets/ambience/night.mp3",
 )
 REQUIRED_TEST_IDS = (
-    "game.over.panel", "game.over.view", "game.over.share", "game.over.continue.ad",
-    "game.over.continue.coins", "gate.dialog", "gate.answer", "gate.submit", "gate.cancel",
+    "game.over.panel", "game.over.view", "game.over.share", "game.over.revive",
+    "gate.dialog", "gate.answer", "gate.submit", "gate.cancel",
     "settings.volume", "settings.ambience", "settings.voice", "settings.hand",
     "settings.tips", "settings.shareApp", "tip.home", "tip.close", "tip.dontShow",
 )

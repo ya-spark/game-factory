@@ -26,9 +26,14 @@ The template ships these products (ids are final once created in Play Console):
   counts as owned.
 - Every real-money purchase goes through the parent gate first (a multiplication with factors
   6 to 9; 3 wrong answers in a row lock purchases for 60 s).
-- Continue costs 50 coins (`continueCoinCost` in `lib/ui/game_screen.dart`) or a rewarded ad,
-  up to 3 per run. With at least 50 coins a choice dialog offers the ad (free) or the coins;
-  with fewer coins it goes straight to the ad. Coin continues count against the same limit.
+- Continue needs a rewarded ad (owner, 2026-11-06), up to 3 per run; with Remove Ads owned it
+  is granted at once. Pressing it starts the ad directly (no choice sheet). A continue is
+  granted only when the ad reports the reward as earned; if the ad fails, is not ready or is
+  closed early, nothing is granted, the panel stays open and shows "No ad available right now.
+  Try again in a moment.". Never a fallback to coins or a free continue.
+- Acceptance: without Remove Ads, Continue calls the rewarded ad and spends no coins even with
+  1000 coins; an ad not earned grants nothing and leaves coins unchanged; with Remove Ads no ad
+  call; the limit of 3 holds.
 - The coin is `CoinIcon` (gold disc, "MC", drawn in code); `StatChip` takes an icon or a widget.
 
 ## 7. Screens
@@ -37,7 +42,7 @@ Menu, game, shop, settings, daily reward, ... with test IDs (`lib/ui/test_ids.da
   90 % opacity with a light border and soft shadow. Top to bottom: Share (`game.over.share`, top
   left; shares the score text and the share card), title and scores, Play again
   (`game.over.retry`) and Home (`game.over.home`) side by side, Continue last in gold
-  (`game.over.revive`; choice dialog `game.over.continue.ad` / `game.over.continue.coins`).
+  (`game.over.revive`).
   The eye button (`game.over.view`) fades the panel out in 0.2 s and a tap anywhere brings it back.
   Entrance 1 s ease-in: 0.3 s hold while the scene dims, then 0.7 s fade with a 24 px slide-up;
   buttons are tappable once it has settled. Reduce motion: a single 0.2 s fade.

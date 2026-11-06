@@ -9,13 +9,9 @@ import '../game/flame/block_puzzle_game.dart';
 import 'game_over_panel.dart';
 import 'share_card.dart';
 import 'test_ids.dart';
-import 'widgets.dart';
 
 /// Player-facing name of the second chance on the game over screen (rename it here only).
 const String continueLabel = 'Continue';
-
-/// Coins spent on a continue paid with coins (counts against the same per-run limit as an ad).
-const int continueCoinCost = 50;
 
 class GameScreen extends StatefulWidget {
   const GameScreen({super.key, this.game});
@@ -124,38 +120,6 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
     }
   }
 
-  /// Small choice shown when the player can afford coins: 'ad', 'coins' or null (dismissed).
-  Future<String?> _askContinueChoice() => showDialog<String>(
-    context: context,
-    builder: (ctx) => AlertDialog(
-      title: const Text('Continue?'),
-      content: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          SizedBox(
-            width: double.infinity,
-            child: FilledButton.icon(
-              key: TestIds.gameOverContinueAd,
-              icon: const Icon(Icons.smart_display),
-              label: const Text('Watch an ad (free)'),
-              onPressed: () => Navigator.pop(ctx, 'ad'),
-            ),
-          ),
-          const SizedBox(height: 8),
-          SizedBox(
-            width: double.infinity,
-            child: FilledButton.tonalIcon(
-              key: TestIds.gameOverContinueCoins,
-              icon: const CoinIcon(size: 20),
-              label: const Text('Use $continueCoinCost coins'),
-              onPressed: () => Navigator.pop(ctx, 'coins'),
-            ),
-          ),
-        ],
-      ),
-    ),
-  );
-
   Future<void> _showGameOver(Services s) async {
     if (_dialogOpen || !mounted) return;
     _dialogOpen = true;
@@ -239,31 +203,14 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
           _showGameOver(s);
           return;
         }
-        var useCoins = false;
-        if (s.profile.data.coins >= continueCoinCost) {
-          final choice = await _askContinueChoice();
-          if (!mounted) return;
-          if (choice == null) {
-            _showGameOver(s);
-            return;
-          }
-          useCoins = choice == 'coins';
-        }
-        if (useCoins) {
-          if (game.state.canRevive &&
-              await s.profile.spendCoins(continueCoinCost)) {
-            if (!mounted) return;
-            if (game.revive()) return;
-          }
-          if (!mounted) return;
-          _showGameOver(s);
-          return;
-        }
+        // Everyone else must earn the rewarded ad; never coins or a free continue.
         final earned = await s.ads.showRewarded(AdPlacement.revive);
         if (!mounted) return;
         if (earned && game.revive()) return;
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Ad not available. Try again later.')),
+          const SnackBar(
+            content: Text('No ad available right now. Try again in a moment.'),
+          ),
         );
         _showGameOver(s);
       case 'retry':

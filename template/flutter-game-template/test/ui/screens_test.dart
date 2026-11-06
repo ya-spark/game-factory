@@ -258,7 +258,6 @@ void main() {
     await tester.tap(find.byKey(TestIds.gameOverRevive));
     await settle(tester);
     expect(ads.rewardedShown, 0);
-    expect(find.byKey(TestIds.gameOverContinueCoins), findsNothing);
     expect(s.profile.data.coins, 200);
     expect(game.state.isGameOver, isFalse);
     expect(game.state.revivesUsed, 1);
@@ -281,67 +280,46 @@ void main() {
     expect(game.state.revivesUsed, 1);
   });
 
-  testWidgets('under 50 coins: continue goes straight to the ad', (
+  testWidgets('1000 coins: continue calls the ad directly, no coins spent', (
     tester,
   ) async {
     final ads = FakeAdService();
     final s = await buildFakeServices(ads: ads);
-    await s.profile.addCoins(continueCoinCost - 1);
+    await s.profile.addCoins(1000);
     final game = await pumpGameOver(tester, s);
     await tester.tap(find.byKey(TestIds.gameOverRevive));
     await settle(tester);
-    expect(find.byKey(TestIds.gameOverContinueAd), findsNothing);
+    expect(find.byType(AlertDialog), findsNothing);
     expect(ads.rewardedShown, 1);
-    expect(game.state.revivesUsed, 1);
-    expect(s.profile.data.coins, continueCoinCost - 1);
-  });
-
-  testWidgets('50 coins or more: choice; coins spend exactly 50', (
-    tester,
-  ) async {
-    final ads = FakeAdService();
-    final s = await buildFakeServices(ads: ads);
-    await s.profile.addCoins(120);
-    final game = await pumpGameOver(tester, s);
-    await tester.tap(find.byKey(TestIds.gameOverRevive));
-    await settle(tester);
-    expect(find.byKey(TestIds.gameOverContinueAd), findsOneWidget);
-    expect(find.byKey(TestIds.gameOverContinueCoins), findsOneWidget);
-    await tester.tap(find.byKey(TestIds.gameOverContinueCoins));
-    await settle(tester);
-    expect(ads.rewardedShown, 0);
-    expect(s.profile.data.coins, 120 - continueCoinCost);
     expect(game.state.revivesUsed, 1);
     expect(game.state.isGameOver, isFalse);
+    expect(s.profile.data.coins, 1000);
   });
 
-  testWidgets('50 coins or more: the ad choice costs no coins', (tester) async {
-    final ads = FakeAdService();
+  testWidgets('ad not earned: no continue, panel open, coins unchanged', (
+    tester,
+  ) async {
+    final ads = FakeAdService(rewardResult: false);
     final s = await buildFakeServices(ads: ads);
-    await s.profile.addCoins(120);
+    await s.profile.addCoins(1000);
     final game = await pumpGameOver(tester, s);
     await tester.tap(find.byKey(TestIds.gameOverRevive));
     await settle(tester);
-    await tester.tap(find.byKey(TestIds.gameOverContinueAd));
-    await settle(tester);
     expect(ads.rewardedShown, 1);
-    expect(s.profile.data.coins, 120);
-    expect(game.state.revivesUsed, 1);
+    expect(game.state.revivesUsed, 0);
+    expect(game.state.isGameOver, isTrue);
+    expect(find.byKey(TestIds.gameOverDialog), findsOneWidget);
+    expect(find.textContaining('No ad available right now'), findsOneWidget);
+    expect(s.profile.data.coins, 1000);
   });
 
-  testWidgets('coin continues count against the 3 per run limit', (
-    tester,
-  ) async {
+  testWidgets('ad continues count against the 3 per run limit', (tester) async {
     final s = await buildFakeServices();
-    await s.profile.addCoins(500);
     final game = await pumpGameOver(tester, s);
     game.state.revivesUsed = GameState.maxRevives - 1;
     await tester.tap(find.byKey(TestIds.gameOverRevive));
     await settle(tester);
-    await tester.tap(find.byKey(TestIds.gameOverContinueCoins));
-    await settle(tester);
     expect(game.state.revivesUsed, GameState.maxRevives);
-    expect(s.profile.data.coins, 500 - continueCoinCost);
     expect(game.state.canRevive, isFalse);
   });
 
