@@ -11,6 +11,16 @@ What the player does second-to-second, minute-to-minute, session-to-session.
 ## 3. Rules and scoring
 Pure-Dart rules (lives in `lib/game/rules/`). List every rule, edge case and the scoring formula.
 
+**Special blocks and Gold Rush** (template default, built once for every block game; code: `CellKind` in `piece.dart`, kinds stored next to the colour in `Board`; dealing in `piece_generator.dart`; effects in `Board.place` and `GameState.place`). A game that does not want them sets `PieceGenerator(random, 0)` or lists the change in its own spec.
+- Cell kinds: `normal`, `gem` (the diamond block), `boom` (the **blast block**, shown as "Blast block"; the code name stays `boom`), `gold` ("golden block"). A kind travels with the piece cell onto the board and is cleared with the cell.
+- Dealing: every `specialEveryNthTray = 4`th dealt tray (the first tray of a game is tray 1) has exactly one special cell, on a random piece of at least 2 cells. Kind weights: gem 3, blast 2, gold 1, from the game's seeded generator. The first tray never has a special cell. Every dealt piece still fits.
+- Effects resolve when a line containing the special cell clears:
+  - Gem: `gemPoints = 50` added to the line base before the combo multiplier (`(10 * lines^2 + 50 * gems) * combo`), plus 1 coin (the same coin balance as shop and daily reward, granted in `GameScreen`).
+  - Blast block: after the line clear, every filled cell in the 3x3 area around it is emptied (clipped at the edges, no gravity, no chain reaction). Each extra emptied cell scores `blastCellPoints = 5` (flat). Gems emptied by a blast still pay.
+  - Golden block: starts Gold Rush.
+- Gold Rush: for the next `rushPlacements = 5` placements all points of the placement (cells, line bonus, gem, blast) are doubled (`rushMultiplier = 2`), after the combo multiplier. The placement that clears the golden block is not itself doubled. Another golden block during a rush adds `rushExtend = 5` placements, capped at `rushCap = 15`. A new game starts with no rush.
+- Look: each kind is an overlay drawn in code on top of the block (`lib/game/flame/special_overlay.dart`; gem = bright faceted gem, blast block = friendly star-burst, golden = gold sheen with a star), no assets. The blast is a 0.5 s cartoon star burst on each emptied cell (grows and fades, no flashing). During a rush the board has a soft golden shimmer (slow sway, no flashing) and a chip "GOLD RUSH x2 · N" shows the placements left. Test ID `game.rush`: Semantics value = placements left (0 when off). The HUD row with the streak, combo, Gold Rush chip is a `Wrap` (centred, 14 dp gaps, 2 dp between lines): when it does not fit it breaks onto a second line and never overflows (test at 360 dp wide with all of them showing).
+
 ## 4. Content
 Levels / pieces / modes. Difficulty curve.
 
@@ -92,6 +102,7 @@ Explicitly not doing: backend, Firebase, multiplayer, ...
 
 ## 12. Acceptance criteria
 Testable statements the test agent turns into tests.
+- Special blocks (`test/game/special_blocks_test.dart`): every 4th tray has exactly one special cell on a piece of 2+ cells, none on the first tray, deterministic for a seed; a kind travels onto the board; a blast block empties the 3x3 area (clipped at the edges) and scores 5 per extra cell; a gem pays 50 and 1 coin and still pays inside a blast; a golden block starts a 5-placement rush that doubles points, extends by 5 up to 15; `game.rush` is on the game screen (value 0 when off).
 - The Home icon and the Settings row open More games; a `live` card shows "Get it", which asks the
   parent gate before the store page opens (Cancel opens nothing); `coming_soon` has no button;
   `hidden` entries and the game itself are absent; with nothing listed neither entry point

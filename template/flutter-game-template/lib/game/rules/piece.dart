@@ -1,6 +1,27 @@
+/// Special kind of one cell. Drawn as an overlay on top of the block. Pure Dart.
+/// `boom` is the blast block: it empties the 3x3 area around it when its line clears.
+enum CellKind { normal, gem, boom, gold }
+
 /// A block shape: a set of (row, col) offsets with min row/col = 0. Pure Dart.
 class Piece {
-  const Piece(this.id, this.cells, this.colorIndex);
+  const Piece(this.id, this.cells, this.colorIndex, [this.kinds]);
+
+  /// Kind per cell (parallel to [cells]); null = all normal.
+  final List<CellKind>? kinds;
+
+  CellKind kindAt(int i) => kinds == null ? CellKind.normal : kinds![i];
+
+  bool get hasSpecial =>
+      kinds != null && kinds!.any((k) => k != CellKind.normal);
+
+  /// The same piece with cell [i] set to [kind].
+  Piece withKind(int i, CellKind kind) {
+    final k = List<CellKind>.of(
+      kinds ?? List.filled(cells.length, CellKind.normal),
+    );
+    k[i] = kind;
+    return Piece(id, cells, colorIndex, List.unmodifiable(k));
+  }
 
   final String id;
   final List<(int, int)> cells;

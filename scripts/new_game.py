@@ -225,12 +225,14 @@ REQUIRED_FILES = (
     "lib/ui/share_card.dart",
     "lib/ui/tip_dialog.dart",
     "lib/ui/game_over_panel.dart",
+    "lib/game/flame/special_overlay.dart",
     "lib/ui/parent_gate.dart",
     "lib/ui/shop_screen.dart",
     "assets/ambience/night.mp3",
 )
 REQUIRED_TEST_IDS = (
     "game.over.panel", "game.over.view", "game.over.share", "game.over.revive",
+    "game.rush",
     "gate.dialog", "gate.answer", "gate.submit", "gate.cancel",
     "settings.volume", "settings.ambience", "settings.voice", "settings.hand",
     "settings.tips", "settings.shareApp", "tip.home", "tip.close", "tip.dontShow",

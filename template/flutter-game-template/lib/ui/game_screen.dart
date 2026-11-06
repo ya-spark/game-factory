@@ -97,6 +97,7 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
     final game =
         widget.game ?? BlockPuzzleGame(bestScore: s.profile.data.bestScore);
     game.onPlaced = (o) {
+      if (o.gems > 0) s.profile.addCoins(o.gems); // 1 coin per gem
       if (s.profile.data.vibrationOn && o.linesCleared > 0) {
         HapticFeedback.mediumImpact();
       }
@@ -328,6 +329,7 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
               _StreakBar(
                 streak: s.profile.displayStreak,
                 combo: game.state.comboStreak,
+                rushLeft: game.state.rushLeft,
                 showStreak: s.config.retention.streaks,
               ),
               const SizedBox(height: 6),
@@ -396,10 +398,12 @@ class _StreakBar extends StatelessWidget {
   const _StreakBar({
     required this.streak,
     required this.combo,
+    required this.rushLeft,
     required this.showStreak,
   });
   final int streak;
   final int combo;
+  final int rushLeft;
   final bool showStreak;
 
   @override
@@ -420,6 +424,29 @@ class _StreakBar extends StatelessWidget {
           ],
         ),
       if (combo > 0) Text('Combo x$combo', key: TestIds.gameCombo),
+      // Always present: Semantics value = placements left (0 when off).
+      Semantics(
+        key: TestIds.gameRush,
+        identifier: 'game.rush',
+        value: '$rushLeft',
+        child: rushLeft <= 0
+            ? const SizedBox.shrink()
+            : Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                decoration: BoxDecoration(
+                  color: const Color(0x33FFC928),
+                  border: Border.all(color: const Color(0xFFFFC928)),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Text(
+                  'GOLD RUSH x2 · $rushLeft',
+                  style: const TextStyle(
+                    color: Color(0xFFFFE08A),
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+              ),
+      ),
     ];
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -429,9 +456,12 @@ class _StreakBar extends StatelessWidget {
       ),
       child: DefaultTextStyle(
         style: const TextStyle(color: Color(0xFFCFE9EC), fontSize: 13),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
+        // Wrap, so streak + combo + Gold Rush never overflow a narrow screen.
+        child: Wrap(
+          alignment: WrapAlignment.center,
+          crossAxisAlignment: WrapCrossAlignment.center,
           spacing: 14,
+          runSpacing: 2,
           children: parts,
         ),
       ),
