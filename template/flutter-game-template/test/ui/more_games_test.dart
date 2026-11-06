@@ -81,6 +81,38 @@ Future<void> _pump(WidgetTester tester, Services s) async {
   await tester.pump();
 }
 
+/// The Home icon row (More games, Shop, Settings): 48 dp targets 8 dp apart, 8 dp from the top and
+/// right edges, and clear of the title, the stat chips, Play and the Daily reward / Challenges row.
+void _expectIconRow(WidgetTester tester, Services s, Size size) {
+  final more = tester.getRect(find.byKey(TestIds.homeMoreGames));
+  final shop = tester.getRect(find.byKey(TestIds.homeShop));
+  final settings = tester.getRect(find.byKey(TestIds.homeSettings));
+  for (final r in [more, shop, settings]) {
+    expect(r.size, const Size(48, 48));
+    expect(r.top, 8);
+  }
+  expect(settings.right, size.width - 8);
+  expect(shop.right, settings.left - 8);
+  expect(more.right, shop.left - 8);
+  final others = [
+    tester.getRect(find.textContaining(s.config.displayName)),
+    for (final k in [
+      TestIds.homePlay,
+      TestIds.homeCoins,
+      TestIds.homeBestScore,
+      TestIds.homeDailyReward,
+      TestIds.homeChallenges,
+    ])
+      tester.getRect(find.byKey(k)),
+  ];
+  for (final icon in [more, shop, settings]) {
+    for (final o in others) {
+      expect(icon.overlaps(o), isFalse, reason: '$icon overlaps $o');
+    }
+  }
+  expect(tester.takeException(), isNull);
+}
+
 void main() {
   test('config: parses, skips self, hides hidden, empty list', () {
     final c = AppConfig.fromYamlString('$_base$_list');
@@ -170,21 +202,11 @@ void main() {
     expect(find.byKey(TestIds.settingsMoreGames), findsNothing);
   });
 
-  testWidgets('Home at 360x640: icon top right, no overlap, no overflow', (
+  testWidgets('Home at 360x640: icon row top right, no overlap, no overflow', (
     tester,
   ) async {
-    await _pump(tester, await _services(FakeExternalLinkService()));
-    final icon = tester.getRect(find.byKey(TestIds.homeMoreGames));
-    expect(icon.size, const Size(48, 48));
-    expect(icon.right, 360 - 4);
-    for (final k in [
-      TestIds.homePlay,
-      TestIds.homeSettings,
-      TestIds.homeCoins,
-      TestIds.homeBestScore,
-    ]) {
-      expect(icon.overlaps(tester.getRect(find.byKey(k))), isFalse);
-    }
-    expect(tester.takeException(), isNull);
+    final s = await _services(FakeExternalLinkService());
+    await _pump(tester, s);
+    _expectIconRow(tester, s, const Size(360, 640));
   });
 }

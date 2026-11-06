@@ -92,7 +92,7 @@ class MenuButton extends StatelessWidget {
   final bool badge;
   final bool primary;
 
-  /// Half-width variant for the Home 2 x 2 grid: fills the width it is given (64 dp tall),
+  /// Half-width variant for the Home Daily reward / Challenges row: fills the width it is given (52 dp tall),
   /// with a smaller icon and label.
   final bool compact;
 
@@ -106,9 +106,9 @@ class MenuButton extends StatelessWidget {
         (primary
             ? const [Color(0xFFFFB02E), Color(0xFFFF6B3D)]
             : const [Color(0xFF5AB8FF), Color(0xFF3F7BFF)]);
-    final height = primary ? 76.0 : 64.0;
+    final height = primary ? 60.0 : 52.0;
     return SizedBox(
-      width: compact ? null : 290,
+      width: compact ? null : 240,
       height: height,
       child: _BadgeDot(
         show: badge,
@@ -143,7 +143,7 @@ class MenuButton extends StatelessWidget {
                   Icon(
                     icon,
                     color: Colors.white,
-                    size: primary ? 36 : (compact ? 24 : 30),
+                    size: primary ? 30 : (compact ? 22 : 24),
                   ),
                   SizedBox(width: compact ? 6 : 10),
                   Flexible(
@@ -153,7 +153,7 @@ class MenuButton extends StatelessWidget {
                         label,
                         style: TextStyle(
                           color: Colors.white,
-                          fontSize: primary ? 28 : (compact ? 18 : 22),
+                          fontSize: primary ? 24 : (compact ? 16 : 20),
                           fontWeight: FontWeight.w900,
                           letterSpacing: 0.5,
                           shadows: const [
@@ -236,7 +236,7 @@ class _BadgeDot extends StatelessWidget {
   );
 }
 
-/// The Home secondary buttons in rows of two, 10 dp apart, as wide as the Play button (290 dp).
+/// The Home secondary buttons in rows of two, 8 dp apart, as wide as the Play button (240 dp).
 /// A lone last button spans the row, so hidden buttons leave no gap.
 class HomeGrid extends StatelessWidget {
   const HomeGrid({super.key, required this.children});
@@ -248,15 +248,69 @@ class HomeGrid extends StatelessWidget {
     for (var i = 0; i < children.length; i += 2) {
       rows.add(
         Row(
-          spacing: 10,
+          spacing: 8,
           children: [
             for (final c in children.skip(i).take(2)) Expanded(child: c),
           ],
         ),
       );
     }
-    return SizedBox(width: 290, child: Column(spacing: 10, children: rows));
+    return SizedBox(width: 240, child: Column(spacing: 8, children: rows));
   }
+}
+
+/// Small round Home icon (Shop, Settings, More games): 44 dp gradient circle with a 2 dp white
+/// border and a white 24 dp icon, 48 dp tap target. The key sits on the 48 dp target.
+class HomeIconButton extends StatelessWidget {
+  const HomeIconButton({
+    super.key,
+    required this.icon,
+    required this.label,
+    required this.colors,
+    required this.onPressed,
+  });
+  final IconData icon;
+  final String label;
+  final List<Color> colors;
+  final VoidCallback onPressed;
+
+  @override
+  Widget build(BuildContext context) => Semantics(
+    label: label,
+    button: true,
+    excludeSemantics: true,
+    child: GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTap: onPressed,
+      child: SizedBox(
+        width: 48,
+        height: 48,
+        child: Center(
+          child: Container(
+            width: 44,
+            height: 44,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              gradient: LinearGradient(
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+                colors: colors,
+              ),
+              border: Border.all(color: Colors.white, width: 2),
+              boxShadow: const [
+                BoxShadow(
+                  color: Color(0x55000000),
+                  blurRadius: 4,
+                  offset: Offset(0, 3),
+                ),
+              ],
+            ),
+            child: Icon(icon, color: Colors.white, size: 24),
+          ),
+        ),
+      ),
+    ),
+  );
 }
 
 /// White rounded card that groups a row on the colorful menu screens.

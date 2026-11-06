@@ -13,6 +13,18 @@ import 'test_ids.dart';
 /// Player-facing name of the second chance on the game over screen (rename it here only).
 const String continueLabel = 'Continue';
 
+/// Game-over button sizes (see docs/SPEC.md, "Game over layout").
+const double _kLargeFont = 22;
+const EdgeInsets _kLargePadding = EdgeInsets.symmetric(
+  horizontal: 28,
+  vertical: 16,
+);
+const double _kSmallFont = 15;
+const EdgeInsets _kSmallPadding = EdgeInsets.symmetric(
+  horizontal: 18,
+  vertical: 9,
+);
+
 class GameScreen extends StatefulWidget {
   const GameScreen({super.key, this.game});
 
@@ -136,23 +148,14 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
       barrierColor: Colors.transparent,
       builder: (ctx) => GameOverPanel(
         key: TestIds.gameOverDialog,
+        panelKey: TestIds.gameOverPanel,
+        viewKey: TestIds.gameOverView,
         title: 'Game over',
-        details: [
-          Text(
-            'Score ${game.state.score}',
-            style: const TextStyle(fontSize: 30, fontWeight: FontWeight.w900),
-          ),
-          Text('Best ${game.state.bestScore}'),
-          if (game.state.canRevive)
-            Text(
-              'Continues left: ${game.state.revivesRemaining}',
-              key: TestIds.gameOverRevivesLeft,
-            ),
-        ],
-        share: GameOverButton(
+        shareButton: GameOverButton(
           key: TestIds.gameOverShare,
           kind: GameOverButtonKind.ghost,
-          size: GameOverButtonSize.compact,
+          fontSize: _kSmallFont,
+          padding: _kSmallPadding,
           icon: Icons.share,
           semanticLabel: 'Share',
           onPressed: () async {
@@ -168,35 +171,52 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
             await s.share.shareScore(score: game.state.score, image: png);
           },
         ),
-        again: GameOverButton(
-          key: TestIds.gameOverRetry,
-          kind: game.state.canRevive
-              ? GameOverButtonKind.secondary
-              : GameOverButtonKind.primary,
-          size: game.state.canRevive
-              ? GameOverButtonSize.regular
-              : GameOverButtonSize.large,
-          icon: Icons.replay,
-          label: 'Play again',
-          onPressed: () => Navigator.pop(ctx, 'retry'),
-        ),
-        home: GameOverButton(
-          key: TestIds.gameOverHome,
-          kind: GameOverButtonKind.ghost,
-          icon: Icons.home,
-          label: 'Home',
-          onPressed: () => Navigator.pop(ctx, 'home'),
-        ),
-        cont: game.state.canRevive
+        details: [
+          Text(
+            'Score ${game.state.score}',
+            style: const TextStyle(fontSize: 30, fontWeight: FontWeight.w900),
+          ),
+          Text('Best ${game.state.bestScore}'),
+          if (game.state.canRevive)
+            Text(
+              'Continues left: ${game.state.revivesRemaining}',
+              key: TestIds.gameOverRevivesLeft,
+            ),
+        ],
+
+        leadButton: game.state.canRevive
             ? GameOverButton(
                 key: TestIds.gameOverRevive,
                 kind: GameOverButtonKind.primary,
-                size: GameOverButtonSize.large,
                 icon: Icons.smart_display,
                 label: '$continueLabel · ${game.state.revivesRemaining} left',
+                fontSize: _kLargeFont,
+                padding: _kLargePadding,
                 onPressed: () => Navigator.pop(ctx, 'revive'),
               )
             : null,
+        buttons: [
+          GameOverButton(
+            key: TestIds.gameOverRetry,
+            kind: game.state.canRevive
+                ? GameOverButtonKind.secondary
+                : GameOverButtonKind.primary,
+            icon: Icons.replay,
+            label: 'Play again',
+            fontSize: game.state.canRevive ? _kSmallFont : _kLargeFont,
+            padding: game.state.canRevive ? _kSmallPadding : _kLargePadding,
+            onPressed: () => Navigator.pop(ctx, 'retry'),
+          ),
+          GameOverButton(
+            key: TestIds.gameOverHome,
+            kind: GameOverButtonKind.ghost,
+            icon: Icons.home,
+            label: 'Home',
+            fontSize: _kSmallFont,
+            padding: _kSmallPadding,
+            onPressed: () => Navigator.pop(ctx, 'home'),
+          ),
+        ],
       ),
     );
     _dialogOpen = false;

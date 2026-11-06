@@ -117,40 +117,6 @@ class _GameIcon extends StatelessWidget {
   }
 }
 
-/// Small round Home icon: 40 dp white icon on a translucent dark circle, 48 dp tap target.
-class MoreGamesIconButton extends StatelessWidget {
-  const MoreGamesIconButton({super.key, required this.onPressed});
-  final VoidCallback onPressed;
-
-  @override
-  Widget build(BuildContext context) {
-    return Semantics(
-      label: 'More games',
-      button: true,
-      excludeSemantics: true,
-      child: GestureDetector(
-        behavior: HitTestBehavior.opaque,
-        onTap: onPressed,
-        child: SizedBox(
-          width: 48,
-          height: 48,
-          child: Center(
-            child: Container(
-              width: 40,
-              height: 40,
-              decoration: const BoxDecoration(
-                shape: BoxShape.circle,
-                color: Color(0x73000000),
-              ),
-              child: const Icon(Icons.apps, color: Colors.white, size: 24),
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-}
-
 /// Opens [MoreGamesScreen].
 void openMoreGames(BuildContext context) =>
     Navigator.of(context)

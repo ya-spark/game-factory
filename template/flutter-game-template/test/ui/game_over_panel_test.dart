@@ -112,11 +112,13 @@ void main() {
     final s = await buildFakeServices();
     await endRun(tester, s);
     await tester.pump(); // first frame of the overlay
+    expect(find.byKey(TestIds.gameOverPanel), findsNothing, reason: 'hold');
+    await tester.pump(const Duration(milliseconds: 350));
     expect(find.byKey(TestIds.gameOverPanel), findsOneWidget);
     expect(retryTappable(tester), isFalse);
     await tester.pump(const Duration(milliseconds: 300));
     expect(retryTappable(tester), isFalse);
-    await tester.pump(const Duration(milliseconds: 650));
+    await tester.pump(const Duration(milliseconds: 300));
     expect(retryTappable(tester), isFalse);
     await tester.pump(const Duration(milliseconds: 100));
     expect(retryTappable(tester), isTrue);

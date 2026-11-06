@@ -43,6 +43,8 @@ Menu, game, shop, settings, daily reward, ... with test IDs (`lib/ui/test_ids.da
   left; shares the score text and the share card), title and scores, Play again
   (`game.over.retry`) and Home (`game.over.home`) side by side, Continue last in gold
   (`game.over.revive`).
+  The card is **vertically centred** in the safe area (`Alignment.center`, 16 dp side padding, 8 dp above and below; owner, 2026-11-06), after the slide-up has finished.
+  The panel (`lib/ui/game_over_panel.dart`) is the same file in every game and the template (Blockfall is the reference); game-specific wording lives only in the callers. It has one optional extra row, `extraButton`, between the Play again / Home row and Continue (14 dp gaps): Wingy uses it for Dash Refill, the other games leave it empty.
   The eye button (`game.over.view`) fades the panel out in 0.2 s and a tap anywhere brings it back.
   Entrance 1 s ease-in: 0.3 s hold while the scene dims, then 0.7 s fade with a 24 px slide-up;
   buttons are tappable once it has settled. Reduce motion: a single 0.2 s fade.
@@ -60,9 +62,7 @@ Menu, game, shop, settings, daily reward, ... with test IDs (`lib/ui/test_ids.da
   (`market://details?id=<package>`, fallback `https://play.google.com/store/apps/details?id=<package>`).
   Never coins or anything else for opening or installing another game (Play bans incentivised
   installs). Not shown on game over, Continue or in play, and never in place of an interstitial.
-- Home More games icon (`home.moreGames`): top-right corner inside the safe area, 40 dp visual
-  (white `Icons.apps` 24 dp on a 45 % black circle), 48 dp tap target, 4 dp from the edges,
-  Semantics label "More games". Adds no row and moves nothing.
+- Home layout v2 (owner, 2026-11-06): a **top-right icon row** (`HomeIconButton`), inside the safe area, 8 dp from the top and right edges, 8 dp apart, from the right: Settings (`home.settings`, `Icons.settings`), Shop (`home.shop`, `Icons.shopping_basket`), and More games (`home.moreGames`, `Icons.apps`) when at least one other game is listed. Each is a round gradient button, 44 dp visual with a 2 dp white border and a white 24 dp icon, 48 dp tap target, Semantics labels "Settings", "Shop", "More games". Below the title and stat chips: **Play** (240 x 60 dp), then **Daily reward and Challenges side by side** (each 116 x 52 dp, 8 dp apart; a lone one spans 240 dp; none leaves no row). `MenuButton` is 240 x 52 dp (primary 240 x 60) everywhere.
 - The list is bundled: `more_games:` in `app.config.yaml` (`id`, `package_name`, `name`,
   `tagline`, `status` = `live` | `coming_soon` | `hidden`). `hidden` entries and the game's own
   package are skipped. With nothing to show, the Settings row and Home icon are not shown.
@@ -96,4 +96,4 @@ Testable statements the test agent turns into tests.
   parent gate before the store page opens (Cancel opens nothing); `coming_soon` has no button;
   `hidden` entries and the game itself are absent; with nothing listed neither entry point
   shows; the screen has no coin or reward text (`test/ui/more_games_test.dart`).
-- Home at 360 x 640 dp: the icon is 48 dp at the top right and overlaps no Home element.
+- Home at 360 x 640 dp: the icon row (More games, Shop, Settings) is 48 dp targets 8 dp apart at the top right and overlaps no Home element.
