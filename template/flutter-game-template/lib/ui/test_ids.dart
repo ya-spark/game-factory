@@ -65,6 +65,14 @@ abstract final class TestIds {
   static const settingsTips = Key('settings.tips');
   static const settingsShareApp = Key('settings.shareApp');
 
+  // More games
+  static const homeMoreGames = Key('home.moreGames');
+  static const settingsMoreGames = Key('settings.moreGames');
+  static const moreGamesScreen = Key('moreGames.screen');
+  static const moreGamesBack = Key('moreGames.back');
+  static Key moreGamesCard(String id) => Key('moreGames.card.$id');
+  static Key moreGamesGet(String id) => Key('moreGames.get.$id');
+
   // Tips: one dialog on the home page, never in a game
   static const tipHome = Key('tip.home');
   static const tipClose = Key('tip.close');

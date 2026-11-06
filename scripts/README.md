@@ -52,6 +52,11 @@ python3 scripts/pipeline.py next [--json]     # first actionable (game, stage, a
 python3 scripts/pipeline.py set my_game spec awaiting_approval --note "SPEC.md written"
 ```
 
+`pipeline.py more-games` prints the `more_games:` block (the "More games" list bundled in each
+game's `app.config.yaml`) from `registry/games/*.json`, one entry per game with a package. New
+entries are `hidden` with a TODO tagline. `/new-app` runs it so every other game lists the new one;
+`/change-app` merges it into each game (keeping existing taglines and statuses). It never pushes.
+
 A stage can only move to `in_progress`, `awaiting_approval` or `done` when all earlier stages are
 `done` or `skipped`; `blocked` needs a note saying what is required; a note is cleared when the
 status changes without a new one. `next` skips a game whose next stage is `blocked` or

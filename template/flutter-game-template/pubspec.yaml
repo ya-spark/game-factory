@@ -44,6 +44,7 @@ dependencies:
   games_services: ^5.3.0
   audioplayers: ^6.1.0
   share_plus: 13.3.1
+  url_launcher: 6.3.3 # exact pin: opens Play Store pages for "More games"; imported only in core/links/url_external_link_service.dart
 
 dev_dependencies:
   flutter_test:

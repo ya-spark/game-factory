@@ -11,6 +11,8 @@ import 'config/app_config.dart';
 import 'config/products.dart';
 import 'identity/identity_service.dart';
 import 'leaderboard/leaderboard_service.dart';
+import 'links/external_link_service.dart';
+import 'links/url_external_link_service.dart';
 import 'notifications/local_notification_service.dart';
 import 'notifications/notification_service.dart';
 import 'profile/profile_store.dart';
@@ -41,9 +43,11 @@ class Services {
     required this.profile,
     required this.share,
     required this.audio,
+    ExternalLinkService? links,
     TipService? tips,
     ParentGateGuard? parentGate,
-  }) : tips = tips ?? TipService(),
+  }) : links = links ?? FakeExternalLinkService(),
+       tips = tips ?? TipService(),
        parentGate = parentGate ?? ParentGateGuard();
 
   /// Parent gate rules and lock state, shared so the lock survives closing the dialog.
@@ -63,6 +67,9 @@ class Services {
   final ShareService share;
   final AudioService audio;
   final TipService tips;
+
+  /// Opens Play Store pages ("More games").
+  final ExternalLinkService links;
 
   /// Production wiring (Android v1).
   static Future<Services> create({
@@ -106,6 +113,7 @@ class Services {
         link: config.shareLink,
       ),
       audio: AudioplayersAudioService(),
+      links: const UrlExternalLinkService(),
     );
     s.wirePurchases();
     return s;

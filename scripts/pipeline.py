@@ -8,6 +8,7 @@ and every `@claude` run sees the same truth. Commands:
   pipeline.py status [<game_id>] [--json]
   pipeline.py next [--json]            first actionable (game, stage) across all games
   pipeline.py set <game_id> <stage> <status> [--note TEXT] [--pr URL]
+  pipeline.py more-games               print the `more_games:` block for every game's app.config.yaml
 
 Stage order is fixed (STAGES). A stage is actionable when it is `pending` (or `in_progress`,
 meaning resume) and every earlier stage is `done` or `skipped`.
@@ -138,6 +139,30 @@ def set_status(game_id: str, stage: str, status: str, note: str | None = None,
     return game
 
 
+def more_games_block(games: list[dict]) -> str:
+    """The `more_games:` YAML block for app.config.yaml, one entry per registered game.
+
+    Every game gets the same block (a game skips its own package at runtime). New entries start
+    `hidden` with a TODO tagline: the owner approves the tagline and flips the status. Existing
+    games' taglines and statuses are kept by the /change-app flow when it merges the block.
+    """
+    lines = [
+        "more_games:",
+    ]
+    for g in games:
+        package = g.get("package", "")
+        if not package:
+            continue
+        lines += [
+            f"  - id: {package.rsplit('.', 1)[-1]}",
+            f"    package_name: {package}",
+            f'    name: "{g["id"].replace("_", " ").title()}"',
+            '    tagline: "TODO owner approves"',
+            "    status: hidden        # live | coming_soon | hidden",
+        ]
+    return "\n".join(lines)
+
+
 def render(game: dict) -> str:
     issue = f"  issue #{game['issue']}" if game.get("issue") else ""
     lines = [f"{game['id']}  ({game['repo']}){issue}"]
@@ -162,6 +187,7 @@ def main(argv: list[str] | None = None) -> int:
     p.add_argument("--json", action="store_true")
     p = sub.add_parser("next")
     p.add_argument("--json", action="store_true")
+    sub.add_parser("more-games")
     p = sub.add_parser("set")
     p.add_argument("game_id")
     p.add_argument("stage")
@@ -172,6 +198,8 @@ def main(argv: list[str] | None = None) -> int:
     try:
         if a.cmd == "init":
             print(render(init(a.game_id, a.repo, a.package, issue=a.issue)))
+        elif a.cmd == "more-games":
+            print(more_games_block(all_games()))
         elif a.cmd == "set":
             print(render(set_status(a.game_id, a.stage, a.status, a.note, a.pr)))
         elif a.cmd == "status":

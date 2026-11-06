@@ -64,3 +64,25 @@ play_games:
   enabled: false
   app_id: PLACEHOLDER_PLAY_GAMES_APP_ID
   leaderboard_high_score: PLACEHOLDER_LEADERBOARD_ID
+
+# Other games by the studio, shown on the "More games" screen (Settings row and small Home icon).
+# Bundled: no network call. status: live (card with "Get it") | coming_soon (card, no button) |
+# hidden (not listed). This game's own package_name is skipped, so the same list is copied to
+# every game. The owner flips an entry to live when that game is public. If nothing is listed,
+# the Settings row and the Home icon are not shown. Synced by `scripts/pipeline.py more-games`.
+more_games:
+  - id: blockpuzzle
+    package_name: com.activemindcraft.blockpuzzle
+    name: "Block Puzzle"
+    tagline: "Drag, fit and clear the board"
+    status: hidden
+  - id: blockfall
+    package_name: com.activemindcraft.blockfall
+    name: "Blockfall"
+    tagline: "Stack gems and clear rows"
+    status: hidden
+  - id: wingy
+    package_name: com.activemindcraft.wingy
+    name: "Wingy"
+    tagline: "Tap to flap through the canyon"
+    status: hidden

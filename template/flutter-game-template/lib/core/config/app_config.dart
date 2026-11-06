@@ -98,6 +98,35 @@ class ShareConfig {
   final String internalTestUrl;
 }
 
+enum MoreGameStatus {
+  live,
+  comingSoon,
+  hidden;
+
+  static MoreGameStatus parse(String? v) => switch (v) {
+    'live' => live,
+    'coming_soon' => comingSoon,
+    _ => hidden,
+  };
+}
+
+/// One other game by the studio, listed on the "More games" screen.
+class MoreGame {
+  const MoreGame({
+    required this.id,
+    required this.packageName,
+    required this.name,
+    required this.tagline,
+    required this.status,
+  });
+
+  final String id;
+  final String packageName;
+  final String name;
+  final String tagline;
+  final MoreGameStatus status;
+}
+
 class PlatformsConfig {
   const PlatformsConfig({
     this.android = true,
@@ -137,6 +166,7 @@ class AppConfig {
     required this.retention,
     required this.playGames,
     this.share = const ShareConfig(),
+    this.moreGames = const [],
   });
 
   final String appId;
@@ -151,6 +181,15 @@ class AppConfig {
   final RetentionConfig retention;
   final PlayGamesConfig playGames;
   final ShareConfig share;
+
+  /// Every `more_games:` entry as written in the config (bundled, no network).
+  final List<MoreGame> moreGames;
+
+  /// Entries the "More games" screen shows: not hidden, and never this game itself.
+  List<MoreGame> get visibleMoreGames => [
+    for (final g in moreGames)
+      if (g.status != MoreGameStatus.hidden && g.packageName != packageName) g,
+  ];
 
   /// Play Store page of this game, built from the package name.
   String get storeLink =>
@@ -187,6 +226,7 @@ class AppConfig {
     final ret = (root['retention'] as YamlMap?) ?? YamlMap();
     final pg = (root['play_games'] as YamlMap?) ?? YamlMap();
     final share = (root['share'] as YamlMap?) ?? YamlMap();
+    final more = (root['more_games'] as YamlList?) ?? YamlList();
     bool enabled(Object? p) =>
         p is YamlMap ? (p['enabled'] as bool? ?? false) : false;
     return AppConfig(
@@ -232,6 +272,16 @@ class AppConfig {
         linkMode: ShareLinkMode.parse(share['link_mode'] as String?),
         internalTestUrl: (share['internal_test_url'] as String? ?? '').trim(),
       ),
+      moreGames: [
+        for (final e in more.whereType<YamlMap>())
+          MoreGame(
+            id: e['id'] as String,
+            packageName: e['package_name'] as String,
+            name: e['name'] as String,
+            tagline: e['tagline'] as String? ?? '',
+            status: MoreGameStatus.parse(e['status'] as String?),
+          ),
+      ],
     );
   }
 

@@ -22,6 +22,15 @@ class PipelineTests(unittest.TestCase):
         self.assertEqual(len(pl.STAGE_IDS), 9)
         self.assertTrue(all(s["status"] == "pending" for s in g["stages"].values()))
 
+    def test_more_games_block(self):
+        self.init("block_puzzle")
+        pl.init("nopkg", "ya-spark/game-nopkg", games_dir=self.dir)
+        block = pl.more_games_block(pl.all_games(self.dir))
+        self.assertIn("  - id: y\n    package_name: com.x.y", block)
+        self.assertIn('name: "Block Puzzle"', block)
+        self.assertIn("status: hidden", block)
+        self.assertNotIn("nopkg", block)
+
     def test_issue_number_is_recorded_and_shown(self):
         g = pl.init("g_two", "ya-spark/game-g-two", games_dir=self.dir, issue=12)
         self.assertEqual(g["issue"], 12)

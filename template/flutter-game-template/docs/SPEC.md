@@ -50,7 +50,26 @@ Menu, game, shop, settings, daily reward, ... with test IDs (`lib/ui/test_ids.da
 - Shop: Remove Ads first, then the coin packs by size; `shop.buy.<productId>`, `shop.restore`.
 - Home tip of the day (`tip.home`, `tip.close`, `tip.dontShow`), never during a game.
 - Settings: sound, volume, background sound, narrator voice, hand (left or right), vibration,
-  reminders, tips, share app (only with a share link), privacy.
+  reminders, tips, More games (`settings.moreGames`, `Icons.apps`, above share app and privacy),
+  share app (only with a share link), privacy.
+- More games (`lib/ui/more_games_screen.dart`, `moreGames.screen`, `moreGames.back`): title
+  "More games", header "More from Active Mind Craft". One card per listed game
+  (`moreGames.card.<id>`): 48 dp rounded tile (12 dp radius) drawn in code, name, tagline, and
+  "Get it" (`moreGames.get.<id>`, `live`) or the text "Coming soon" (`coming_soon`, no button).
+  "Get it" asks the parent gate first, then `ExternalLinkService.openStorePage(package)`
+  (`market://details?id=<package>`, fallback `https://play.google.com/store/apps/details?id=<package>`).
+  Never coins or anything else for opening or installing another game (Play bans incentivised
+  installs). Not shown on game over, Continue or in play, and never in place of an interstitial.
+- Home More games icon (`home.moreGames`): top-right corner inside the safe area, 40 dp visual
+  (white `Icons.apps` 24 dp on a 45 % black circle), 48 dp tap target, 4 dp from the edges,
+  Semantics label "More games". Adds no row and moves nothing.
+- The list is bundled: `more_games:` in `app.config.yaml` (`id`, `package_name`, `name`,
+  `tagline`, `status` = `live` | `coming_soon` | `hidden`). `hidden` entries and the game's own
+  package are skipped. With nothing to show, the Settings row and Home icon are not shown.
+  No network call, so the privacy policy and Data safety do not change. All entries start
+  `hidden`; the owner flips them to `live` when a game is public.
+- Third-party: `url_launcher` 6.3.3 (exact pin), only in `lib/core/links/url_external_link_service.dart`,
+  to open Play Store pages; the Android manifest `<queries>` lists the `market` and `https` VIEW intents.
 
 ## 8. Art and audio
 Style, palette, asset list (every asset must be in `assets/LICENSES.md`).
@@ -73,3 +92,8 @@ Explicitly not doing: backend, Firebase, multiplayer, ...
 
 ## 12. Acceptance criteria
 Testable statements the test agent turns into tests.
+- The Home icon and the Settings row open More games; a `live` card shows "Get it", which asks the
+  parent gate before the store page opens (Cancel opens nothing); `coming_soon` has no button;
+  `hidden` entries and the game itself are absent; with nothing listed neither entry point
+  shows; the screen has no coin or reward text (`test/ui/more_games_test.dart`).
+- Home at 360 x 640 dp: the icon is 48 dp at the top right and overlaps no Home element.
