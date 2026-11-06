@@ -26,21 +26,29 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     WidgetsBinding.instance.addPostFrameCallback((_) => _maybeShowTip());
   }
 
-  bool _tipOpen = false;
+  bool _tipBusy = false;
+
+  /// True only when Home is the page on top and no run is on screen.
+  bool _homeIsOnTop(Services s) =>
+      mounted && !s.inRun && ModalRoute.of(context)?.isCurrent == true;
 
   /// Opens the tip of the day once per day when the home page is shown (never during play).
+  /// Never queued: when the guard blocks it nothing happens, and the next Home visit tries again.
   Future<void> _maybeShowTip() async {
-    if (!mounted || _tipOpen) return;
-    if (!(ModalRoute.of(context)?.isCurrent ?? true)) return; // not during play
+    if (_tipBusy || !mounted) return;
     final s = ServicesScope.of(context);
     final profile = s.profile;
-    if (!profile.homeTipPending) return;
-    _tipOpen = true;
-    final text = s.tips.tipOfTheDay(profile.today);
-    await profile.closeHomeTip(); // counts as shown for today
-    if (!mounted) return;
-    await showTipDialog(context, text: text);
-    _tipOpen = false;
+    if (!_homeIsOnTop(s) || !profile.homeTipPending) return;
+    _tipBusy = true;
+    try {
+      final text = s.tips.tipOfTheDay(profile.today);
+      await profile.closeHomeTip(); // counts as shown for today
+      // The save is async: a run may have started meanwhile, so check again before opening.
+      if (!mounted || !_homeIsOnTop(s)) return;
+      await showTipDialog(context, text: text);
+    } finally {
+      _tipBusy = false;
+    }
   }
 
   @override

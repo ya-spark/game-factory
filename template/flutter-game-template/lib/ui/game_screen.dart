@@ -28,11 +28,16 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
   bool _recorded = false;
   bool _dialogOpen = false;
   Services? _services;
+  Services? _runFlagOwner;
 
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
+    // Tells Home (the tip of the day) that a run is on screen; cleared in dispose.
+    _runFlagOwner =
+        context.getInheritedWidgetOfExactType<ServicesScope>()?.services
+          ?..inRun = true;
   }
 
   @override
@@ -68,6 +73,7 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
 
   @override
   void dispose() {
+    _runFlagOwner?.inRun = false;
     WidgetsBinding.instance.removeObserver(this);
     _services?.audio.pauseAmbience();
     super.dispose();

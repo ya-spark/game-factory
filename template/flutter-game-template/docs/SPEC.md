@@ -48,7 +48,7 @@ Menu, game, shop, settings, daily reward, ... with test IDs (`lib/ui/test_ids.da
   buttons are tappable once it has settled. Reduce motion: a single 0.2 s fade.
 - Parent gate dialog: `gate.dialog`, `gate.answer`, `gate.submit`, `gate.cancel`.
 - Shop: Remove Ads first, then the coin packs by size; `shop.buy.<productId>`, `shop.restore`.
-- Home tip of the day (`tip.home`, `tip.close`, `tip.dontShow`), never during a game.
+- Home tip of the day (`tip.home`, `tip.close`, `tip.dontShow`), never during a game: it opens only while Home is the page on top and no run is on screen (`Services.inRun`, set by the game screen), checked again after the save that marks the tip as shown. A blocked tip is never queued; the next time Home is shown it is tried again (still once per day).
 - Settings: sound, volume, background sound, narrator voice, hand (left or right), vibration,
   reminders, tips, More games (`settings.moreGames`, `Icons.apps`, above share app and privacy),
   share app (only with a share link), privacy.

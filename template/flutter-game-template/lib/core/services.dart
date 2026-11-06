@@ -50,6 +50,10 @@ class Services {
        tips = tips ?? TipService(),
        parentGate = parentGate ?? ParentGateGuard();
 
+  /// True while the game screen is on the navigator (set by `GameScreen`). The home tip of the day
+  /// never opens while it is true, whatever the route stack looks like.
+  bool inRun = false;
+
   /// Parent gate rules and lock state, shared so the lock survives closing the dialog.
   final ParentGateGuard parentGate;
 

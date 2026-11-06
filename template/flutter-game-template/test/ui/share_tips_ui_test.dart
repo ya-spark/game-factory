@@ -1,8 +1,12 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter_game_template/app.dart';
 import 'package:flutter_game_template/core/audio/audio_service.dart';
 import 'package:flutter_game_template/core/profile/profile_store.dart';
+import 'package:flutter_game_template/core/save/save_data.dart';
+import 'package:flutter_game_template/core/save/save_service.dart';
 import 'package:flutter_game_template/core/services.dart';
 import 'package:flutter_game_template/core/share/share_service.dart';
 import 'package:flutter_game_template/ui/game_screen.dart';
@@ -25,6 +29,19 @@ Future<void> pumpApp(WidgetTester tester, Services s) async {
 Future<void> settle(WidgetTester tester) async {
   for (var i = 0; i < 15; i++) {
     await tester.pump(const Duration(milliseconds: 100));
+  }
+}
+
+/// Save service whose `save` waits until [release] is called (a slow disk write).
+class _GatedSaveService extends MemorySaveService {
+  final _gate = Completer<void>();
+  bool gated = false;
+  void release() => _gate.complete();
+
+  @override
+  Future<void> save(SaveData d) async {
+    if (gated) await _gate.future;
+    await super.save(d);
   }
 }
 
@@ -243,6 +260,50 @@ void main() {
       ),
     );
     await PuzzleBot(tester).waitForGame();
+    expect(find.byKey(TestIds.tipHome), findsNothing);
+  });
+
+  testWidgets('no tip while a run is on screen: resume with the game on top', (
+    tester,
+  ) async {
+    var now = DateTime.utc(2026, 11, 5, 10);
+    final s = await buildFakeServices(clock: () => now, tips: true);
+    await pumpApp(tester, s);
+    await tester.tap(find.byKey(TestIds.tipClose));
+    await settle(tester);
+    await tester.tap(find.byKey(TestIds.homePlay));
+    await settle(tester);
+    expect(find.byType(GameScreen), findsOneWidget);
+    expect(s.inRun, isTrue);
+    now = DateTime.utc(2026, 11, 6, 10);
+    expect(s.profile.homeTipPending, isTrue);
+    for (final st in [
+      AppLifecycleState.inactive,
+      AppLifecycleState.hidden,
+      AppLifecycleState.paused,
+      AppLifecycleState.hidden,
+      AppLifecycleState.inactive,
+      AppLifecycleState.resumed,
+    ]) {
+      tester.binding.handleAppLifecycleStateChanged(st);
+    }
+    await settle(tester);
+    expect(find.byKey(TestIds.tipHome), findsNothing);
+  });
+
+  testWidgets('no tip when Play is tapped while the tip is still being saved', (
+    tester,
+  ) async {
+    final saves = _GatedSaveService();
+    final s = await buildFakeServices(tips: true, profileSaves: saves);
+    saves.gated = true; // the save that marks the tip as shown is slow
+    await pumpApp(tester, s);
+    expect(find.byKey(TestIds.tipHome), findsNothing);
+    await tester.tap(find.byKey(TestIds.homePlay));
+    await settle(tester);
+    saves.release();
+    await settle(tester);
+    expect(find.byType(GameScreen), findsOneWidget);
     expect(find.byKey(TestIds.tipHome), findsNothing);
   });
 
