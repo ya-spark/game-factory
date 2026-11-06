@@ -83,6 +83,7 @@ class MenuButton extends StatelessWidget {
     required this.onPressed,
     this.badge = false,
     this.primary = false,
+    this.compact = false,
     this.colors,
   });
   final String label;
@@ -90,6 +91,10 @@ class MenuButton extends StatelessWidget {
   final VoidCallback onPressed;
   final bool badge;
   final bool primary;
+
+  /// Half-width variant for the Home 2 x 2 grid: fills the width it is given (64 dp tall),
+  /// with a smaller icon and label.
+  final bool compact;
 
   /// Gradient colors; defaults to a sunny orange for primary and a blue for the rest.
   final List<Color>? colors;
@@ -103,7 +108,7 @@ class MenuButton extends StatelessWidget {
             : const [Color(0xFF5AB8FF), Color(0xFF3F7BFF)]);
     final height = primary ? 76.0 : 64.0;
     return SizedBox(
-      width: 290,
+      width: compact ? null : 290,
       height: height,
       child: _BadgeDot(
         show: badge,
@@ -135,8 +140,12 @@ class MenuButton extends StatelessWidget {
                 mainAxisAlignment: MainAxisAlignment.center,
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Icon(icon, color: Colors.white, size: primary ? 36 : 30),
-                  const SizedBox(width: 10),
+                  Icon(
+                    icon,
+                    color: Colors.white,
+                    size: primary ? 36 : (compact ? 24 : 30),
+                  ),
+                  SizedBox(width: compact ? 6 : 10),
                   Flexible(
                     child: FittedBox(
                       fit: BoxFit.scaleDown,
@@ -144,7 +153,7 @@ class MenuButton extends StatelessWidget {
                         label,
                         style: TextStyle(
                           color: Colors.white,
-                          fontSize: primary ? 28 : 22,
+                          fontSize: primary ? 28 : (compact ? 18 : 22),
                           fontWeight: FontWeight.w900,
                           letterSpacing: 0.5,
                           shadows: const [
@@ -225,6 +234,29 @@ class _BadgeDot extends StatelessWidget {
         ),
     ],
   );
+}
+
+/// The Home secondary buttons in rows of two, 10 dp apart, as wide as the Play button (290 dp).
+/// A lone last button spans the row, so hidden buttons leave no gap.
+class HomeGrid extends StatelessWidget {
+  const HomeGrid({super.key, required this.children});
+  final List<Widget> children;
+
+  @override
+  Widget build(BuildContext context) {
+    final rows = <Widget>[];
+    for (var i = 0; i < children.length; i += 2) {
+      rows.add(
+        Row(
+          spacing: 10,
+          children: [
+            for (final c in children.skip(i).take(2)) Expanded(child: c),
+          ],
+        ),
+      );
+    }
+    return SizedBox(width: 290, child: Column(spacing: 10, children: rows));
+  }
 }
 
 /// White rounded card that groups a row on the colorful menu screens.

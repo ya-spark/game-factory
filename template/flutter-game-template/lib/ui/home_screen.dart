@@ -76,7 +76,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                 child: SingleChildScrollView(
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
-                    spacing: 14,
+                    spacing: 10,
                     children: [
                       const PopIn(
                         child: Text('🧩 ⭐ 🎈', style: TextStyle(fontSize: 44)),
@@ -132,38 +132,58 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                         primary: true,
                         onPressed: () => _open(const GameScreen()),
                       ),
-                      if (s.config.retention.dailyReward)
-                        MenuButton(
-                          key: TestIds.homeDailyReward,
-                          label: 'Daily reward',
-                          icon: Icons.card_giftcard,
-                          colors: const [Color(0xFFFF8FB1), KidColors.coral],
-                          badge: profile.dailyRewardAvailable,
-                          onPressed: () => _open(const DailyRewardScreen()),
-                        ),
-                      if (s.config.retention.dailyChallenges ||
-                          s.config.retention.achievements)
-                        MenuButton(
-                          key: TestIds.homeChallenges,
-                          label: 'Challenges',
-                          icon: Icons.flag_circle,
-                          colors: const [Color(0xFFB79CFF), KidColors.grape],
-                          badge: claimable,
-                          onPressed: () => _open(const ChallengesScreen()),
-                        ),
-                      MenuButton(
-                        key: TestIds.homeShop,
-                        label: 'Shop',
-                        icon: Icons.shopping_basket,
-                        colors: const [Color(0xFF6BEBB0), Color(0xFF1FB57A)],
-                        onPressed: () => _open(const ShopScreen()),
-                      ),
-                      MenuButton(
-                        key: TestIds.homeSettings,
-                        label: 'Settings',
-                        icon: Icons.settings,
-                        colors: const [Color(0xFFB0BEC5), Color(0xFF78909C)],
-                        onPressed: () => _open(const SettingsScreen()),
+                      HomeGrid(
+                        children: [
+                          if (s.config.retention.dailyReward)
+                            MenuButton(
+                              compact: true,
+                              key: TestIds.homeDailyReward,
+                              label: 'Daily reward',
+                              icon: Icons.card_giftcard,
+                              colors: const [
+                                Color(0xFFFF8FB1),
+                                KidColors.coral,
+                              ],
+                              badge: profile.dailyRewardAvailable,
+                              onPressed: () => _open(const DailyRewardScreen()),
+                            ),
+                          if (s.config.retention.dailyChallenges ||
+                              s.config.retention.achievements)
+                            MenuButton(
+                              compact: true,
+                              key: TestIds.homeChallenges,
+                              label: 'Challenges',
+                              icon: Icons.flag_circle,
+                              colors: const [
+                                Color(0xFFB79CFF),
+                                KidColors.grape,
+                              ],
+                              badge: claimable,
+                              onPressed: () => _open(const ChallengesScreen()),
+                            ),
+                          MenuButton(
+                            compact: true,
+                            key: TestIds.homeShop,
+                            label: 'Shop',
+                            icon: Icons.shopping_basket,
+                            colors: const [
+                              Color(0xFF6BEBB0),
+                              Color(0xFF1FB57A),
+                            ],
+                            onPressed: () => _open(const ShopScreen()),
+                          ),
+                          MenuButton(
+                            compact: true,
+                            key: TestIds.homeSettings,
+                            label: 'Settings',
+                            icon: Icons.settings,
+                            colors: const [
+                              Color(0xFFB0BEC5),
+                              Color(0xFF78909C),
+                            ],
+                            onPressed: () => _open(const SettingsScreen()),
+                          ),
+                        ],
                       ),
                     ],
                   ),
