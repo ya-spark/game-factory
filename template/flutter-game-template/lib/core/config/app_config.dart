@@ -186,6 +186,40 @@ class ContentConfig {
       );
 }
 
+/// `minigames:` in `app.config.yaml`: the price of a coin-locked minigame.
+class MiniGamesConfig {
+  const MiniGamesConfig({this.coinPrice = 200});
+  final int coinPrice;
+}
+
+RewardsConfig _parseRewards(YamlMap root) {
+  final r = (root['rewards'] as YamlMap?) ?? YamlMap();
+  final stars = (r['stars'] as YamlMap?) ?? YamlMap();
+  final coins = (r['coins'] as YamlMap?) ?? YamlMap();
+  const d = RewardsConfig();
+  final ms = coins['streak_milestones'];
+  return RewardsConfig(
+    starsEnabled: stars['enabled'] as bool? ?? d.starsEnabled,
+    perFirstPass: stars['per_first_pass'] as int? ?? d.perFirstPass,
+    topicBonus: stars['topic_bonus'] as int? ?? d.topicBonus,
+    streakBonus: stars['streak_bonus'] as int? ?? d.streakBonus,
+    weeklyCapPerChild:
+        coins['weekly_cap_per_child'] as int? ?? d.weeklyCapPerChild,
+    topicCoins: coins['topic'] as int? ?? d.topicCoins,
+    streakMilestones: ms is YamlMap
+        ? {
+            for (final e in ms.entries)
+              if (int.tryParse('${e.key}') != null && e.value is int)
+                int.parse('${e.key}'): e.value as int,
+          }
+        : d.streakMilestones,
+    dailyGoalItems: coins['daily_goal_items'] as int? ?? d.dailyGoalItems,
+    dailyGoalCoins: coins['daily_goal'] as int? ?? d.dailyGoalCoins,
+    weeklyGoalItems: coins['weekly_goal_items'] as int? ?? d.weeklyGoalItems,
+    weeklyGoalCoins: coins['weekly_goal'] as int? ?? d.weeklyGoalCoins,
+  );
+}
+
 /// Parsed `app.config.yaml`. Pure Dart.
 class AppConfig {
   const AppConfig({
@@ -203,9 +237,17 @@ class AppConfig {
     this.share = const ShareConfig(),
     this.moreGames = const [],
     this.content = const ContentConfig(),
+    this.rewards = const RewardsConfig(),
+    this.minigames = const MiniGamesConfig(),
+    this.aiEnabled = false,
   });
 
   final ContentConfig content;
+  final RewardsConfig rewards;
+  final MiniGamesConfig minigames;
+
+  /// `ai.enabled`. No AI feature ships, so this stays false.
+  final bool aiEnabled;
   final String appId;
   final String displayName;
   final String packageName;
@@ -269,7 +311,12 @@ class AppConfig {
     const dflt = ContentConfig();
     bool enabled(Object? p) =>
         p is YamlMap ? (p['enabled'] as bool? ?? false) : false;
+    final mg = (root['minigames'] as YamlMap?) ?? YamlMap();
+    final ai = (root['ai'] as YamlMap?) ?? YamlMap();
     return AppConfig(
+      rewards: _parseRewards(root),
+      minigames: MiniGamesConfig(coinPrice: mg['coin_price'] as int? ?? 200),
+      aiEnabled: ai['enabled'] as bool? ?? false,
       content: ContentConfig(
         enabled: content['enabled'] as bool? ?? false,
         baseUrl: content['base_url'] as String? ?? dflt.baseUrl,

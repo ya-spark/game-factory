@@ -104,6 +104,23 @@ abstract final class TestIds {
   static Key moreGamesCard(String id) => Key('moreGames.card.$id');
   static Key moreGamesGet(String id) => Key('moreGames.get.$id');
 
+  // Quick quiz (minigame framework)
+  static const quizScreen = Key('quiz.screen');
+  static const quizPrompt = Key('quiz.prompt');
+  static const quizProgress = Key('quiz.progress');
+  static const quizCheck = Key('quiz.check');
+  static const quizNext = Key('quiz.next');
+  static const quizExit = Key('quiz.exit');
+  static const quizFeedback = Key('quiz.feedback');
+  static const quizExplanation = Key('quiz.explanation');
+  static const quizStars = Key('quiz.stars');
+  static const quizSummary = Key('quiz.summary');
+  static Key quizOption(int i) => Key('quiz.option.$i');
+
+  // Minigame menu
+  static Key miniGameCard(String id) => Key('minigame.card.$id');
+  static Key miniGameUnlock(String id) => Key('minigame.unlock.$id');
+
   // Tips: one dialog on the home page, never in a game
   static const tipHome = Key('tip.home');
   static const tipClose = Key('tip.close');

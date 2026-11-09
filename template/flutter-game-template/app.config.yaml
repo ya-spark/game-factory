@@ -101,3 +101,28 @@ content:
     initial_per_subject: 10
     per_day_per_subject: 2
     require_passed: true
+
+# Rewards for learning games (issue 1C1). Craft apps: stars are progress and never spent; coins are
+# a small earned trickle capped per child per week. Mind hubs set stars.enabled: false.
+rewards:
+  stars:
+    enabled: true
+    per_first_pass: 1
+    topic_bonus: 5
+    streak_bonus: 2 # once a day, on a streak of 2 days or more
+  coins:
+    weekly_cap_per_child: 60
+    topic: 10
+    streak_milestones: {3: 10, 7: 15, 14: 20, 30: 30} # each pays once
+    daily_goal_items: 5
+    daily_goal: 5
+    weekly_goal_items: 25
+    weekly_goal: 15
+
+# Minigames: price of a coin-locked game (200 in Craft apps, 300 in Mind hubs).
+minigames:
+  coin_price: 200
+
+# AI tutor hook. No AI feature ships; keep false.
+ai:
+  enabled: false

@@ -17,3 +17,10 @@ export 'content/progress.dart';
 export 'content/repository.dart';
 export 'content/spelling.dart';
 export 'content/validator.dart';
+
+// Issue 1C1: minigames, rewards, AI tutor hook.
+export 'ai/ai_tutor.dart';
+export 'minigames/minigame.dart';
+export 'minigames/quick_quiz.dart';
+export 'minigames/quiz_session.dart';
+export 'rewards/rewards.dart';

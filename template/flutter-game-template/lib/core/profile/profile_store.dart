@@ -194,6 +194,22 @@ class ProfileStore extends ChangeNotifier {
   Future<void> addCoins(int n) =>
       _commit(_data.copyWith(coins: _data.coins + n));
 
+  bool isGameUnlocked(String gameId) => _data.unlockedGames.contains(gameId);
+
+  /// Spends [price] coins to unlock a coin-locked minigame for good. False when the coins
+  /// are not enough; an already unlocked game costs nothing.
+  Future<bool> unlockGame(String gameId, int price) async {
+    if (_data.unlockedGames.contains(gameId)) return true;
+    if (_data.coins < price) return false;
+    await _commit(
+      _data.copyWith(
+        coins: _data.coins - price,
+        unlockedGames: {..._data.unlockedGames, gameId},
+      ),
+    );
+    return true;
+  }
+
   Future<bool> spendCoins(int n) async {
     if (_data.coins < n) return false;
     await _commit(_data.copyWith(coins: _data.coins - n));

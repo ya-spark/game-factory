@@ -4,6 +4,7 @@ library;
 
 import 'dart:math';
 
+import '../rewards/rewards.dart';
 import 'models.dart';
 
 /// A pack ready to play: [previewOnly] is true for the free part of an extra pack.
@@ -108,7 +109,11 @@ class ChildProgress {
     this.topics = const {},
     this.release = const {},
     this.recent = const [],
+    this.rewards = const RewardState(),
   });
+
+  /// Stars and capped coins earned by this child.
+  final RewardState rewards;
 
   final Map<String, ItemResult> items;
   final Map<String, TopicResult> topics;
@@ -135,11 +140,13 @@ class ChildProgress {
     Map<String, TopicResult>? topics,
     Map<String, ReleaseState>? release,
     List<String>? recent,
+    RewardState? rewards,
   }) => ChildProgress(
     items: items ?? this.items,
     topics: topics ?? this.topics,
     release: release ?? this.release,
     recent: recent ?? this.recent,
+    rewards: rewards ?? this.rewards,
   );
 
   /// Records one answer.
@@ -171,6 +178,7 @@ class ChildProgress {
     'topics': {for (final e in topics.entries) e.key: e.value.toJson()},
     'release': {for (final e in release.entries) e.key: e.value.toJson()},
     'recent': recent,
+    'rewards': rewards.toJson(),
   };
 
   factory ChildProgress.fromJson(Map<String, Object?>? j) {
@@ -185,6 +193,9 @@ class ChildProgress {
       topics: read(j['topics'], TopicResult.fromJson),
       release: read(j['release'], ReleaseState.fromJson),
       recent: [...?(j['recent'] as List?)?.cast<String>()],
+      rewards: RewardState.fromJson(
+        (j['rewards'] as Map?)?.cast<String, Object?>(),
+      ),
     );
   }
 }
