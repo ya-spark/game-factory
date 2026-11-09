@@ -54,6 +54,10 @@ jobs:
         run: bash scripts/ad_safety_check.sh
       - name: Ad safety self-test (script must fail on violations)
         run: bash scripts/test_ad_safety_check.sh
+      - name: Profile check (audience rules)
+        run: bash scripts/profile_check.sh
+      - name: Profile check self-test (script must fail on violations)
+        run: bash scripts/test_profile_check.sh
       - name: Network rules (INTERNET, no cleartext, https host; warns while signing is off)
         run: bash scripts/network_safety_check.sh
       - name: Assets license check
