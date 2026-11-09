@@ -52,7 +52,7 @@ These cannot be automated. Tick them off once; items marked *per game* repeat fo
    to everyone at once.
 
 `release` run by hand (without a tag) builds the bundle and, if `upload` is ticked, uploads it as a
-draft. It cannot target production. A draft cannot be promoted: roll it out to testers first.
+release. On the closed testing (alpha) track, and on internal, it goes live to testers at once (owner, 2026-11-09); beta stays a draft until you click **Roll out**. It cannot target production. A draft cannot be promoted: roll it out to testers first.
 
 ## Importing one-time products from a CSV
 

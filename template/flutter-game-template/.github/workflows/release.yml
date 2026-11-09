@@ -1,7 +1,7 @@
 # SKELETON release pipeline. Copy into each game repo.
 # Builds a signed Android App Bundle and uploads it to the CLOSED testing (alpha) Play track by default.
 #   - Push a version tag (v1.0.1, matching pubspec.yaml) to build and upload automatically.
-#   - Or run it by hand (Actions > release > Run workflow). The track defaults to alpha (closed testing); uploads there stay drafts until rolled out in Play Console.
+#   - Or run it by hand (Actions > release > Run workflow). The track defaults to alpha (closed testing); uploads there go live to the closed testers at once (beta stays a draft until rolled out in Play Console).
 # Internal is never used unless chosen explicitly (owner, 2026-11-09). Production is NOT reachable from here:
 # use the promote-production workflow once the closed-testing build has been tested.
 # It stops with a clear message while any required secret is unset. See docs/PLAY_SETUP.md
@@ -177,9 +177,10 @@ jobs:
           # Release notes shown to testers: store/google-play/whatsnew/whatsnew-en-US (500 characters at most). Edit it before each release.
           whatsNewDirectory: store/google-play/whatsnew
           track: ${{ inputs.track || 'alpha' }}
-          # Only an explicitly chosen internal track rolls out immediately; tag pushes and alpha stay drafts.
-          # Other tracks stay drafts. Production is only reachable through promote-production.
-          status: ${{ inputs.track == 'internal' && 'completed' || 'draft' }}
+          # Closed testing (alpha), the default for tag pushes and manual runs, goes live to testers at once
+          # (owner, 2026-11-09), and so does an explicitly chosen internal track. Beta stays a draft.
+          # Production is only reachable through promote-production.
+          status: ${{ inputs.track == 'beta' && 'draft' || 'completed' }}
 
       - name: Remove signing material
         if: always()
