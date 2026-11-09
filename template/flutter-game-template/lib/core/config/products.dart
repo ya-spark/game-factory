@@ -2,6 +2,9 @@ import 'package:yaml/yaml.dart';
 
 enum ProductType { consumable, nonConsumable }
 
+/// Extra learning packs are non-consumable products `pack_<id>`, listed in the content index.
+const String packProductPrefix = 'pack_';
+
 /// One entry of `products.yaml`.
 class ProductDef {
   const ProductDef({
@@ -23,6 +26,9 @@ class ProductDef {
   final String? grants;
 
   static const String removeAdsGrant = 'remove_ads_all';
+
+  /// Full Unlock: opens all built-in learning content.
+  static const String unlockFullGrant = 'unlock_full';
 
   /// Retired Play product id (a deleted id cannot be reused). Still counts as owned.
   static const String legacyRemoveAdsId = 'remove_ads';

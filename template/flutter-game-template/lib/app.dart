@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import 'core/services.dart';
 import 'ui/home_screen.dart';
+import 'ui/profile_picker_screen.dart';
 
 class GameApp extends StatelessWidget {
   const GameApp({super.key, required this.services});
@@ -23,7 +24,9 @@ class GameApp extends StatelessWidget {
             brightness: cfg.themeDark ? Brightness.dark : Brightness.light,
           ).copyWith(surface: cfg.themeDark ? const Color(0xFF0F2430) : null),
         ),
-        home: const HomeScreen(),
+        home: cfg.content.enabled
+            ? ProfilePickerScreen(home: (_) => const HomeScreen())
+            : const HomeScreen(),
       ),
     );
   }

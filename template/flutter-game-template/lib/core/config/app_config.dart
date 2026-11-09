@@ -1,5 +1,7 @@
 import 'package:yaml/yaml.dart';
 
+import '../../engine/engine.dart';
+
 /// AdMob unit IDs for one build mode.
 class AdmobIds {
   const AdmobIds({
@@ -151,6 +153,39 @@ class PlayGamesConfig {
   final String leaderboardHighScore;
 }
 
+/// `content:` in `app.config.yaml`: where learning content comes from and how it is released.
+class ContentConfig {
+  const ContentConfig({
+    this.enabled = false,
+    this.baseUrl = 'https://content.activemindcraft.com/v1/',
+    this.signingPublicKey = 'PLACEHOLDER_SIGNING_PUBLIC_KEY',
+    this.signingKeyId = 'PLACEHOLDER_SIGNING_KEY_ID',
+    this.mobileConfirmMb = 20,
+    this.dailyRelease = const ReleaseConfig(),
+  });
+
+  /// Learning games set this true: child profiles, the picker on every launch and the parent
+  /// area. Off in the plain game template.
+  final bool enabled;
+  final String baseUrl;
+  final String signingPublicKey;
+  final String signingKeyId;
+  final int mobileConfirmMb;
+  final ReleaseConfig dailyRelease;
+
+  /// While true the app accepts an unsigned index (no key added yet).
+  bool get signingOff => signingPublicKey.startsWith('PLACEHOLDER');
+
+  SigningConfig get signing =>
+      SigningConfig(publicKey: signingPublicKey, keyId: signingKeyId);
+
+  DownloadSettings downloadSettings({required bool wifiOnly}) =>
+      DownloadSettings(
+        wifiOnly: wifiOnly,
+        mobileConfirmBytes: mobileConfirmMb * 1024 * 1024,
+      );
+}
+
 /// Parsed `app.config.yaml`. Pure Dart.
 class AppConfig {
   const AppConfig({
@@ -167,8 +202,10 @@ class AppConfig {
     required this.playGames,
     this.share = const ShareConfig(),
     this.moreGames = const [],
+    this.content = const ContentConfig(),
   });
 
+  final ContentConfig content;
   final String appId;
   final String displayName;
   final String packageName;
@@ -227,9 +264,26 @@ class AppConfig {
     final pg = (root['play_games'] as YamlMap?) ?? YamlMap();
     final share = (root['share'] as YamlMap?) ?? YamlMap();
     final more = (root['more_games'] as YamlList?) ?? YamlList();
+    final content = (root['content'] as YamlMap?) ?? YamlMap();
+    final release = (content['daily_release'] as YamlMap?) ?? YamlMap();
+    const dflt = ContentConfig();
     bool enabled(Object? p) =>
         p is YamlMap ? (p['enabled'] as bool? ?? false) : false;
     return AppConfig(
+      content: ContentConfig(
+        enabled: content['enabled'] as bool? ?? false,
+        baseUrl: content['base_url'] as String? ?? dflt.baseUrl,
+        signingPublicKey:
+            content['signing_public_key'] as String? ?? dflt.signingPublicKey,
+        signingKeyId: content['signing_key_id'] as String? ?? dflt.signingKeyId,
+        mobileConfirmMb:
+            content['mobile_confirm_mb'] as int? ?? dflt.mobileConfirmMb,
+        dailyRelease: ReleaseConfig(
+          initialPerSubject: release['initial_per_subject'] as int? ?? 10,
+          perDayPerSubject: release['per_day_per_subject'] as int? ?? 2,
+          requirePassed: release['require_passed'] as bool? ?? true,
+        ),
+      ),
       appId: app['id'] as String,
       displayName: app['display_name'] as String,
       packageName: app['package_name'] as String,

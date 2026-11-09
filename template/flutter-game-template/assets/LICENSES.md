@@ -11,4 +11,6 @@ its source and license. `scripts/check_asset_licenses.sh` fails CI otherwise.
 | assets/ambience/night.mp3 | Pixabay Sound Effects (pixabay.com/sound-effects), author NCPrime, Pixabay file id 291477; converted to mono 64 kbps MP3 with a crossfaded loop point | Pixabay Content License (royalty-free, commercial use allowed; confirmed by owner) | background sound choice in Settings; page URL not recorded |
 | assets/ambience/bird.mp3 | Pixabay Sound Effects (pixabay.com/sound-effects), author Yuliana Yurukova, Pixabay file id 333090; converted to mono 64 kbps MP3 with a crossfaded loop point | Pixabay Content License (royalty-free, commercial use allowed; confirmed by owner) | background sound choice in Settings; page URL not recorded |
 
+| assets/content/index.json | Written by the studio (content CLI `build-index`); empty list in the template | original | built-in content index; every pack and asset the games add under assets/content/ is listed here too |
+
 Format for an asset row: `| assets/sfx/pop.ogg | https://example.org/pop | CC0-1.0 | by Jane Doe |`

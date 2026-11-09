@@ -3,6 +3,36 @@ import 'package:flutter/widgets.dart';
 /// Stable widget keys for tests and automation. Rule: every interactive widget and key
 /// element gets an ID here; tests must find widgets by these keys, never by text or position.
 abstract final class TestIds {
+  // Profile picker (who is playing)
+  static Key pickerChild(String id) => Key('picker.child.$id');
+  static const pickerAdd = Key('picker.add');
+  static const pickerParent = Key('picker.parent');
+  static const pickerNickname = Key('picker.nickname');
+  static Key pickerAvatar(String id) => Key('picker.avatar.$id');
+  static Key pickerYear(int y) => Key('picker.year.$y');
+  static const pickerSave = Key('picker.save');
+
+  // Parent area (behind the gate)
+  static const parentArea = Key('parent.area');
+  static Key parentChild(String id) => Key('parent.child.$id');
+  static const parentYear = Key('parent.year');
+  static Key parentYearOption(int y) => Key('parent.year.$y');
+  static const parentLockNone = Key('parent.lock.none');
+  static const parentLockGame = Key('parent.lock.game');
+  static const parentLockStudy = Key('parent.lock.study');
+  static const parentReport = Key('parent.report');
+  static const parentDelete = Key('parent.delete');
+  static const parentDeleteConfirm = Key('parent.delete.confirm');
+  static const parentWifiOnly = Key('parent.wifiOnly');
+  static const parentAllYears = Key('parent.allYears');
+  static const parentBuyFull = Key('parent.buy.full');
+  static const parentRestore = Key('parent.restore');
+  static Key parentPackPreview(String id) => Key('parent.pack.preview.$id');
+  static Key parentPackBuy(String id) => Key('parent.pack.buy.$id');
+  static Key parentPackDownload(String id) => Key('parent.pack.download.$id');
+  static const parentMobileConfirm = Key('parent.mobile.confirm');
+  static const parentMobileCancel = Key('parent.mobile.cancel');
+
   // Home
   static const homePlay = Key('home.play');
   static const homeDailyReward = Key('home.dailyReward');

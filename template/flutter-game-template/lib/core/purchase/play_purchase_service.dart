@@ -79,15 +79,36 @@ class PlayPurchaseService implements PurchaseService {
   }
 
   @override
+  Future<void> registerExtraProducts(Set<String> productIds) async {
+    final wanted = {
+      for (final id in productIds)
+        if (id.startsWith(packProductPrefix) && !_details.containsKey(id)) id,
+    };
+    if (!_available || wanted.isEmpty) return;
+    try {
+      final response = await _iap.queryProductDetails(wanted);
+      for (final d in response.productDetails) {
+        _details[d.id] = d;
+      }
+    } on Object catch (e) {
+      debugPrint('Extra product query failed: $e');
+    }
+  }
+
+  @override
+  String? priceOf(String productId) => _details[productId]?.price;
+
+  @override
   Future<void> buy(String productId) async {
     final details = _details[productId];
     final def = catalog.byId(productId);
-    if (details == null || def == null) {
+    final isPack = productId.startsWith(packProductPrefix);
+    if (details == null || (def == null && !isPack)) {
       _updates.add(PurchaseUpdate(productId, PurchaseStatus.failed));
       return;
     }
     final param = iap.PurchaseParam(productDetails: details);
-    if (def.type == ProductType.consumable) {
+    if (def != null && def.type == ProductType.consumable) {
       await _iap.buyConsumable(purchaseParam: param);
     } else {
       await _iap.buyNonConsumable(purchaseParam: param);

@@ -32,7 +32,11 @@ class ShopScreen extends StatelessWidget {
         child: ListenableBuilder(
           listenable: s.profile,
           builder: (context, _) {
-            final products = s.purchases.products;
+            // Full Unlock is sold in the parent area of learning games, not in the coin shop.
+            final products = [
+              for (final p in s.purchases.products)
+                if (p.def.grants != ProductDef.unlockFullGrant) p,
+            ];
             if (!s.purchases.available || products.isEmpty) {
               return const Center(
                 key: TestIds.shopUnavailable,

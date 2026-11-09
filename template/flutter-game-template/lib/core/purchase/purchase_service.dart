@@ -33,6 +33,13 @@ abstract interface class PurchaseService {
   /// Delivery events (new purchases and restores). Grant entitlements from here.
   Stream<PurchaseUpdate> get updates;
 
+  /// Loads store details of extra-pack products (`pack_<id>`, non-consumable) named by the
+  /// content index. They are not in products.yaml.
+  Future<void> registerExtraProducts(Set<String> productIds);
+
+  /// Localised price of any loaded product (also extra packs), or null.
+  String? priceOf(String productId);
+
   Future<void> buy(String productId);
   Future<void> restore();
   void dispose();
@@ -65,6 +72,11 @@ class FakePurchaseService implements PurchaseService {
       ),
     );
   }
+
+  @override
+  Future<void> registerExtraProducts(Set<String> productIds) async {}
+  @override
+  String? priceOf(String productId) => '\$0.99';
 
   @override
   Future<void> restore() async {}

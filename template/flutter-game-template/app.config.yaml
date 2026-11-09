@@ -86,3 +86,18 @@ more_games:
     name: "Wingy"
     tagline: "Tap to flap through the canyon"
     status: hidden
+
+# Learning content (issue 1B). One fixed HTTPS host, static files only, no personal data sent.
+# Signing is optional until the owner adds a key: while signing_public_key starts with PLACEHOLDER
+# an unsigned index is accepted (the build prints a warning). With a real key every index must carry
+# a valid Ed25519 signature, and the app never goes back to unsigned.
+content:
+  enabled: false # learning games set true: child profiles, picker on every launch, parent area
+  base_url: https://content.activemindcraft.com/v1/
+  signing_public_key: PLACEHOLDER_SIGNING_PUBLIC_KEY # base64 Ed25519 public key
+  signing_key_id: PLACEHOLDER_SIGNING_KEY_ID
+  mobile_confirm_mb: 20 # above this, a full pack on mobile data asks the parent first
+  daily_release:
+    initial_per_subject: 10
+    per_day_per_subject: 2
+    require_passed: true

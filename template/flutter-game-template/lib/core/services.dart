@@ -1,5 +1,6 @@
-import 'package:flutter/widgets.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/services.dart' show rootBundle;
+import 'package:flutter/widgets.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'ads/admob_ad_service.dart';
@@ -7,7 +8,11 @@ import 'ads/ad_service.dart';
 import 'analytics/analytics_service.dart';
 import 'audio/audio_service.dart';
 import 'audio/audioplayers_audio_service.dart';
+import '../engine/engine.dart';
 import 'config/app_config.dart';
+import 'content/connectivity_probe.dart';
+import 'content/content_io.dart';
+import 'content/learning_service.dart';
 import 'config/products.dart';
 import 'identity/identity_service.dart';
 import 'leaderboard/leaderboard_service.dart';
@@ -44,6 +49,7 @@ class Services {
     required this.share,
     required this.audio,
     ExternalLinkService? links,
+    this.learning,
     TipService? tips,
     ParentGateGuard? parentGate,
   }) : links = links ?? FakeExternalLinkService(),
@@ -72,6 +78,9 @@ class Services {
   final AudioService audio;
   final TipService tips;
 
+  /// Learning content, release and packs. Null in tests that do not need it.
+  final LearningService? learning;
+
   /// Opens Play Store pages ("More games").
   final ExternalLinkService links;
 
@@ -98,6 +107,40 @@ class Services {
     final purchases = PlayPurchaseService(catalog);
     final notifications = LocalNotificationService();
 
+    // Learning content: built-in assets plus the static server. Check stays silent and offline-safe.
+    final store = await openContentCache();
+    if (config.content.signingOff) {
+      debugPrint(
+        'WARNING: content signing is off (content.signing_public_key is a placeholder). '
+        'An unsigned content index is accepted until the owner adds a key.',
+      );
+    }
+    final learning = LearningService(
+      config: config.content,
+      profile: profile,
+      purchases: purchases,
+      connectivity: PluginConnectivityProbe(),
+      repository: ContentRepository(
+        builtIn: BuiltInContentSource((path) async {
+          try {
+            final d = await rootBundle.load(path);
+            return d.buffer.asUint8List(d.offsetInBytes, d.lengthInBytes);
+          } on Object {
+            return null;
+          }
+        }, appId: config.appId),
+        server: ServerContentSource(
+          baseUrl: config.content.baseUrl,
+          appId: config.appId,
+          fetcher: HttpContentFetcher(),
+          store: store,
+          signing: config.content.signing,
+        ),
+        store: store,
+        isOwned: profile.ownsPack,
+      ),
+    );
+
     final s = Services(
       config: config,
       catalog: catalog,
@@ -118,6 +161,7 @@ class Services {
       ),
       audio: AudioplayersAudioService(),
       links: const UrlExternalLinkService(),
+      learning: learning,
     );
     s.wirePurchases();
     return s;
@@ -158,6 +202,8 @@ class Services {
     ]);
     await identity.refresh();
     await _syncAfterSignIn();
+    // Silent, at most once a day, failures ignored.
+    if (config.content.enabled) await learning?.checkForUpdates();
   }
 }
 

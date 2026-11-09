@@ -22,3 +22,10 @@ products:
     title: Coin Chest
     description: 4000 coins. Coins for the shop.
     coins: 4000
+  # One-time unlock of all built-in learning content, including its updates. Extra packs stay
+  # separate: each is a non-consumable `pack_<id>` listed in the content index (`product_id`).
+  - id: unlock_full
+    type: non_consumable
+    title: Full Unlock
+    description: Opens all built-in content, including updates to it.
+    grants: unlock_full

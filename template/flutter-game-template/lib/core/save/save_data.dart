@@ -1,3 +1,4 @@
+import '../profile/child_profile.dart';
 import '../retention/achievements.dart';
 import '../retention/daily_challenges.dart';
 import '../retention/daily_reward.dart';
@@ -26,10 +27,14 @@ class SaveData {
     this.stats = const LifetimeStats(),
     this.unlockedAchievements = const {},
     this.processedPurchases = const {},
+    this.profiles = const [],
+    this.fullUnlock = false,
+    this.ownedPacks = const {},
+    this.downloadWifiOnly = false,
   });
 
   /// Bump when the JSON shape changes and add a step to [SaveMigrator].
-  static const int currentVersion = 2;
+  static const int currentVersion = 3;
 
   final int coins;
   final int bestScore;
@@ -66,6 +71,19 @@ class SaveData {
   /// Purchase IDs already delivered, so a replayed purchase is not granted twice.
   final Set<String> processedPurchases;
 
+  /// Child profiles on this device (up to [maxChildProfiles]). The coin balance, Remove Ads,
+  /// Full Unlock and extra packs above are shared by all of them.
+  final List<ChildProfile> profiles;
+
+  /// Full Unlock bought: all built-in content is open.
+  final bool fullUnlock;
+
+  /// Product ids (`pack_<id>`) of extra packs bought on this device.
+  final Set<String> ownedPacks;
+
+  /// Parent setting: full packs never download on mobile data.
+  final bool downloadWifiOnly;
+
   SaveData copyWith({
     int? coins,
     int? bestScore,
@@ -87,7 +105,15 @@ class SaveData {
     LifetimeStats? stats,
     Set<String>? unlockedAchievements,
     Set<String>? processedPurchases,
+    List<ChildProfile>? profiles,
+    bool? fullUnlock,
+    Set<String>? ownedPacks,
+    bool? downloadWifiOnly,
   }) => SaveData(
+    profiles: profiles ?? this.profiles,
+    fullUnlock: fullUnlock ?? this.fullUnlock,
+    ownedPacks: ownedPacks ?? this.ownedPacks,
+    downloadWifiOnly: downloadWifiOnly ?? this.downloadWifiOnly,
     coins: coins ?? this.coins,
     bestScore: bestScore ?? this.bestScore,
     adsRemoved: adsRemoved ?? this.adsRemoved,
@@ -132,6 +158,10 @@ class SaveData {
     'stats': stats.toJson(),
     'unlockedAchievements': unlockedAchievements.toList()..sort(),
     'processedPurchases': processedPurchases.toList()..sort(),
+    'profiles': [for (final p in profiles) p.toJson()],
+    'fullUnlock': fullUnlock,
+    'ownedPacks': ownedPacks.toList()..sort(),
+    'downloadWifiOnly': downloadWifiOnly,
   };
 
   /// Expects JSON already migrated to [currentVersion].
@@ -163,6 +193,13 @@ class SaveData {
     processedPurchases: {
       ...?(j['processedPurchases'] as List?)?.cast<String>(),
     },
+    profiles: [
+      for (final p in (j['profiles'] as List?) ?? const [])
+        if (p is Map) ChildProfile.fromJson(p.cast<String, Object?>()),
+    ],
+    fullUnlock: j['fullUnlock'] as bool? ?? false,
+    ownedPacks: {...?(j['ownedPacks'] as List?)?.cast<String>()},
+    downloadWifiOnly: j['downloadWifiOnly'] as bool? ?? false,
   );
 
   static Map<String, Object?>? _map(Object? o) =>
@@ -183,6 +220,7 @@ abstract final class SaveMigrator {
       j = switch (v) {
         0 => _v0ToV1(j),
         1 => _v1ToV2(j),
+        2 => _v2ToV3(j),
         _ => throw StateError('No migration from $v'),
       };
       v = (j['version'] as num).toInt();
@@ -196,6 +234,19 @@ abstract final class SaveMigrator {
     'version': 1,
     'bestScore': j['bestScore'] ?? j['highScore'] ?? 0,
     'coins': j['coins'] ?? j['coinBalance'] ?? 0,
+  };
+
+  /// v3 added child profiles. The existing single-player save becomes the first profile
+  /// (year still to be picked); the coins and purchases stay shared by the device.
+  static Map<String, Object?> _v2ToV3(Map<String, Object?> j) => {
+    ...j,
+    'version': 3,
+    'profiles':
+        j['profiles'] ??
+        [const ChildProfile(id: 'p1', nickname: 'Player 1').toJson()],
+    'fullUnlock': j['fullUnlock'] ?? false,
+    'ownedPacks': j['ownedPacks'] ?? const <String>[],
+    'downloadWifiOnly': j['downloadWifiOnly'] ?? false,
   };
 
   /// v2 added `processedPurchases` and `savedAtMs`.

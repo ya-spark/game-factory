@@ -1,5 +1,7 @@
 import 'package:flutter/foundation.dart';
 
+import '../../engine/engine.dart';
+import 'child_profile.dart';
 import '../clock.dart';
 import '../config/app_config.dart';
 import '../config/products.dart';
@@ -231,6 +233,15 @@ class ProfileStore extends ChangeNotifier {
       if (!_data.adsRemoved) await _commit(_data.copyWith(adsRemoved: true));
       return;
     }
+    if (u.productId.startsWith(packProductPrefix)) {
+      // Extra pack: bought once, shared by every child on this device.
+      if (!_data.ownedPacks.contains(u.productId)) {
+        await _commit(
+          _data.copyWith(ownedPacks: {..._data.ownedPacks, u.productId}),
+        );
+      }
+      return;
+    }
     final def = catalog.byId(u.productId);
     if (def == null) return;
     var d = _data;
@@ -248,7 +259,107 @@ class ProfileStore extends ChangeNotifier {
       );
     } else if (def.grants == ProductDef.removeAdsGrant) {
       d = d.copyWith(adsRemoved: true);
+    } else if (def.grants == ProductDef.unlockFullGrant) {
+      d = d.copyWith(fullUnlock: true);
     }
     await _commit(d);
   }
+
+  // ---- child profiles -----------------------------------------------------
+
+  /// The child using the device now. Not saved: the picker shows on every launch.
+  String? _activeId;
+
+  ChildProfile? get activeChild {
+    for (final p in _data.profiles) {
+      if (p.id == _activeId) return p;
+    }
+    return null;
+  }
+
+  List<ChildProfile> get children => _data.profiles;
+  bool get canAddChild => _data.profiles.length < maxChildProfiles;
+
+  bool ownsPack(String productId) => _data.ownedPacks.contains(productId);
+
+  void selectChild(String id) {
+    if (_data.profiles.any((p) => p.id == id)) {
+      _activeId = id;
+      notifyListeners();
+    }
+  }
+
+  /// Back to the picker.
+  void leaveChild() {
+    _activeId = null;
+    notifyListeners();
+  }
+
+  /// Adds a child (a made-up nickname and a built-in avatar). Null when the limit is reached
+  /// or the nickname is empty.
+  Future<ChildProfile?> addChild(
+    String nickname, {
+    String avatar = 'fox',
+    int? year,
+  }) async {
+    final name = nickname.trim();
+    if (!canAddChild || name.isEmpty) return null;
+    var n = _data.profiles.length + 1;
+    while (_data.profiles.any((p) => p.id == 'p$n')) {
+      n++;
+    }
+    final child = ChildProfile(
+      id: 'p$n',
+      nickname: name.length > maxNicknameLength
+          ? name.substring(0, maxNicknameLength)
+          : name,
+      avatar: avatarIds.contains(avatar) ? avatar : avatarIds.first,
+      year: year,
+    );
+    await _commit(_data.copyWith(profiles: [..._data.profiles, child]));
+    return child;
+  }
+
+  Future<void> _updateChild(String id, ChildProfile Function(ChildProfile) f) =>
+      _commit(
+        _data.copyWith(
+          profiles: [
+            for (final p in _data.profiles)
+              if (p.id == id) f(p) else p,
+          ],
+        ),
+      );
+
+  /// Sets the year level (child at first launch, or a parent later). Items already open stay
+  /// open; the new year starts its own release.
+  Future<void> setChildYear(String id, int year) =>
+      _updateChild(id, (p) => p.copyWith(year: year.clamp(0, 12)));
+
+  /// Locks a child to Game or Study mode; null lifts the lock.
+  Future<void> setChildLockedMode(String id, LearnMode? mode) => _updateChild(
+    id,
+    (p) => mode == null
+        ? p.copyWith(clearLock: true)
+        : p.copyWith(lockedMode: mode),
+  );
+
+  /// Deletes one child and their progress. Coins, purchases and other children stay.
+  Future<void> deleteChild(String id) async {
+    if (_activeId == id) _activeId = null;
+    await _commit(
+      _data.copyWith(
+        profiles: [
+          for (final p in _data.profiles)
+            if (p.id != id) p,
+        ],
+      ),
+    );
+  }
+
+  /// Saves a child's progress (after an answer or a release step).
+  Future<void> setChildProgress(String id, ChildProgress progress) =>
+      _updateChild(id, (p) => p.copyWith(progress: progress));
+
+  Future<void> setDownloadWifiOnly(bool v) =>
+      _commit(_data.copyWith(downloadWifiOnly: v));
 }

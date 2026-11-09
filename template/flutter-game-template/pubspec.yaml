@@ -45,6 +45,8 @@ dependencies:
   audioplayers: ^6.1.0
   share_plus: 13.3.1
   url_launcher: 6.3.3 # exact pin: opens Play Store pages for "More games"; imported only in core/links/url_external_link_service.dart
+  connectivity_plus: 7.3.2 # exact pin: Wi-Fi vs mobile data for pack downloads; imported only in core/content/connectivity_probe.dart
+  path_provider: 2.1.6 # exact pin: app documents folder for the content cache; imported only in core/content/content_io.dart
   crypto: ^3.0.8
   cryptography: ^2.9.0
 
@@ -72,3 +74,4 @@ flutter:
     - products.yaml
     - assets/LICENSES.md
     - assets/ambience/
+    - assets/content/

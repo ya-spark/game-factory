@@ -31,6 +31,7 @@ Map<String, dynamic> buildIndex({
   required int version,
   required Map<String, Uint8List> packFiles,
   required Uint8List? Function(String assetPath) readAsset,
+  Map<String, MapEntry<String, Uint8List>> previewFiles = const {},
 }) {
   final packs = <Map<String, dynamic>>[];
   for (final e in packFiles.entries) {
@@ -53,6 +54,9 @@ Map<String, dynamic> buildIndex({
       'product_id': pack.productId,
       'items': pack.items.length,
       'file': _fileEntry(e.key, e.value),
+      // Free preview of an extra pack: pack id -> (path, bytes) in [previewFiles].
+      if (previewFiles[pack.id] case final pv?)
+        'preview_file': _fileEntry(pv.key, pv.value),
       'assets': [
         for (final a in assets.toList()..sort())
           _fileEntry(

@@ -214,3 +214,39 @@ in the full part; outline counts that differ from the full part; duplicate `seq`
 
 Warnings (do not fail): fewer than 20 or more than 50 items; US spellings from a word list
 (`colour`, `organise`, `maths` and similar; see `lib/engine/content/spelling.dart`).
+
+## Delivery, release and unlocks (issue 1B)
+
+Code: `lib/engine/content/` (`content_source.dart`, `repository.dart`, `progress.dart`), the glue in
+`lib/core/content/`, the screens `lib/ui/profile_picker_screen.dart` and `lib/ui/parent_area_screen.dart`.
+Switched on per game with `content.enabled: true` in `app.config.yaml`.
+
+- **Sources.** `ContentSource` (`listPacks`, `loadPack`, `checkForUpdates`). Built-in: `assets/content/index.json`
+  and the files it lists (each listed in `assets/LICENSES.md`). Static server: HTTPS, one host
+  (`content.base_url`), `<app_id>/index.json`, `index.sig`, then the pack files named by the index
+  (by convention `packs/<pack_id>/<version>/preview.json` and `full.json`, plus assets). An index entry has
+  `file` (full) and, for extra packs, `preview_file`.
+- **Verification.** Every file is checked against the sha256 and size in the index; a mismatch rejects it.
+  Signing is optional until the owner adds a key: `content.signing_public_key` and `signing_key_id` hold
+  `PLACEHOLDER_*` and an unsigned index is accepted (`scripts/network_safety_check.sh` and the debug log warn).
+  With a real key a valid Ed25519 signature is required on every index. After a signed index has been seen the
+  app never accepts an unsigned one (no downgrade) and ignores an index with a lower `version` (no rollback).
+- **Cache.** App documents folder, `content/`. A download is written only when every file is complete and
+  verified (all or nothing). The newest verified version wins over the built-in one. Update check on launch,
+  at most once a day, silent; newer versions of built-in packs download by themselves when the connection allows.
+- **Downloads.** Previews on any connection. Full packs on Wi-Fi; on mobile data above
+  `content.mobile_confirm_mb` (20) the parent is asked first; with "Wi-Fi only" on, never on mobile data.
+- **Daily release** (`content.daily_release`: 10 at the start, 2 a day per subject and year, `require_passed`).
+  Items open in `seq` order; the next 2 open on a new local day only when every open item has been passed
+  (answered correctly once). Missed days are not caught up. Open items stay open. A year change starts a new
+  release for that year. Known limit: a changed device date opens items sooner.
+- **Unlocks.** `unlock_full` (non-consumable, in `products.yaml`) opens all built-in content, including updates.
+  Extra packs are `pack_<id>` non-consumables named by the index (`product_id`): the preview is free and playable
+  in both modes; the full part downloads only after Play Billing confirms the purchase. Shared by every child
+  on the device, like the coin balance and Remove Ads.
+- **Profiles.** Up to 4 children per device (nickname, built-in avatar, year, mode lock, progress), picker on
+  every launch, parent area behind the "Ask a grown-up" gate. Save version 3; an old single-player save
+  becomes the first profile.
+- **Network rules.** No personal data and no analytics; GET requests to one fixed host with no query, cookies or
+  headers of ours; `INTERNET` permission; cleartext traffic disabled. For the privacy policy: the app contacts
+  `content.base_url` only to fetch learning content and sends nothing about the child.
