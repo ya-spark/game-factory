@@ -1,9 +1,9 @@
 # SKELETON release pipeline. Copy into each game repo.
-# Builds a signed Android App Bundle and uploads it to the INTERNAL Play track.
+# Builds a signed Android App Bundle and uploads it to the CLOSED testing (alpha) Play track by default.
 #   - Push a version tag (v1.0.1, matching pubspec.yaml) to build and upload automatically.
-#   - Or run it by hand (Actions > release > Run workflow); manual uploads to the internal track roll out immediately too.
-# Production is NOT reachable from here: use the promote-production workflow once the internal
-# build has been tested.
+#   - Or run it by hand (Actions > release > Run workflow). The track defaults to alpha (closed testing); uploads there stay drafts until rolled out in Play Console.
+# Internal is never used unless chosen explicitly (owner, 2026-11-09). Production is NOT reachable from here:
+# use the promote-production workflow once the closed-testing build has been tested.
 # It stops with a clear message while any required secret is unset. See docs/PLAY_SETUP.md
 # in the game-factory repo for how to create each secret.
 name: release
@@ -16,8 +16,8 @@ on:
       track:
         description: Play track (production is only reachable through promote-production)
         type: choice
-        options: [internal, alpha, beta]
-        default: internal
+        options: [alpha, beta, internal]
+        default: alpha
       upload:
         description: Upload to Google Play (otherwise only build the AAB)
         type: boolean
@@ -176,10 +176,10 @@ jobs:
           releaseName: ${{ env.RELEASE_NAME }} # Play label = "<pubspec version name> (<version code>)"
           # Release notes shown to testers: store/google-play/whatsnew/whatsnew-en-US (500 characters at most). Edit it before each release.
           whatsNewDirectory: store/google-play/whatsnew
-          track: ${{ inputs.track || 'internal' }}
-          # The internal track always rolls out to internal testers immediately (tag push or manual run).
+          track: ${{ inputs.track || 'alpha' }}
+          # Only an explicitly chosen internal track rolls out immediately; tag pushes and alpha stay drafts.
           # Other tracks stay drafts. Production is only reachable through promote-production.
-          status: ${{ (github.event_name == 'push' || inputs.track == 'internal') && 'completed' || 'draft' }}
+          status: ${{ inputs.track == 'internal' && 'completed' || 'draft' }}
 
       - name: Remove signing material
         if: always()
