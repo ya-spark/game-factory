@@ -30,6 +30,7 @@ game template (`template/flutter-game-template/`). Games are generated from the 
 
 - Branch/PR workflow is suspended for now: changes may be committed and pushed directly to `main`.
 - After changing `main`, update the `game-factory` pin in the master repo `game-studio`. See its `CLAUDE.md`.
+- CI runs every step only when code changes. Docs-only commits (root `*.md`, `docs/**`, `store/**`) skip CI via `paths-ignore` and are pushed straight to `main`. Anything else (code, tests, assets including `assets/LICENSES.md`, scripts, Android files, `pubspec.yaml`, workflows) runs the full CI. Release, play-status and promote workflows are unaffected.
 - Before pushing the template: `flutter analyze`, `dart format --set-exit-if-changed .`,
   `flutter test`, `bash scripts/ad_safety_check.sh`.
 - Keep Android-first, but keep logic in pure Dart and platform specifics behind interfaces and

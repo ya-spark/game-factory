@@ -3,9 +3,19 @@
 name: ci
 
 on:
+  # Docs-only changes (markdown at the root, docs/, store/) skip CI and are pushed straight to main.
+  # Any change to code, tests, assets, scripts, Android files, pubspec or workflows runs every step.
   pull_request:
+    paths-ignore:
+      - '*.md'
+      - 'docs/**'
+      - 'store/**'
   push:
     branches: [main]
+    paths-ignore:
+      - '*.md'
+      - 'docs/**'
+      - 'store/**'
   workflow_dispatch:
 
 permissions:
