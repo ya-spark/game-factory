@@ -28,14 +28,24 @@ Levels / pieces / modes. Difficulty curve.
 Daily reward cycle, streaks (+freeze), daily challenges, achievements. Which are enabled.
 
 ## 6. Monetization
-Ads: banner placement, interstitial triggers, rewarded placements. IAP: see `products.yaml`.
+Ads and the compliance profile (issue 1C2, owner 2026-11-09; details in `docs/ENGINE.md`):
+- `audience: child | teen | adult` in `app.config.yaml`. The template ships `adult`.
+- No interstitials anywhere (`ads.interstitials_enabled` is false in every profile).
+- Banner only before and after a game: placements `menu`, `pre_game`, `post_game`; never during
+  play. The template shows `menu` on Home and `post_game` on the game-over panel.
+- Rewarded ads (the Continue) exist only in the `adult` profile. `child` and `teen` apps have
+  banner only; the Continue is not offered there.
+- `child` and `teen`: child-directed ads, parent gate on every real-money purchase and coin spend.
+  `adult`: no parent gate. Play Games sign-in: none in `child`, optional in `teen` and `adult`.
+IAP: see `products.yaml`.
 The template ships these products (ids are final once created in Play Console):
 `remove_ads_all` (non-consumable), `coins_500`, `coins_1500`, `coins_4000` (consumable).
 - Remove Ads removes the banner, the interstitials and the rewarded ads. Rewarded features
   (Continue) are then granted at once, without an ad. A saved legacy `remove_ads` entitlement
   counts as owned.
-- Every real-money purchase goes through the parent gate first (a multiplication with factors
-  6 to 9; 3 wrong answers in a row lock purchases for 60 s).
+- In `child` and `teen` apps every real-money purchase goes through the parent gate first (a
+  multiplication with factors 6 to 9; 3 wrong answers in a row lock purchases for 60 s). Not in
+  `adult` apps.
 - Continue needs a rewarded ad (owner, 2026-11-06), up to 3 per run; with Remove Ads owned it
   is granted at once. Pressing it starts the ad directly (no choice sheet). A continue is
   granted only when the ad reports the reward as earned; if the ad fails, is not ready or is

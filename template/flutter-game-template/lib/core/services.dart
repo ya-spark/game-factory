@@ -6,6 +6,8 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'ads/admob_ad_service.dart';
 import 'ads/ad_service.dart';
 import 'analytics/analytics_service.dart';
+import 'speech/speech_service.dart';
+import 'speech/tts_speech_service.dart';
 import 'audio/audio_service.dart';
 import 'audio/audioplayers_audio_service.dart';
 import '../engine/engine.dart';
@@ -49,6 +51,7 @@ class Services {
     required this.share,
     required this.audio,
     ExternalLinkService? links,
+    this.speech = const NoopSpeechService(),
     this.learning,
     TipService? tips,
     ParentGateGuard? parentGate,
@@ -76,6 +79,9 @@ class Services {
   final ProfileStore profile;
   final ShareService share;
   final AudioService audio;
+
+  /// Reads questions aloud (Quick quiz speaker button, `speech.auto_read`).
+  final SpeechService speech;
   final TipService tips;
 
   /// Learning content, release and packs. Null in tests that do not need it.
@@ -160,6 +166,7 @@ class Services {
         link: config.shareLink,
       ),
       audio: AudioplayersAudioService(),
+      speech: TtsSpeechService(locale: config.speech.locale),
       links: const UrlExternalLinkService(),
       learning: learning,
     );

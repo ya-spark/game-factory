@@ -62,7 +62,13 @@ abstract final class TestIds {
   static const gameOverRevivesLeft = Key('game.over.revivesLeft');
   static const gameOverRetry = Key('game.over.retry');
   static const gameOverHome = Key('game.over.home');
-  static const gameBanner = Key('game.banner');
+  static const gameBanner = Key(
+    'game.banner',
+  ); // post_game banner (game-over panel)
+  static const menuBanner = Key('menu.banner');
+  static const quizSpeak = Key('quiz.speak');
+  static const quizSpeakOptions = Key('quiz.speakOptions');
+  static const quizSpeakExplanation = Key('quiz.speakExplanation');
   static const gameStreak = Key('game.streak');
   static const gameCombo = Key('game.combo');
   static const gameRush = Key('game.rush');

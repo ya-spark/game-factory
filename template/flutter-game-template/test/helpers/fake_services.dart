@@ -26,12 +26,16 @@ Future<Services> buildFakeServices({
   bool tips = false,
   ParentGateGuard? parentGate,
   SaveService? profileSaves,
+  String?
+  audience, // child | teen | adult: overrides `audience:` of app.config.yaml
 }) async {
   SharedPreferences.setMockInitialValues({});
   final prefs = await SharedPreferences.getInstance();
-  final config = AppConfig.fromYamlString(
-    File('app.config.yaml').readAsStringSync(),
-  );
+  var yaml = File('app.config.yaml').readAsStringSync();
+  if (audience != null) {
+    yaml = yaml.replaceFirst('audience: adult', 'audience: $audience');
+  }
+  final config = AppConfig.fromYamlString(yaml);
   final catalog = ProductCatalog.fromYamlString(
     File('products.yaml').readAsStringSync(),
   );

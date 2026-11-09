@@ -1,6 +1,9 @@
 import 'package:flutter/widgets.dart';
 
-enum AdPlacement { gameOver, revive }
+import '../config/app_config.dart';
+
+/// Rewarded ads exist only for the Continue, and only in the adult profile.
+enum RewardedPlacement { revive }
 
 /// All advertising goes through this interface. UI/game code never imports an ad SDK.
 abstract interface class AdService {
@@ -14,14 +17,13 @@ abstract interface class AdService {
 
   bool get isRewardedReady;
 
-  /// Shows a rewarded ad. Returns true only if the player earned the reward.
-  Future<bool> showRewarded(AdPlacement placement);
+  /// Shows a rewarded ad. Returns true only if the player earned the reward. Always false
+  /// outside the adult profile. There are no interstitials anywhere.
+  Future<bool> showRewarded(RewardedPlacement placement);
 
-  /// Shows an interstitial if the frequency policy allows it. Returns true if shown.
-  Future<bool> maybeShowInterstitialAfterGameOver();
-
-  /// Banner widget (empty box when no ad is available / ads removed).
-  Widget buildBanner();
+  /// Banner for a placement before or after a game (menu, pre_game, post_game). There is no
+  /// in-play placement. An empty box when no ad is available, ads are removed or it is off.
+  Widget buildBanner(AdPlacement placement);
 
   /// GDPR/UMP: re-open the privacy options form, if one is required for this user.
   bool get privacyOptionsRequired;
@@ -33,7 +35,7 @@ class FakeAdService implements AdService {
   FakeAdService({this.rewardResult = true});
   bool rewardResult;
   int rewardedShown = 0;
-  int interstitialsShown = 0;
+  final List<AdPlacement> bannersBuilt = [];
   bool _removed = false;
 
   @override
@@ -45,15 +47,17 @@ class FakeAdService implements AdService {
   @override
   bool get isRewardedReady => true;
   @override
-  Future<bool> showRewarded(AdPlacement placement) async {
+  Future<bool> showRewarded(RewardedPlacement placement) async {
     rewardedShown++;
     return rewardResult;
   }
 
   @override
-  Future<bool> maybeShowInterstitialAfterGameOver() async => false;
-  @override
-  Widget buildBanner() => const SizedBox.shrink();
+  Widget buildBanner(AdPlacement placement) {
+    bannersBuilt.add(placement);
+    return const SizedBox.shrink();
+  }
+
   @override
   bool get privacyOptionsRequired => false;
   @override

@@ -46,7 +46,15 @@ class AdPacingConfig {
     this.bannerEnabled = true,
     this.childDirected = true,
     this.maxAdContentRating = 'G',
+    this.interstitialsEnabled = false,
+    this.rewardedEnabled = false,
   });
+
+  /// Always false in every profile: the studio shows no interstitial anywhere.
+  final bool interstitialsEnabled;
+
+  /// Rewarded ads (the Continue). Only an `adult` app can turn this on.
+  final bool rewardedEnabled;
 
   final int interstitialMinIntervalSeconds;
   final int interstitialEveryNGameOvers;
@@ -59,6 +67,58 @@ class AdPacingConfig {
 
   /// AdMob max ad content rating: G, PG, T or MA.
   final String maxAdContentRating;
+}
+
+/// Who the app is for (`audience:` in `app.config.yaml`). It sets the ads, sign-in and parent
+/// gate rules; `scripts/profile_check.sh` rejects unsafe combinations in CI.
+enum Audience {
+  child,
+  teen,
+  adult;
+
+  static Audience parse(String? v) => switch (v) {
+    'child' => Audience.child,
+    'teen' => Audience.teen,
+    _ => Audience.adult,
+  };
+}
+
+/// Where a banner may show: before and after a game only. There is no in-play placement.
+enum AdPlacement {
+  menu('menu'),
+  preGame('pre_game'),
+  postGame('post_game');
+
+  const AdPlacement(this.configName);
+  final String configName;
+}
+
+/// Rules derived from the [Audience]. Pure Dart.
+class AudiencePolicy {
+  const AudiencePolicy(this.audience);
+  final Audience audience;
+
+  bool get isAdult => audience == Audience.adult;
+
+  /// Child-directed ad treatment (child and teen).
+  bool get childDirectedAds => !isAdult;
+
+  /// A rewarded ad may exist (adult only).
+  bool get rewardedAllowed => isAdult;
+
+  /// Play Games sign-in: none in a child app, optional in teen and adult.
+  bool get signInAllowed => audience != Audience.child;
+
+  /// Parent gate on every real-money purchase and on coin spends for games.
+  bool get parentGateOnPurchases => !isAdult;
+  bool get parentGateOnCoinSpends => !isAdult;
+}
+
+/// `speech:` in `app.config.yaml`: reading aloud. Each app sets [autoRead] per level.
+class SpeechConfig {
+  const SpeechConfig({this.autoRead = false, this.locale = 'en-AU'});
+  final bool autoRead;
+  final String locale;
 }
 
 class RetentionConfig {
@@ -240,7 +300,13 @@ class AppConfig {
     this.rewards = const RewardsConfig(),
     this.minigames = const MiniGamesConfig(),
     this.aiEnabled = false,
+    this.audience = Audience.adult,
+    this.speech = const SpeechConfig(),
   });
+
+  final Audience audience;
+  final SpeechConfig speech;
+  AudiencePolicy get policy => AudiencePolicy(audience);
 
   final ContentConfig content;
   final RewardsConfig rewards;
@@ -313,7 +379,15 @@ class AppConfig {
         p is YamlMap ? (p['enabled'] as bool? ?? false) : false;
     final mg = (root['minigames'] as YamlMap?) ?? YamlMap();
     final ai = (root['ai'] as YamlMap?) ?? YamlMap();
+    final audience = Audience.parse(root['audience'] as String?);
+    final policy = AudiencePolicy(audience);
+    final speech = (root['speech'] as YamlMap?) ?? YamlMap();
     return AppConfig(
+      audience: audience,
+      speech: SpeechConfig(
+        autoRead: speech['auto_read'] as bool? ?? false,
+        locale: speech['locale'] as String? ?? 'en-AU',
+      ),
       rewards: _parseRewards(root),
       minigames: MiniGamesConfig(coinPrice: mg['coin_price'] as int? ?? 200),
       aiEnabled: ai['enabled'] as bool? ?? false,
@@ -353,7 +427,12 @@ class AppConfig {
         noInterstitialFirstSeconds:
             ads['no_interstitial_first_seconds'] as int? ?? 60,
         bannerEnabled: ads['banner_enabled'] as bool? ?? true,
-        childDirected: ads['child_directed'] as bool? ?? true,
+        childDirected:
+            policy.childDirectedAds || (ads['child_directed'] as bool? ?? true),
+        interstitialsEnabled: false,
+        rewardedEnabled:
+            policy.rewardedAllowed &&
+            (ads['rewarded_enabled'] as bool? ?? true),
         maxAdContentRating: ads['max_ad_content_rating'] as String? ?? 'G',
       ),
       retention: RetentionConfig(
@@ -363,7 +442,7 @@ class AppConfig {
         achievements: ret['achievements'] as bool? ?? true,
       ),
       playGames: PlayGamesConfig(
-        enabled: pg['enabled'] as bool? ?? false,
+        enabled: policy.signInAllowed && (pg['enabled'] as bool? ?? false),
         appId: pg['app_id'] as String? ?? 'PLACEHOLDER_PLAY_GAMES_APP_ID',
         leaderboardHighScore:
             pg['leaderboard_high_score'] as String? ??

@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../core/services.dart';
+import '../core/speech/speech_service.dart';
 import '../engine/engine.dart';
 import 'test_ids.dart';
 
@@ -29,7 +31,19 @@ class QuickQuizScreen extends StatefulWidget {
     required this.mode,
     required this.onExit,
     this.onAnswered,
+    this.reader,
+    this.autoRead,
+    this.recordedClip,
   });
+
+  /// Reads aloud. Null: taken from the [ServicesScope] if there is one, else no speaker button.
+  final ReadAloud? reader;
+
+  /// Read each question on its own. Null: `speech.auto_read` from the config (via the scope).
+  final bool? autoRead;
+
+  /// Plays an item's recorded `audio` file (tried before text-to-speech).
+  final RecordedClipPlayer? recordedClip;
 
   final QuizSession session;
   final MiniGameMode mode;
@@ -48,10 +62,54 @@ class _QuickQuizScreenState extends State<QuickQuizScreen> {
   AnswerResult? _result;
   Set<int> _shownCorrect = {};
 
+  ReadAloud? _reader;
+  bool _autoRead = false;
+  int? _autoReadIndex;
+
   QuizSession get _s => widget.session;
   bool get _study => widget.mode == MiniGameMode.study;
 
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final scope = context.dependOnInheritedWidgetOfExactType<ServicesScope>();
+    final services = scope?.services;
+    _reader =
+        widget.reader ??
+        (services == null
+            ? null
+            : ReadAloud(
+                speech: services.speech,
+                recorded: widget.recordedClip,
+              ));
+    _autoRead = widget.autoRead ?? services?.config.speech.autoRead ?? false;
+  }
+
+  @override
+  void dispose() {
+    _reader?.stop();
+    super.dispose();
+  }
+
+  /// Reads the question (recorded clip first, text-to-speech as the fallback).
+  Future<void> _readQuestion(PoolItem p) => _reader == null
+      ? Future.value()
+      : _reader!.read(
+          questionReadout(mcqPrompt(p.item), mcqOptions(p.item)),
+          audioRef: p.item.audio,
+        );
+
+  /// Automatic reading, once per question, only before it is answered.
+  void _maybeAutoRead(PoolItem p, int index) {
+    if (!_autoRead || _reader == null || _autoReadIndex == index) return;
+    _autoReadIndex = index;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted && _result == null) _readQuestion(p);
+    });
+  }
+
   void _submit(PoolItem p, Set<int> picked) {
+    _reader?.stop();
     final correctSet = mcqCorrectIndexes(p.item);
     final r = _s.answer(correct: mcqIsCorrect(p.item, picked));
     widget.onAnswered?.call(r, _s);
@@ -137,15 +195,29 @@ class _QuickQuizScreenState extends State<QuickQuizScreen> {
     final options = mcqOptions(p.item);
     final multi = mcqCorrectIndexes(p.item).length > 1;
     final answered = _result != null;
+    if (!answered) _maybeAutoRead(p, index);
     return SingleChildScrollView(
       padding: const EdgeInsets.all(16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Text(
-            'Question ${index + 1} of ${_s.total}',
-            key: TestIds.quizProgress,
-            style: theme.textTheme.labelLarge,
+          Row(
+            children: [
+              Expanded(
+                child: Text(
+                  'Question ${index + 1} of ${_s.total}',
+                  key: TestIds.quizProgress,
+                  style: theme.textTheme.labelLarge,
+                ),
+              ),
+              if (_reader != null)
+                IconButton(
+                  key: TestIds.quizSpeak,
+                  tooltip: 'Read the question and the answers aloud',
+                  icon: const Icon(Icons.volume_up),
+                  onPressed: () => _readQuestion(p),
+                ),
+            ],
           ),
           const SizedBox(height: 12),
           Semantics(
@@ -278,6 +350,16 @@ class _QuickQuizScreenState extends State<QuickQuizScreen> {
               key: TestIds.quizExplanation,
               style: theme.textTheme.bodyLarge,
             ),
+            if (_reader != null && r.explanation.isNotEmpty)
+              Align(
+                alignment: Alignment.centerLeft,
+                child: TextButton.icon(
+                  key: TestIds.quizSpeakExplanation,
+                  icon: const Icon(Icons.volume_up),
+                  label: const Text('Read the explanation'),
+                  onPressed: () => _reader!.read(r.explanation),
+                ),
+              ),
             if (!_study && r.stars > 0) ...[
               const SizedBox(height: 8),
               Text(

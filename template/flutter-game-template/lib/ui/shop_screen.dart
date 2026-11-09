@@ -78,9 +78,11 @@ class ShopScreen extends StatelessWidget {
     );
   }
 
-  /// Real-money purchases always go through the parent gate first.
+  /// Real-money purchases go through the parent gate first in child and teen apps (not in adult
+  /// apps, see `AudiencePolicy.parentGateOnPurchases`).
   Future<void> _buy(BuildContext context, Services s, String id) async {
-    if (await showParentGate(context, s.parentGate)) {
+    if (!s.config.policy.parentGateOnPurchases ||
+        await showParentGate(context, s.parentGate)) {
       await s.purchases.buy(id);
     }
   }

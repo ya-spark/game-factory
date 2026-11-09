@@ -28,4 +28,11 @@ run_case "real release IDs pass" 0 "sed -i 's|banner: PLACEHOLDER_ADMOB_BANNER_I
 run_case "real ID hardcoded in lib/ fails" 1 "mkdir -p lib && echo \"const x = '$REAL_ID';\" > lib/leak.dart"
 run_case "real ID in debug manifest fails" 1 "mkdir -p android/app/src/debug && echo '<meta-data android:value=\"ca-app-pub-1234567890123456~1111111111\"/>' > android/app/src/debug/AndroidManifest.xml"
 run_case "real ID hardcoded in main manifest fails" 1 "echo '<meta-data android:value=\"ca-app-pub-1234567890123456~1111111111\"/>' >> android/app/src/main/AndroidManifest.xml"
+CHILD='s/^audience: adult/audience: child/; s/^  rewarded_enabled: true/  rewarded_enabled: false/; s/^  child_directed: false/  child_directed: true/'
+run_case "interstitials_enabled true fails" 1 "sed -i 's/^  interstitials_enabled: false/  interstitials_enabled: true/' app.config.yaml"
+run_case "interstitial code in lib/ fails" 1 "mkdir -p lib && echo 'InterstitialAd? ad;' > lib/x.dart"
+run_case "banner built outside AdService fails" 1 "mkdir -p lib/ui && echo 'final w = AdWidget(ad: a);' > lib/ui/x.dart"
+run_case "child app without rewarded ads passes" 0 "sed -i '$CHILD' app.config.yaml"
+run_case "child app with rewarded ads fails" 1 "sed -i '$CHILD; s/^  rewarded_enabled: false/  rewarded_enabled: true/' app.config.yaml"
+run_case "child app without a parent gate in the shop fails" 1 "sed -i '$CHILD' app.config.yaml; sed -i 's/showParentGate/skipGate/' lib/ui/shop_screen.dart"
 exit $fails

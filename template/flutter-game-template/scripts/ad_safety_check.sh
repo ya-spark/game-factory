@@ -76,6 +76,30 @@ if [ -f "$GRADLE" ]; then
     END { exit bad }' "$GRADLE" >&2 || err "$GRADLE: admobAppId wiring is wrong (see messages above)"
 fi
 
+# 3. Ad rules (issue 1C2): no interstitial anywhere, rewarded ads only in the adult profile,
+#    banners only through AdService.buildBanner(placement), parent gate kept in child/teen apps.
+val() { # val <section> <key>: value one level down, comments stripped
+  awk -v s="$1" -v k="$2" '
+    /^[^ #]/ { in_s = ($0 ~ "^" s ":"); next }
+    in_s && $0 ~ "^  " k ":" { sub("^  " k ":[ ]*", ""); sub("[ ]*#.*$", ""); print; exit }' "$CONFIG"
+}
+audience="$(awk '/^audience:/ { sub("^audience:[ ]*", ""); sub("[ ]*#.*$", ""); print; exit }' "$CONFIG")"
+[ "$(val ads interstitials_enabled)" = "false" ] || err "$CONFIG ads.interstitials_enabled must be false (no interstitials anywhere)"
+case "$audience" in
+  child | teen)
+    [ "$(val ads rewarded_enabled)" != "true" ] || err "$CONFIG: rewarded ads are not allowed in a $audience app"
+    if [ -f lib/ui/shop_screen.dart ] && ! grep -q 'showParentGate' lib/ui/shop_screen.dart; then
+      err "lib/ui/shop_screen.dart: a $audience app needs the parent gate before a purchase"
+    fi
+    ;;
+esac
+if [ -d lib ]; then
+  hits="$(grep -rnE 'InterstitialAd|InterstitialAdLoadCallback|maybeShowInterstitial|showInterstitial' lib || true)"
+  [ -z "$hits" ] || err "interstitial code found (no interstitials anywhere): $(echo "$hits" | head -3 | tr '\n' ' ')"
+  hits="$(grep -rnE 'BannerAd\(|AdWidget\(' lib | grep -v 'lib/core/ads/admob_ad_service.dart' || true)"
+  [ -z "$hits" ] || err "banner ads must be built only by AdService.buildBanner(placement): $(echo "$hits" | head -3 | tr '\n' ' ')"
+fi
+
 if [ "$fail" -ne 0 ]; then
   echo "AD SAFETY: FAILED" >&2
   exit 1

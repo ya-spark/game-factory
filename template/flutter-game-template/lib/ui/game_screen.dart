@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import '../core/ads/ad_service.dart';
+import '../core/config/app_config.dart';
 import '../core/profile/profile_store.dart';
 import '../core/services.dart';
 import '../game/flame/block_puzzle_game.dart';
@@ -143,6 +144,10 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
     if (_dialogOpen || !mounted) return;
     _dialogOpen = true;
     final game = _game!;
+    // The Continue needs a rewarded ad (adult profile) or Remove Ads; child and teen apps have none.
+    final canContinue =
+        game.state.canRevive &&
+        (s.profile.data.adsRemoved || s.config.adPacing.rewardedEnabled);
     final action = await showDialog<String>(
       context: context,
       barrierDismissible: false,
@@ -178,14 +183,19 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
             style: const TextStyle(fontSize: 30, fontWeight: FontWeight.w900),
           ),
           Text('Best ${game.state.bestScore}'),
-          if (game.state.canRevive)
+          if (canContinue)
             Text(
               'Continues left: ${game.state.revivesRemaining}',
               key: TestIds.gameOverRevivesLeft,
             ),
+          // post_game banner: shown after the game, never during play.
+          KeyedSubtree(
+            key: TestIds.gameBanner,
+            child: s.ads.buildBanner(AdPlacement.postGame),
+          ),
         ],
 
-        leadButton: game.state.canRevive
+        leadButton: canContinue
             ? GameOverButton(
                 key: TestIds.gameOverRevive,
                 kind: GameOverButtonKind.primary,
@@ -199,13 +209,13 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
         buttons: [
           GameOverButton(
             key: TestIds.gameOverRetry,
-            kind: game.state.canRevive
+            kind: canContinue
                 ? GameOverButtonKind.secondary
                 : GameOverButtonKind.primary,
             icon: Icons.replay,
             label: 'Play again',
-            fontSize: game.state.canRevive ? _kSmallFont : _kLargeFont,
-            padding: game.state.canRevive ? _kSmallPadding : _kLargePadding,
+            fontSize: canContinue ? _kSmallFont : _kLargeFont,
+            padding: canContinue ? _kSmallPadding : _kLargePadding,
             onPressed: () => Navigator.pop(ctx, 'retry'),
           ),
           GameOverButton(
@@ -231,7 +241,7 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
           return;
         }
         // Everyone else must earn the rewarded ad; never coins or a free continue.
-        final earned = await s.ads.showRewarded(AdPlacement.revive);
+        final earned = await s.ads.showRewarded(RewardedPlacement.revive);
         if (!mounted) return;
         if (earned && game.revive()) return;
         ScaffoldMessenger.of(context).showSnackBar(
@@ -242,7 +252,6 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
         _showGameOver(s);
       case 'retry':
         await _finishGame(s);
-        await s.ads.maybeShowInterstitialAfterGameOver();
         if (!mounted) return;
         _recorded = false;
         game.restart();
@@ -332,8 +341,6 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
                 rushLeft: game.state.rushLeft,
                 showStreak: s.config.retention.streaks,
               ),
-              const SizedBox(height: 6),
-              KeyedSubtree(key: TestIds.gameBanner, child: s.ads.buildBanner()),
             ],
           ),
         ),

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../core/config/app_config.dart';
 import '../core/services.dart';
 import 'challenges_screen.dart';
 import 'daily_reward_screen.dart';
@@ -74,6 +75,13 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     final s = ServicesScope.of(context);
     final profile = s.profile;
     return Scaffold(
+      // menu banner: shown on the menu, never during play.
+      bottomNavigationBar: SafeArea(
+        child: KeyedSubtree(
+          key: TestIds.menuBanner,
+          child: s.ads.buildBanner(AdPlacement.menu),
+        ),
+      ),
       body: Container(
         decoration: KidColors.background,
         child: Stack(

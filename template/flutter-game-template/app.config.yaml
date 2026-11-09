@@ -6,6 +6,16 @@ app:
   display_name: Block Puzzle
   package_name: com.example.blockpuzzle # PLACEHOLDER: set per game before first Play upload
 
+# Compliance profile (issue 1C2): child (Scout, Ranger), teen (Champion) or adult (Mind, and the
+# plain puzzle template). It sets ads, sign-in and the parent gate; scripts/profile_check.sh
+# rejects unsafe combinations. See docs/ENGINE.md.
+audience: adult # child | teen | adult
+
+# Reading aloud (Quick quiz): auto_read reads each question on its own (Scout's younger level).
+speech:
+  auto_read: false
+  locale: en-AU
+
 theme:
   seed_color: "#2EC4B6"
   dark: true
@@ -39,10 +49,13 @@ ads:
   interstitial_every_n_game_overs: 2
   max_interstitials_per_session: 6
   no_interstitial_first_seconds: 60
-  banner_enabled: true
+  banner_enabled: true # banner only before and after a game (menu, pre_game, post_game), never in play
+  interstitials_enabled: false # must stay false in every profile
+  rewarded_enabled: true # adult only (the Continue); child and teen must not set it
   # Child-directed ad treatment (COPPA / under-age-of-consent) and max ad content rating (G, PG, T, MA).
-  child_directed: true
-  max_ad_content_rating: G
+  # child and teen: child_directed true; child max G, teen max PG. adult: child_directed false.
+  child_directed: false
+  max_ad_content_rating: PG
 
 # Sharing through the system share sheet. link_mode: internal_test (link to the internal test
 # page), store (Play Store page of package_name) or off (no link, "Share app" hidden). An empty

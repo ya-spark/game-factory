@@ -126,7 +126,7 @@ void main() {
   testWidgets('shop: buying remove ads marks it owned and disables ads', (
     tester,
   ) async {
-    final s = await buildFakeServices();
+    final s = await buildFakeServices(audience: 'teen'); // gated profile
     await pumpApp(tester, s);
     await tester.tap(find.byKey(TestIds.homeShop));
     await tester.pumpAndSettle();
@@ -155,6 +155,19 @@ void main() {
     expect(find.byIcon(Icons.monetization_on), findsNothing);
   });
 
+  testWidgets('adult profile: no parent gate before a purchase', (
+    tester,
+  ) async {
+    final s = await buildFakeServices(); // template audience: adult
+    await pumpApp(tester, s);
+    await tester.tap(find.byKey(TestIds.homeShop));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(TestIds.shopBuy('remove_ads_all')));
+    await tester.pumpAndSettle();
+    expect(find.byKey(TestIds.gateDialog), findsNothing);
+    expect(s.profile.data.adsRemoved, isTrue);
+  });
+
   testWidgets('shop lists all four products, Remove Ads first', (tester) async {
     final s = await buildFakeServices();
     await pumpApp(tester, s);
@@ -173,6 +186,7 @@ void main() {
   ) async {
     var now = DateTime(2026, 1, 1, 12);
     final s = await buildFakeServices(
+      audience: 'child', // the gate is for child and teen apps
       parentGate: ParentGateGuard(clock: () => now, random: Random(3)),
     );
     await pumpApp(tester, s);
@@ -479,7 +493,7 @@ void main() {
       expect(game.state.isGameOver, isFalse);
       expect(s.profile.data.stats.gamesPlayed, 1);
       expect(ads.rewardedShown, 1);
-      expect(AdPlacement.values, contains(AdPlacement.revive));
+      expect(RewardedPlacement.values, contains(RewardedPlacement.revive));
     },
   );
 }

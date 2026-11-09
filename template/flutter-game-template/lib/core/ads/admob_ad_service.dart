@@ -4,20 +4,19 @@ import 'package:flutter/widgets.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 
 import '../config/app_config.dart';
-import 'ad_frequency.dart';
 import 'ad_service.dart';
 
 /// AdMob implementation (the only file besides ad_banner usage that imports the ad SDK).
 ///
 /// Unit IDs come from [AdmobIds]: debug builds use Google's TEST IDs only, release builds use
 /// the real IDs from app.config.yaml. While real IDs are still placeholders, ads stay off.
+/// No interstitials exist; rewarded ads only when `pacing.rewardedEnabled` (adult profile).
 class AdMobAdService implements AdService {
   AdMobAdService({
     required this.ids,
     required this.pacing,
     required this.isReleaseBuild,
-    AdFrequencyPolicy? policy,
-  }) : _policy = policy ?? AdFrequencyPolicy(pacing) {
+  }) {
     if (!isReleaseBuild && !ids.allTest) {
       throw StateError('Debug build must use AdMob test IDs only.');
     }
@@ -29,12 +28,10 @@ class AdMobAdService implements AdService {
   final AdmobIds ids;
   final AdPacingConfig pacing;
   final bool isReleaseBuild;
-  final AdFrequencyPolicy _policy;
 
   bool _removed = false;
   bool _initialized = false;
   bool _canRequest = false;
-  InterstitialAd? _interstitial;
   RewardedAd? _rewarded;
 
   @override
@@ -48,7 +45,11 @@ class AdMobAdService implements AdService {
 
   @override
   bool get isRewardedReady =>
-      _initialized && _canRequest && _configured && _rewarded != null;
+      pacing.rewardedEnabled &&
+      _initialized &&
+      _canRequest &&
+      _configured &&
+      _rewarded != null;
 
   @override
   bool get privacyOptionsRequired => _privacyRequired;
@@ -65,7 +66,6 @@ class AdMobAdService implements AdService {
     if (!_canRequest) return;
     await MobileAds.instance.initialize();
     _initialized = true;
-    _loadInterstitial();
     _loadRewarded();
   }
 
@@ -125,20 +125,8 @@ class AdMobAdService implements AdService {
     await done.future.timeout(const Duration(seconds: 1), onTimeout: () {});
   }
 
-  void _loadInterstitial() {
-    if (!adsEnabled && !(_initialized && _canRequest && _configured)) return;
-    InterstitialAd.load(
-      adUnitId: ids.interstitial,
-      request: const AdRequest(),
-      adLoadCallback: InterstitialAdLoadCallback(
-        onAdLoaded: (ad) => _interstitial = ad,
-        onAdFailedToLoad: (e) =>
-            debugPrint('Interstitial failed: ${e.message}'),
-      ),
-    );
-  }
-
   void _loadRewarded() {
+    if (!pacing.rewardedEnabled) return;
     if (!(_initialized && _canRequest && _configured)) return;
     RewardedAd.load(
       adUnitId: ids.rewarded,
@@ -151,36 +139,7 @@ class AdMobAdService implements AdService {
   }
 
   @override
-  Future<bool> maybeShowInterstitialAfterGameOver() async {
-    if (!adsEnabled) return false;
-    if (!_policy.shouldShowAfterGameOver()) return false;
-    final ad = _interstitial;
-    if (ad == null) {
-      _loadInterstitial();
-      return false;
-    }
-    _interstitial = null;
-    final closed = Completer<void>();
-    ad.fullScreenContentCallback = FullScreenContentCallback(
-      onAdDismissedFullScreenContent: (a) {
-        a.dispose();
-        _loadInterstitial();
-        closed.complete();
-      },
-      onAdFailedToShowFullScreenContent: (a, e) {
-        a.dispose();
-        _loadInterstitial();
-        closed.complete();
-      },
-    );
-    _policy.recordShown();
-    await ad.show();
-    await closed.future;
-    return true;
-  }
-
-  @override
-  Future<bool> showRewarded(AdPlacement placement) async {
+  Future<bool> showRewarded(RewardedPlacement placement) async {
     final ad = _rewarded;
     if (ad == null || !isRewardedReady) {
       _loadRewarded();
@@ -201,14 +160,14 @@ class AdMobAdService implements AdService {
         closed.complete();
       },
     );
-    _policy.recordRewardedShown();
     await ad.show(onUserEarnedReward: (_, _) => earned = true);
     await closed.future;
     return earned;
   }
 
   @override
-  Widget buildBanner() {
+  Widget buildBanner(AdPlacement placement) {
+    // Every AdPlacement is a menu or a before/after-game screen; none is in play.
     if (!adsEnabled || !pacing.bannerEnabled) return const SizedBox.shrink();
     return _BannerSlot(adUnitId: ids.banner);
   }

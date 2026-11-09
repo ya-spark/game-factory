@@ -49,6 +49,7 @@ dependencies:
   path_provider: 2.1.6 # exact pin: app documents folder for the content cache; imported only in core/content/content_io.dart
   crypto: ^3.0.8
   cryptography: ^2.9.0
+  flutter_tts: 4.2.3
 
 dev_dependencies:
   flutter_test:

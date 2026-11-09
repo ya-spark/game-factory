@@ -54,7 +54,45 @@ are always free. Other prices: avatars 40, colour themes 60, streak freeze 100; 
 `AiTutorService` (`isAvailable`, `explain`) with `NoAiTutorService`, which is never available.
 `ai.enabled: false`. No vendor code and no AI feature ships.
 
+## Reading aloud (`lib/core/speech/`, `speech:` in `app.config.yaml`)
+
+`SpeechService` (`isAvailable`, `speak`, `stop`) with `TtsSpeechService` (`flutter_tts`, pinned
+exactly, imported only in `tts_speech_service.dart`; `en-AU` preferred, device default otherwise),
+`NoopSpeechService` and `FakeSpeechService`. `ReadAloud` reads an item: its recorded `audio` file
+first (through a `RecordedClipPlayer` the app supplies), text-to-speech as the fallback or when
+the clip is missing or fails. Quick quiz has a speaker button (`quiz.speak`) that reads the
+prompt and the numbered options, and a "Read the explanation" button after each answer
+(`quiz.speakExplanation`); explanations are never read on their own. `speech.auto_read: true`
+reads each new question once on its own (Scout sets it for the younger level). The speaker button
+has a tooltip, which is its screen-reader label.
+
+## Compliance profiles and ads (`audience:` in `app.config.yaml`)
+
+| | child (Scout, Ranger) | teen (Champion) | adult (Mind) |
+|---|---|---|---|
+| Ad treatment | child-directed, max rating G | child-directed, max rating G or PG | not child-directed |
+| Banner | menu, pre_game, post_game | same | same |
+| Rewarded (Continue) | no | no | yes (optional) |
+| Interstitial | never | never | never |
+| Parent gate (purchases, coin spends) | yes | yes | no |
+| Play Games sign-in | none | optional | optional |
+
+`AudiencePolicy` (in `app_config.dart`) derives the rules and the config parser enforces them
+(for example `play_games.enabled` is forced off in a `child` app, `rewarded_enabled` off outside
+`adult`, child-directed on for `child` and `teen`). `AdService.buildBanner(AdPlacement)` takes
+`menu`, `pre_game` or `post_game`: there is no in-play placement, and no interstitial code exists.
+`AdService.showRewarded(RewardedPlacement.revive)` is the only full-screen ad.
+
+CI checks: `scripts/profile_check.sh` (self-test `scripts/test_profile_check.sh`) rejects unsafe
+configs; `scripts/ad_safety_check.sh` (self-test `scripts/test_ad_safety_check.sh`) also rejects
+any interstitial, rewarded ads in a `child` or `teen` app, a banner built outside the ad service
+and a shop without the parent gate in a `child` or `teen` app.
+`ads.interstitial_*` pacing keys and `lib/core/ads/ad_frequency.dart` are legacy and unused.
+
 ## Tests
+`test/ui/quick_quiz_speech_test.dart` (recorded audio first, text-to-speech fallback, auto-read,
+explanations on request, labels), `test/core/profiles_ads_test.dart` (profile rules, no in-play
+placement, no interstitial).
 
 `test/engine/minigames_test.dart` (scoring, star rules, weekly cap per child, access, minimum pool,
 config, AI tutor) and `test/ui/quick_quiz_test.dart` (both modes, 150 percent text, screen-reader
