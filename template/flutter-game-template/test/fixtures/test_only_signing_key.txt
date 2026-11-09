@@ -1,0 +1,3 @@
+# TEST ONLY KEY. NOT A SECRET. It exists so unit tests can sign an index.
+# Never used for real content. The real key is made by the owner and stays off every repo.
+VEVTVC1PTkxZLUtFWS1OT1QtQS1TRUNSRVQtMDAwMCE=

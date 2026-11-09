@@ -1,0 +1,168 @@
+# Allowed subjects, years and topics for learning content (first draft, to be
+# reviewed by the owner before real content is written).
+#
+# Shape:   subject: { year: { topic_id: Display name } }
+# Years:   0 = Foundation, 1 to 12 = Year 1 to Year 12.
+# The validator rejects any pack or item whose topic is not listed here for its
+# subject and year. Topic ids are lowercase letters, digits and underscores.
+# Names are original; they do not follow any published syllabus wording.
+
+maths:
+  0:
+    counting_to_20: Counting to 20
+    comparing_amounts: More, fewer and the same
+    simple_shapes: Simple shapes
+    patterns: Simple patterns
+    time_of_day: Days and time of day
+  1:
+    numbers_to_100: Numbers to 100
+    add_sub_to_20: Adding and taking away to 20
+    two_d_shapes: Flat shapes
+    measuring_length: Measuring length
+    telling_time: Telling time
+  2:
+    place_value_to_1000: Place value to 1000
+    add_sub_to_100: Adding and taking away to 100
+    skip_counting: Skip counting and sharing
+    money: Money
+    data_pictures: Pictures and tallies
+  3:
+    add_sub_to_1000: Adding and taking away to 1000
+    times_tables: Times tables
+    simple_fractions: Halves, quarters and eighths
+    perimeter_area: Perimeter and area
+    time_calendars: Time and calendars
+  4:
+    multiplication: Multiplying larger numbers
+    division: Dividing with remainders
+    fractions_decimals: Fractions and tenths
+    angles: Angles
+    graphs: Reading graphs
+  5:
+    big_numbers: Numbers to millions
+    fraction_operations: Adding fractions
+    decimals_money: Decimals and money
+    volume: Volume and capacity
+    transformations: Slides, flips and turns
+  6:
+    factors_multiples: Factors and multiples
+    percentages_intro: Percentages
+    integers: Negative numbers
+    coordinates: Coordinates and maps
+    probability_intro: Chance and probability
+  7:
+    integer_operations: Working with negative numbers
+    fractions_ratios: Fractions and ratios
+    algebra_intro: Letters for numbers
+    angles_triangles: Angles and triangles
+    statistics_basics: Averages and statistics
+  8:
+    rates_percentages: Rates and percentage change
+    linear_expressions: Linear expressions
+    area_volume: Area and volume of solids
+    pythagoras: Right triangles
+    probability: Probability of events
+  9:
+    indices_scientific: Powers and scientific notation
+    linear_equations: Solving linear equations
+    graphing_lines: Graphing lines
+    similar_figures: Similar shapes
+    data_displays: Data displays and spread
+  10:
+    quadratics: Quadratic expressions
+    simultaneous_equations: Pairs of equations
+    trigonometry: Trigonometry of right triangles
+    surface_volume: Surface area and volume
+    probability_trees: Probability with trees and tables
+  11:
+    functions_graphs: Functions and their graphs
+    exponentials_logs: Exponentials and logarithms
+    differentiation_intro: Rates of change
+    sequences_series: Sequences and series
+    statistics_distributions: Distributions and sampling
+  12:
+    calculus: Calculus
+    vectors_matrices: Vectors and matrices
+    advanced_probability: Advanced probability
+    complex_functions: Advanced functions
+    financial_maths: Financial maths
+
+english:
+  0:
+    letters_sounds: Letters and sounds
+    rhyme: Rhyming words
+    sight_words: First words
+    picture_stories: Stories in pictures
+    listening: Listening and speaking
+  1:
+    phonics: Sounding out words
+    simple_sentences: Writing a sentence
+    sight_words: Common words
+    story_parts: Beginning, middle and end
+    capital_letters: Capital letters and full stops
+  2:
+    spelling_patterns: Spelling patterns
+    nouns_verbs: Naming and doing words
+    reading_questions: Questions about a text
+    punctuation: Question marks and commas
+    vocabulary: Word meanings
+  3:
+    spelling_rules: Spelling rules
+    adjectives_adverbs: Describing words
+    paragraphs: Writing a paragraph
+    comprehension: Finding details in a text
+    synonyms_antonyms: Same and opposite words
+  4:
+    tenses: Past, present and future
+    prefixes_suffixes: Prefixes and suffixes
+    narrative_writing: Story writing
+    inference: Reading between the lines
+    punctuation_speech: Speech marks
+  5:
+    complex_sentences: Joining sentences
+    word_origins: Word families and origins
+    persuasive_writing: Persuasive writing
+    text_features: Reading information texts
+    figurative_language: Similes and metaphors
+  6:
+    grammar_review: Sentence structure
+    vocabulary_in_context: Words in context
+    argument_writing: Writing an argument
+    poetry: Poems
+    media_texts: Reading media texts
+  7:
+    narrative_craft: Story craft
+    sentence_variety: Varying sentences
+    reading_analysis: Analysing a text
+    spelling_vocab: Spelling and vocabulary
+    speaking_presenting: Speaking and presenting
+  8:
+    persuasive_techniques: Persuasive techniques
+    character_theme: Character and theme
+    editing: Editing and proofreading
+    informative_writing: Informative writing
+    language_choices: Language choices
+  9:
+    text_analysis: Comparing texts
+    rhetorical_devices: Rhetorical devices
+    essay_structure: Essay structure
+    poetry_analysis: Poetry analysis
+    media_literacy: Media and bias
+  10:
+    analytical_essays: Analytical essays
+    creative_writing: Creative writing
+    shakespeare_intro: Older plays
+    argument_analysis: Analysing arguments
+    grammar_style: Grammar and style
+  11:
+    text_response: Responding to a text
+    comparative_analysis: Comparing two texts
+    language_analysis: Analysing language
+    craft_of_writing: Craft of writing
+    context_and_values: Context and values
+  12:
+    advanced_text_response: Advanced text response
+    advanced_language_analysis: Advanced language analysis
+    extended_writing: Extended writing
+    exam_technique: Writing under time limits
+    reflective_writing: Reflective writing
