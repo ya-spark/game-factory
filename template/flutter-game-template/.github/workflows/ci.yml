@@ -47,6 +47,8 @@ jobs:
       - run: flutter test
       - name: Ad safety (no real ad IDs in debug, no test IDs in release)
         run: bash scripts/ad_safety_check.sh
+      - name: Network rules (INTERNET, no cleartext, https host; warns while signing is off)
+        run: bash scripts/network_safety_check.sh
       - name: Assets license check
         run: bash scripts/check_asset_licenses.sh
       - name: No secrets committed

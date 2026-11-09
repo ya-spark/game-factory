@@ -168,7 +168,9 @@ def rewrite_dart_package(out: Path, game_id: str) -> None:
         1,
         re.M,
     )
-    for sub in ("lib", "test", "integration_test"):
+    for sub in ("lib", "test", "integration_test", "tool"):
+        if not (out / sub).is_dir():
+            continue
         for f in (out / sub).rglob("*.dart"):
             text = f.read_text(encoding="utf-8")
             new = text.replace(f"package:{TEMPLATE_PKG}/", f"package:{game_id}/")
