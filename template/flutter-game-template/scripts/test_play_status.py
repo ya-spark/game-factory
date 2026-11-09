@@ -9,7 +9,7 @@ import play_status as ps  # noqa: E402
 
 TRACKS = [
     {"track": "production", "releases": []},
-    {"track": "internal", "releases": [
+    {"track": "alpha", "releases": [
         {"name": "1.0.1 (6)", "versionCodes": ["6"], "status": "completed"},
         {"name": "1.0.0 (3)", "versionCodes": ["3"], "status": "completed"},
     ]},
@@ -33,11 +33,11 @@ class Live(unittest.TestCase):
         self.assertEqual(ps.newest_live_code(TRACKS), 6)
 
     def test_drafts_do_not_count(self):
-        tracks = [{"track": "internal", "releases": [{"versionCodes": ["9"], "status": "draft"}]}]
+        tracks = [{"track": "alpha", "releases": [{"versionCodes": ["9"], "status": "draft"}]}]
         self.assertIsNone(ps.newest_live_code(tracks))
 
     def test_tracks_sorted(self):
-        self.assertEqual([t["track"] for t in ps.sort_tracks(TRACKS)], ["internal", "production"])
+        self.assertEqual([t["track"] for t in ps.sort_tracks(TRACKS)], ["alpha", "production"])
 
 
 class Summary(unittest.TestCase):
@@ -45,25 +45,50 @@ class Summary(unittest.TestCase):
         run = {"number": 6, "conclusion": "success", "headSha": "abcdef123", "url": "u"}
         text = ps.summarize("com.x", ("1.0.1", "2"), TRACKS, run, run)
         self.assertIn("matches the last successful release run", text)
-        self.assertIn("| internal | 1.0.1 (6) | 6 | completed |", text)
+        self.assertIn("| alpha | 1.0.1 (6) | 6 | completed |", text)
         self.assertNotIn("Draft", text)
 
     def test_draft_and_lag_are_flagged(self):
-        tracks = [{"track": "internal", "releases": [
+        tracks = [{"track": "alpha", "releases": [
             {"versionCodes": ["6"], "status": "draft"},
             {"versionCodes": ["3"], "status": "completed"},
         ]}]
         run = {"number": 6, "conclusion": "success", "headSha": "abcdef123", "url": "u"}
         text = ps.summarize("com.x", ("1.0.1", "2"), tracks, run, run)
-        self.assertIn("Draft on internal", text)
+        self.assertIn("Draft on alpha", text)
         self.assertIn("may still be a draft", text)
 
     def test_label_mismatch_is_flagged(self):
-        tracks = [{"track": "internal", "releases": [{"name": "1.0.0", "versionCodes": ["9"], "status": "completed"}]}]
+        tracks = [{"track": "alpha", "releases": [{"name": "1.0.0", "versionCodes": ["9"], "status": "completed"}]}]
         text = ps.summarize("com.x", ("1.0.1", "2"), tracks, None, None)
         self.assertIn("pubspec.yaml version name plus Play version code", text)
         self.assertEqual(ps.label_mismatch(tracks, "1.0.1"), "1.0.0")
-        self.assertIsNone(ps.label_mismatch([{"track": "internal", "releases": [{"name": "1.0.0 (9)", "versionCodes": ["9"], "status": "completed"}]}], "1.0.0"))
+        self.assertIsNone(ps.label_mismatch([{"track": "alpha", "releases": [{"name": "1.0.0 (9)", "versionCodes": ["9"], "status": "completed"}]}], "1.0.0"))
+
+    def test_internal_track_is_ignored(self):
+        # Internal is not the release track: an old internal label must not turn the report red.
+        tracks = [
+            {"track": "internal", "releases": [{"name": "1.0.0 (3)", "versionCodes": ["3"], "status": "completed"}]},
+            {"track": "alpha", "releases": [{"name": "1.0.1 (6)", "versionCodes": ["6"], "status": "completed"}]},
+        ]
+        self.assertIsNone(ps.label_mismatch(tracks, "1.0.1"))
+        text = ps.summarize("com.x", ("1.0.1", "2"), tracks, None, None)
+        self.assertNotIn("pubspec.yaml version name plus Play version code", text)
+
+    def test_new_draft_with_correct_label_is_not_a_mismatch(self):
+        # A fresh closed-testing upload is a draft; the older rolled-out release has an older label.
+        tracks = [{"track": "alpha", "releases": [
+            {"name": "1.0.1 (6)", "versionCodes": ["6"], "status": "draft"},
+            {"name": "1.0.0 (3)", "versionCodes": ["3"], "status": "completed"},
+        ]}]
+        self.assertIsNone(ps.label_mismatch(tracks, "1.0.1"))
+        text = ps.summarize("com.x", ("1.0.1", "2"), tracks, None, None)
+        self.assertIn("Draft on alpha (not rolled out yet): version code(s) 6.", text)
+        self.assertNotIn("pubspec.yaml version name plus Play version code", text)
+
+    def test_draft_with_wrong_label_is_flagged(self):
+        tracks = [{"track": "alpha", "releases": [{"name": "1.0.0 (6)", "versionCodes": ["6"], "status": "draft"}]}]
+        self.assertEqual(ps.label_mismatch(tracks, "1.0.1"), "1.0.0 (6)")
 
     def test_matching_label_is_quiet(self):
         text = ps.summarize("com.x", ("1.0.1", "2"), TRACKS, None, None)

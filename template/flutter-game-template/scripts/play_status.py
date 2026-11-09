@@ -17,6 +17,8 @@ import sys
 
 SCOPE = "https://www.googleapis.com/auth/androidpublisher"
 TRACK_ORDER = ("internal", "alpha", "beta", "production")
+# The track releases go to (closed testing). Internal is only used when the owner asks (owner, 2026-11-09).
+RELEASE_TRACK = "alpha"
 
 
 class StatusError(Exception):
@@ -43,7 +45,7 @@ def sort_tracks(tracks):
     return sorted(tracks, key=key)
 
 
-def newest_live_code(tracks, track="internal"):
+def newest_live_code(tracks, track=RELEASE_TRACK):
     """Highest version code on `track` whose release is rolled out (completed or inProgress)."""
     best = None
     for t in tracks:
@@ -61,16 +63,28 @@ def expected_label(name, code):
     return f"{name} ({code})"
 
 
+def newest_code(tracks, track=RELEASE_TRACK):
+    """Highest version code on `track` whatever its status (a closed-testing upload stays a draft until rolled out)."""
+    best = None
+    for t in tracks:
+        if t.get("track") != track:
+            continue
+        for release in t.get("releases", []):
+            for code in _codes(release):
+                best = code if best is None else max(best, code)
+    return best
+
+
 def label_mismatch(tracks, name):
-    """The Play release name of the newest live internal release if it is not '<name> (<code>)', else None."""
-    live = newest_live_code(tracks)
-    if live is None:
+    """The Play release name of the newest release (draft or live) on the release track if it is not '<name> (<code>)', else None."""
+    newest = newest_code(tracks)
+    if newest is None:
         return None
     names = [
-        r.get("name") for t in tracks if t.get("track") == "internal"
-        for r in t.get("releases", []) if live in _codes(r) and r.get("name")
+        r.get("name") for t in tracks if t.get("track") == RELEASE_TRACK
+        for r in t.get("releases", []) if newest in _codes(r) and r.get("name")
     ]
-    return names[0] if names and names[0] != expected_label(name, live) else None
+    return names[0] if names and names[0] != expected_label(name, newest) else None
 
 
 def summarize(package, pubspec_version, tracks, latest_run=None, latest_success=None):
@@ -100,7 +114,7 @@ def summarize(package, pubspec_version, tracks, latest_run=None, latest_success=
     lines += ["", "### Checks", ""]
     live = newest_live_code(tracks)
     drafts = [
-        c for t in tracks if t.get("track") == "internal"
+        c for t in tracks if t.get("track") == RELEASE_TRACK
         for r in t.get("releases", []) if r.get("status") == "draft" for c in _codes(r)
     ]
     if latest_run:
@@ -118,27 +132,27 @@ def summarize(package, pubspec_version, tracks, latest_run=None, latest_success=
     if latest_success is not None:
         expected = int(latest_success.get("number"))
         if live is None:
-            lines.append(f"- :warning: Nothing is rolled out on internal; the last good release run was #{expected}.")
+            lines.append(f"- :warning: Nothing is rolled out on {RELEASE_TRACK}; the last good release run was #{expected}.")
         elif live == expected:
-            lines.append(f"- :white_check_mark: Newest live internal version code {live} matches the last successful release run.")
+            lines.append(f"- :white_check_mark: Newest live {RELEASE_TRACK} version code {live} matches the last successful release run.")
         elif live < expected:
             lines.append(
-                f"- :warning: Newest live internal version code is {live} but release run #{expected} succeeded: "
+                f"- :warning: Newest live {RELEASE_TRACK} version code is {live} but release run #{expected} succeeded: "
                 "it may still be a draft or not uploaded."
             )
         else:
-            lines.append(f"- Newest live internal version code {live} is newer than the last successful release run #{expected} (uploaded by hand or from another run).")
+            lines.append(f"- Newest live {RELEASE_TRACK} version code {live} is newer than the last successful release run #{expected} (uploaded by hand or from another run).")
     elif live is not None:
-        lines.append(f"- Newest live internal version code: {live}.")
+        lines.append(f"- Newest live {RELEASE_TRACK} version code: {live}.")
     mismatch = label_mismatch(tracks, name)
     if mismatch is not None:
         lines.append(
-            f"- :x: Play release name `{mismatch}` for the newest live internal release "
-            f"is not `{expected_label(name, live)}` (pubspec.yaml version name plus Play version code)."
+            f"- :x: Play release name `{mismatch}` for the newest {RELEASE_TRACK} release "
+            f"is not `{expected_label(name, newest_code(tracks))}` (pubspec.yaml version name plus Play version code)."
         )
     if drafts:
         lines.append(
-            f"- :warning: Draft on internal (not rolled out): version code(s) {', '.join(str(c) for c in sorted(set(drafts), reverse=True))}."
+            f"- :warning: Draft on {RELEASE_TRACK} (not rolled out yet): version code(s) {', '.join(str(c) for c in sorted(set(drafts), reverse=True))}."
         )
     return "\n".join(lines) + "\n"
 
