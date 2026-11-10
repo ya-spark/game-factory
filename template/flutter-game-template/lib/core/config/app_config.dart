@@ -288,6 +288,7 @@ class AppConfig {
     required this.packageName,
     required this.themeSeedColor,
     required this.themeDark,
+    this.designId,
     required this.platforms,
     required this.admobDebug,
     required this.admobRelease,
@@ -319,6 +320,10 @@ class AppConfig {
   final String packageName;
   final int themeSeedColor; // 0xAARRGGBB
   final bool themeDark;
+
+  /// `theme.design`: the design app id (`craft_lowteen`, `mind_1`, ...) whose tokens, fonts and art
+  /// are bundled under `assets/design/`. Null keeps the plain look (seed colour).
+  final String? designId;
   final PlatformsConfig platforms;
   final AdmobIds admobDebug;
   final AdmobIds admobRelease;
@@ -410,6 +415,7 @@ class AppConfig {
       packageName: app['package_name'] as String,
       themeSeedColor: _parseColor(theme['seed_color'] as String? ?? '#2EC4B6'),
       themeDark: theme['dark'] as bool? ?? true,
+      designId: theme['design'] as String?,
       platforms: PlatformsConfig(
         android: enabled(platforms['android']),
         ios: enabled(platforms['ios']),

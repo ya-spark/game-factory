@@ -19,6 +19,7 @@ speech:
 theme:
   seed_color: "#2EC4B6"
   dark: true
+  # design: craft_lowteen # design app id; set by new_game.py for the five apps (assets/design/)
 
 # Per-platform switches. Only Android is built in v1; iOS/web keep the same Dart code.
 platforms:
