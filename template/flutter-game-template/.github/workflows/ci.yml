@@ -45,6 +45,8 @@ jobs:
         run: dart format --output=none --set-exit-if-changed .
       - run: flutter analyze
       - run: flutter test
+      - name: Engine lock (the engine files match engine.lock; change them in game-factory)
+        run: python3 scripts/engine_lock.py check
       - name: Ad safety (no real ad IDs in debug, no test IDs in release)
         run: bash scripts/ad_safety_check.sh
       - name: Profile check (audience rules)
