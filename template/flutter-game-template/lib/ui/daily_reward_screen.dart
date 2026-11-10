@@ -21,8 +21,8 @@ class DailyRewardScreen extends StatelessWidget {
           '\u{1F381} Daily reward',
           style: TextStyle(fontWeight: FontWeight.w900),
         ),
-        backgroundColor: KidColors.ocean,
-        foregroundColor: Colors.white,
+        backgroundColor: KidColors.barOf(context, KidColors.ocean),
+        foregroundColor: KidColors.onBarOf(context),
       ),
       body: KidPage(
         child: ListenableBuilder(
@@ -76,7 +76,7 @@ class DailyRewardScreen extends StatelessWidget {
                       key: TestIds.dailyClaim,
                       style: FilledButton.styleFrom(
                         backgroundColor: KidColors.mint,
-                        foregroundColor: Colors.white,
+                        foregroundColor: KidColors.onBarOf(context),
                         textStyle: const TextStyle(
                           fontSize: 24,
                           fontWeight: FontWeight.w900,
@@ -128,7 +128,7 @@ class _DayCard extends StatelessWidget {
         : (today ? KidColors.sun : KidColors.ocean);
     return Container(
       decoration: BoxDecoration(
-        color: done ? const Color(0xFFD9F9E6) : Colors.white,
+        color: done ? const Color(0xFFD9F9E6) : KidColors.cardOf(context),
         borderRadius: BorderRadius.circular(18),
         border: Border.all(color: top, width: today ? 4 : 3),
         boxShadow: const [
@@ -152,7 +152,7 @@ class _DayCard extends StatelessWidget {
               style: TextStyle(
                 fontSize: 12,
                 fontWeight: FontWeight.w900,
-                color: today ? KidColors.ink : Colors.white,
+                color: today ? KidColors.inkOf(context) : Colors.white,
               ),
             ),
           ),
@@ -166,10 +166,10 @@ class _DayCard extends StatelessWidget {
                   Text(
                     label,
                     textAlign: TextAlign.center,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 13,
                       fontWeight: FontWeight.w800,
-                      color: KidColors.ink,
+                      color: KidColors.inkOf(context),
                     ),
                   ),
                   if (done)

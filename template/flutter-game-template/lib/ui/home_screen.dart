@@ -83,7 +83,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
         ),
       ),
       body: Container(
-        decoration: KidColors.background,
+        decoration: KidColors.backgroundOf(context),
         child: Stack(
           children: [
             SafeArea(
@@ -107,7 +107,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                             s.config.displayName,
                             style: Theme.of(context).textTheme.displayMedium
                                 ?.copyWith(
-                                  color: KidColors.ink,
+                                  color: KidColors.inkOf(context),
                                   fontWeight: FontWeight.w900,
                                   shadows: const [
                                     Shadow(

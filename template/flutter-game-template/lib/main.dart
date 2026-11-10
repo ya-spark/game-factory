@@ -5,6 +5,7 @@ import 'app.dart';
 import 'core/config/app_config.dart';
 import 'core/config/products.dart';
 import 'core/services.dart';
+import 'ui/theme/design_loader.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -16,7 +17,10 @@ Future<void> main() async {
     await rootBundle.loadString('products.yaml'),
   );
   final services = await Services.create(config: config, catalog: catalog);
-  runApp(GameApp(services: services));
+  final design = config.designId == null
+      ? null
+      : await DesignBundle.load(config.designId!);
+  runApp(GameApp(services: services, design: design));
   // Slow plugin work (consent form, billing, notifications) after the first frame.
   services.initPlugins();
 }

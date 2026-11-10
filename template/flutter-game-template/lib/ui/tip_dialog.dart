@@ -38,10 +38,13 @@ class _TipDialogState extends State<TipDialog> {
   Widget build(BuildContext context) {
     return AlertDialog(
       key: TestIds.tipHome,
-      backgroundColor: Colors.white,
-      title: const Text(
+      backgroundColor: KidColors.cardOf(context),
+      title: Text(
         '\u{1F4A1} Tip of the day',
-        style: TextStyle(color: KidColors.ink, fontWeight: FontWeight.w900),
+        style: TextStyle(
+          color: KidColors.inkOf(context),
+          fontWeight: FontWeight.w900,
+        ),
       ),
       content: Column(
         mainAxisSize: MainAxisSize.min,
@@ -49,8 +52,8 @@ class _TipDialogState extends State<TipDialog> {
         children: [
           Text(
             widget.text,
-            style: const TextStyle(
-              color: KidColors.ink,
+            style: TextStyle(
+              color: KidColors.inkOf(context),
               fontSize: 16,
               fontWeight: FontWeight.w700,
             ),
@@ -65,10 +68,13 @@ class _TipDialogState extends State<TipDialog> {
                   value: _dontShow,
                   onChanged: (v) => setState(() => _dontShow = v ?? false),
                 ),
-                const Flexible(
+                Flexible(
                   child: Text(
                     "Don't show tips again",
-                    style: TextStyle(color: KidColors.ink, fontSize: 13),
+                    style: TextStyle(
+                      color: KidColors.inkOf(context),
+                      fontSize: 13,
+                    ),
                   ),
                 ),
               ],

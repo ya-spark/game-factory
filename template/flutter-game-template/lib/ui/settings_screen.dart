@@ -5,6 +5,8 @@ import '../core/audio/audio_service.dart';
 import '../core/services.dart';
 import 'more_games_screen.dart';
 import 'test_ids.dart';
+import 'theme/design_scope.dart';
+import 'theme_gallery_screen.dart';
 import 'widgets.dart';
 
 class SettingsScreen extends StatelessWidget {
@@ -20,8 +22,8 @@ class SettingsScreen extends StatelessWidget {
           'Settings',
           style: TextStyle(fontWeight: FontWeight.w900),
         ),
-        backgroundColor: KidColors.grape,
-        foregroundColor: Colors.white,
+        backgroundColor: KidColors.barOf(context, KidColors.grape),
+        foregroundColor: KidColors.onBarOf(context),
       ),
       body: KidPage(
         child: ListenableBuilder(
@@ -53,16 +55,21 @@ class SettingsScreen extends StatelessWidget {
                     ),
                     ListTile(
                       title: const Text('Background sound'),
-                      trailing: DropdownButton<String>(
-                        key: TestIds.settingsAmbience,
-                        value: p.data.ambience,
-                        items: [
-                          for (final t in ambienceTracks)
-                            DropdownMenuItem(value: t.$1, child: Text(t.$2)),
-                        ],
-                        onChanged: (v) {
-                          if (v != null) p.setAmbience(v);
-                        },
+                      trailing: ConstrainedBox(
+                        // Bounded, so large text never makes the tile overflow.
+                        constraints: const BoxConstraints(maxWidth: 160),
+                        child: DropdownButton<String>(
+                          isExpanded: true,
+                          key: TestIds.settingsAmbience,
+                          value: p.data.ambience,
+                          items: [
+                            for (final t in ambienceTracks)
+                              DropdownMenuItem(value: t.$1, child: Text(t.$2)),
+                          ],
+                          onChanged: (v) {
+                            if (v != null) p.setAmbience(v);
+                          },
+                        ),
                       ),
                     ),
                     SwitchListTile(
@@ -196,6 +203,21 @@ class SettingsScreen extends StatelessWidget {
                   ),
                 ),
               ),
+              // Debug builds only: every shared widget in every mode, for review on a device.
+              if (kDebugMode && DesignScope.bundleOf(context) != null)
+                KidPanel(
+                  child: ListTile(
+                    key: TestIds.settingsThemeGallery,
+                    title: const Text('Theme gallery (debug)'),
+                    onTap: () => Navigator.of(context).push(
+                      MaterialPageRoute<void>(
+                        builder: (_) => ThemeGalleryScreen(
+                          design: DesignScope.bundleOf(context)!,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
             ],
           ),
         ),

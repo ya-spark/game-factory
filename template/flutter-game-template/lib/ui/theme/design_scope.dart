@@ -41,6 +41,10 @@ class DesignScope extends StatelessWidget {
   final DesignPrefs prefs;
   final Widget child;
 
+  /// The design files of the enclosing [DesignScope], or null when the app has the plain look.
+  static DesignBundle? bundleOf(BuildContext context) =>
+      context.dependOnInheritedWidgetOfExactType<_BundleScope>()?.design;
+
   @override
   Widget build(BuildContext context) {
     final theme = buildDesignTheme(
@@ -55,11 +59,14 @@ class DesignScope extends StatelessWidget {
     final scaler = prefs.largeText
         ? _Multiplied(mq.textScaler, DesignPrefs.largeTextFactor)
         : mq.textScaler;
-    return Theme(
-      data: theme,
-      child: MediaQuery(
-        data: mq.copyWith(textScaler: scaler),
-        child: child,
+    return _BundleScope(
+      design: design,
+      child: Theme(
+        data: theme,
+        child: MediaQuery(
+          data: mq.copyWith(textScaler: scaler),
+          child: child,
+        ),
       ),
     );
   }
@@ -83,4 +90,12 @@ class _Multiplied extends TextScaler {
 
   @override
   int get hashCode => Object.hash(base, factor);
+}
+
+class _BundleScope extends InheritedWidget {
+  const _BundleScope({required this.design, required super.child});
+  final DesignBundle design;
+
+  @override
+  bool updateShouldNotify(_BundleScope old) => design != old.design;
 }

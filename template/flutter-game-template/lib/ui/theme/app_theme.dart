@@ -254,6 +254,8 @@ ThemeData buildDesignTheme({
     pageTransitionsTheme: noTransition,
     textTheme: TextTheme(
       displayLarge: ts('display'),
+      displayMedium: ts('display'),
+      displaySmall: ts('title'),
       headlineMedium: ts('title'),
       titleLarge: ts('title'),
       titleMedium: ts('heading'),

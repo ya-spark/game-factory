@@ -23,21 +23,21 @@ class MoreGamesScreen extends StatelessWidget {
           'More games',
           style: TextStyle(fontWeight: FontWeight.w900),
         ),
-        backgroundColor: KidColors.grape,
-        foregroundColor: Colors.white,
+        backgroundColor: KidColors.barOf(context, KidColors.grape),
+        foregroundColor: KidColors.onBarOf(context),
       ),
       body: KidPage(
         child: ListView(
           padding: const EdgeInsets.fromLTRB(16, 16, 16, 32),
           children: [
-            const Padding(
+            Padding(
               padding: EdgeInsets.only(bottom: 8),
               child: Text(
                 'More from Active Mind Craft',
                 style: TextStyle(
                   fontSize: 20,
                   fontWeight: FontWeight.w900,
-                  color: KidColors.ink,
+                  color: KidColors.inkOf(context),
                 ),
               ),
             ),

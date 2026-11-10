@@ -115,7 +115,11 @@ class DsButton extends StatelessWidget {
                 horizontal: t.sp('lg'),
                 vertical: t.sp('sm'),
               ),
-              child: Center(widthFactor: expand ? null : 1, child: content),
+              child: Center(
+                widthFactor: expand ? null : 1,
+                heightFactor: 1,
+                child: content,
+              ),
             ),
           ),
         ),

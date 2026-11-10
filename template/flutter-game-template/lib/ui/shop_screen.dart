@@ -18,8 +18,8 @@ class ShopScreen extends StatelessWidget {
           'Shop',
           style: TextStyle(fontWeight: FontWeight.w900),
         ),
-        backgroundColor: KidColors.ocean,
-        foregroundColor: Colors.white,
+        backgroundColor: KidColors.barOf(context, KidColors.ocean),
+        foregroundColor: KidColors.onBarOf(context),
         actions: [
           TextButton(
             key: TestIds.shopRestore,

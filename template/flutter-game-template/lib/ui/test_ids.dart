@@ -155,6 +155,7 @@ abstract final class TestIds {
 
   // Theme gallery (debug only)
   static const themeGallery = Key('gallery.theme');
+  static const settingsThemeGallery = Key('settings.themeGallery');
   static Key galleryMode(String mode) => Key('gallery.mode.$mode');
   static const galleryLargeText = Key('gallery.largeText');
   static const galleryReduceMotion = Key('gallery.reduceMotion');
