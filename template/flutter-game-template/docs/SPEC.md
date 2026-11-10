@@ -117,4 +117,5 @@ Testable statements the test agent turns into tests.
   parent gate before the store page opens (Cancel opens nothing); `coming_soon` has no button;
   `hidden` entries and the game itself are absent; with nothing listed neither entry point
   shows; the screen has no coin or reward text (`test/ui/more_games_test.dart`).
+- Engine lock (`scripts/engine_lock.py`, `engine.lock`): `check` passes on a fresh copy and fails after any edit under `lib/engine`, `test/engine`, `test/fixtures` or `tool/content_cli.dart`; the hash does not depend on the game's package name (factory tests `test_new_game.py`, `test_sync_engine.py`, which also cover the generator profiles and the `CI_ENABLED` guard).
 - Home at 360 x 640 dp: the icon row (More games, Shop, Settings) is 48 dp targets 8 dp apart at the top right and overlaps no Home element.

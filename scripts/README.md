@@ -35,6 +35,32 @@ python3 scripts/new_game.py --id my_game --name "My Game" \
   `registry/apps.yaml` (turning `apps: []` into list form) and refuses duplicate ids or
   packages.
 
+- Flags: `--profile puzzle|craft|mind` (default `puzzle` = the plain template). `craft` and `mind`
+  delete the Block Puzzle game (`lib/game/{flame,rules,layout.dart}`, game screen and game over
+  panel, their tests and the bot), keep `lib/game/tips.dart` and `share_card.dart`, and put a hub
+  placeholder (`home.hub`) on Home. `--audience child|teen|adult` (craft: child or teen, mind:
+  adult; default child for craft, adult otherwise) sets `audience:`, `ads.child_directed`,
+  `max_ad_content_rating` (G child, PG teen and adult) and `rewarded_enabled: false` for child and
+  teen; `craft` and `mind` set `content.enabled: true`, mind also `rewards.stars.enabled: false`
+  and `minigames.coin_price: 300`. `--ci on|off` (default `off`): off adds
+  `if: ${{ vars.CI_ENABLED == 'true' }}` to the `check` job and the same condition to the manual
+  emulator job in the generated `ci.yml` (the template file is untouched). `--repo owner/name`
+  overrides the registry repo of `--register`.
+- Writes `engine.lock` (see `template/flutter-game-template/scripts/engine_lock.py`).
+
+## sync_engine.py
+
+Keeps every game's copy of the engine identical (`docs/ENGINE.md` in the template).
+
+```bash
+python3 scripts/sync_engine.py ../game-craft-lowteen ../game-mind-1   # copy the engine
+python3 scripts/sync_engine.py --check ../game-craft-lowteen          # exit 1 if behind or edited
+```
+
+Copies `lib/engine`, `test/engine`, `test/fixtures` and `tool/content_cli.dart`, rewrites the
+package name, removes engine files the template dropped, copies `scripts/engine_lock.py` and writes
+`engine.lock`. Tests: `scripts/tests/test_sync_engine.py`.
+
 Tests: `python3 -m unittest discover -s scripts/tests`. CI (`template-ci` job `generator`)
 also generates a sample game and runs analyze, format, tests, safety scripts and a debug APK
 build in it.

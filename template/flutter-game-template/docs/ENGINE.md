@@ -97,3 +97,30 @@ placement, no interstitial).
 `test/engine/minigames_test.dart` (scoring, star rules, weekly cap per child, access, minimum pool,
 config, AI tutor) and `test/ui/quick_quiz_test.dart` (both modes, 150 percent text, screen-reader
 labels).
+
+## Generator profiles and the engine in each game (issue 1C3)
+`scripts/new_game.py --profile puzzle|craft|mind` (factory repo). `puzzle` is the plain template
+(the Block Puzzle game). `craft` and `mind` generate without the puzzle game: Home shows a hub
+placeholder (`home.hub`), `content.enabled` is true, and `audience:` and the ad switches follow
+`--audience` (craft: `child` or `teen`; mind: `adult`). Mind also sets `rewards.stars.enabled: false`
+and `minigames.coin_price: 300`. A new repo's `ci.yml` only runs when the repository variable
+`CI_ENABLED` is `true` (`--ci on` leaves it unguarded); the owner turns it on after the first
+working build.
+
+### The engine is vendored
+The engine is `lib/engine`, `test/engine`, `test/fixtures` and `tool/content_cli.dart`. Every
+game holds its own copy with `package:<game>/` imports. **Never edit it in a game**: change it in
+the factory template, then sync. `engine.lock` holds a SHA-256 of those files (names and bytes,
+package name normalised); `python3 scripts/engine_lock.py check` (a CI step) fails when a game's
+engine differs from its lock.
+
+### Running a sync (one `[change]` issue per sync)
+1. In `game-factory`, change the engine in `template/flutter-game-template`; format, analyze, test.
+2. Push the factory `main`; update its pin in `game-studio`.
+3. Open one `[change]` issue in `game-studio` listing the games, e.g. "Sync the engine into
+   craft_lowteen, craft_preteen".
+4. The run does, per game: `python3 game-factory/scripts/sync_engine.py apps/game-<id>`; then in
+   that repo `dart format --set-exit-if-changed .`, `flutter analyze`, `flutter test`; pushes the
+   game's `main` and moves the pin. A game that fails its checks is left alone and reported.
+5. `python3 game-factory/scripts/sync_engine.py --check apps/game-<id> ...` lists games behind the
+   template or edited locally (exit 1). Run it before and after.

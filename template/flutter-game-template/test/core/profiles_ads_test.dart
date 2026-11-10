@@ -3,12 +3,38 @@ import 'dart:io';
 import 'package:flutter_game_template/core/config/app_config.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+// The game's own config with the profile switches put back to the adult baseline, so these tests
+// hold for every generated game (craft and mind set other values).
+String _base() {
+  var s = File('app.config.yaml').readAsStringSync();
+  s = s.replaceFirst(
+    RegExp('^audience: \\w+', multiLine: true),
+    'audience: adult',
+  );
+  s = s.replaceFirst(
+    RegExp('  rewarded_enabled: \\S+'),
+    '  rewarded_enabled: true',
+  );
+  s = s.replaceFirst(
+    RegExp('  child_directed: \\S+'),
+    '  child_directed: false',
+  );
+  s = s.replaceFirst(
+    RegExp('  max_ad_content_rating: \\S+'),
+    '  max_ad_content_rating: PG',
+  );
+  return s.replaceFirst(
+    RegExp('play_games:\\n  enabled: \\w+'),
+    'play_games:\n  enabled: false',
+  );
+}
+
 String _yaml({
   String audience = 'adult',
   String ads = '',
   String playGames = 'true',
 }) {
-  var s = File('app.config.yaml').readAsStringSync();
+  var s = _base();
   s = s.replaceFirst('audience: adult', 'audience: $audience');
   if (ads.isNotEmpty) {
     final key = ads.trim().split(':').first;
@@ -22,10 +48,8 @@ String _yaml({
 }
 
 void main() {
-  test('the template is an adult profile with no interstitials', () {
-    final c = AppConfig.fromYamlString(
-      File('app.config.yaml').readAsStringSync(),
-    );
+  test('the adult baseline has no interstitials and a rewarded Continue', () {
+    final c = AppConfig.fromYamlString(_base());
     expect(c.audience, Audience.adult);
     expect(c.adPacing.interstitialsEnabled, isFalse);
     expect(c.adPacing.rewardedEnabled, isTrue);

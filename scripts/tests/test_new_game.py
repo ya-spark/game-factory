@@ -105,7 +105,7 @@ class GenerateTest(unittest.TestCase):
         self.gen(out)
         for f in out.rglob("*"):
             self.assertNotIn("flutter_game_template", f.name)
-            if f.is_file():
+            if f.is_file() and f.name != "engine_lock.py":
                 try:
                     self.assertNotIn("flutter_game_template", f.read_text(encoding="utf-8"), f)
                 except UnicodeDecodeError:
@@ -156,6 +156,131 @@ class GenerateTest(unittest.TestCase):
         before = self.registry.read_text()
         self.gen(self.tmp / "g")
         self.assertEqual(self.registry.read_text(), before)
+
+
+class ProfileTest(unittest.TestCase):
+    def setUp(self):
+        self._tmp = tempfile.TemporaryDirectory()
+        self.tmp = Path(self._tmp.name)
+        self.registry = self.tmp / "apps.yaml"
+        self.registry.write_text("apps: []\n", encoding="utf-8")
+
+    def tearDown(self):
+        self._tmp.cleanup()
+
+    def gen(self, name="g", **kw):
+        out = self.tmp / name
+        a = dict(ARGS)
+        a.update(kw.pop("over", {}))
+        new_game.generate(a["game_id"], a["name"], a["package"], a["color"], out,
+                          registry=self.registry, **kw)
+        return out
+
+    def test_defaults_are_puzzle_adult_ci_off(self):
+        out = self.gen()
+        self.assertTrue((out / "lib/game/rules").is_dir())
+        self.assertTrue((out / "lib/ui/game_screen.dart").is_file())
+        self.assertIn("audience: adult", (out / "app.config.yaml").read_text())
+        self.assertIn(new_game.CI_GUARD, (out / ".github/workflows/ci.yml").read_text())
+
+    def test_craft_child_strips_puzzle_and_sets_config(self):
+        out = self.gen(profile="craft", audience="child")
+        for rel in new_game.PUZZLE_ONLY_PATHS:
+            self.assertFalse((out / rel).exists(), rel)
+        self.assertTrue((out / "lib/game/tips.dart").is_file())
+        self.assertTrue((out / "lib/ui/share_card.dart").is_file())
+        home = (out / "lib/ui/home_screen.dart").read_text()
+        self.assertNotIn("game_screen", home)
+        self.assertIn("TestIds.homeHub", home)
+        self.assertIn("homeHub", (out / "lib/ui/test_ids.dart").read_text())
+        cfg = (out / "app.config.yaml").read_text()
+        for line in ("audience: child", "  child_directed: true", "  max_ad_content_rating: G",
+                     "  rewarded_enabled: false", "  enabled: true # learning games"):
+            self.assertIn(line, cfg)
+        self.assertIn("  coin_price: 200", cfg)
+        self.assertIn("  stars:\n    enabled: true", cfg)
+        new_game.check_features(out, "craft")
+
+    def test_craft_teen(self):
+        cfg = (self.gen(profile="craft", audience="teen") / "app.config.yaml").read_text()
+        self.assertIn("audience: teen", cfg)
+        self.assertIn("  child_directed: true", cfg)
+        self.assertIn("  max_ad_content_rating: PG", cfg)
+        self.assertIn("  rewarded_enabled: false", cfg)
+
+    def test_mind_adult(self):
+        cfg = (self.gen(profile="mind", audience="adult") / "app.config.yaml").read_text()
+        self.assertIn("audience: adult", cfg)
+        self.assertIn("  child_directed: false", cfg)
+        self.assertIn("  max_ad_content_rating: PG", cfg)
+        self.assertIn("  rewarded_enabled: true", cfg)
+        self.assertIn("  coin_price: 300", cfg)
+        self.assertIn("  stars:\n    enabled: false", cfg)
+        self.assertIn("  enabled: true # learning games", cfg)
+
+    def test_profile_defaults_for_audience(self):
+        self.assertIn("audience: child",
+                      (self.gen("a", profile="craft") / "app.config.yaml").read_text())
+        self.assertIn("audience: adult",
+                      (self.gen("b", profile="mind") / "app.config.yaml").read_text())
+
+    def test_bad_combinations_refused(self):
+        for kw in (dict(profile="mind", audience="child"), dict(profile="craft", audience="adult"),
+                   dict(profile="x"), dict(audience="kid"), dict(ci="maybe"),
+                   dict(repo="no-slash")):
+            with self.assertRaises(new_game.GenError, msg=str(kw)):
+                self.gen(**kw)
+            self.assertFalse((self.tmp / "g").exists())
+
+    def test_ci_guard_default_and_on(self):
+        guarded = (self.gen("a") / ".github/workflows/ci.yml").read_text()
+        self.assertIn("  check:\n    name: analyze, format, tests, safety checks\n    if: "
+                      "${{ vars.CI_ENABLED == 'true' }}\n", guarded)
+        self.assertIn("if: ${{ vars.CI_ENABLED == 'true' && github.event_name == 'workflow_dispatch' }}",
+                      guarded)
+        plain = (self.gen("b", ci="on") / ".github/workflows/ci.yml").read_text()
+        self.assertNotIn("CI_ENABLED", plain)
+        self.assertEqual(plain, (new_game.TEMPLATE_DIR / ".github/workflows/ci.yml").read_text())
+
+    def test_ci_yaml_is_valid(self):
+        try:
+            import yaml  # type: ignore
+        except ImportError:
+            self.skipTest("PyYAML not installed")
+        for ci in ("on", "off"):
+            wf = yaml.safe_load((self.gen(ci, ci=ci) / ".github/workflows/ci.yml").read_text())
+            self.assertIn("check", wf["jobs"])
+            self.assertEqual("if" in wf["jobs"]["check"], ci == "off")
+
+    def test_template_ci_is_unchanged_by_generation(self):
+        before = (new_game.TEMPLATE_DIR / ".github/workflows/ci.yml").read_text()
+        self.gen()
+        self.assertEqual(before, (new_game.TEMPLATE_DIR / ".github/workflows/ci.yml").read_text())
+
+    def test_repo_override_in_registry(self):
+        self.gen("a", register=True, repo="someone/custom-name") if False else None
+        out = self.tmp / "a"
+        new_game.generate("my_game", "My Game", "com.yaspark.mygame", "#112233", out,
+                          do_register=True, registry=self.registry, repo="someone/custom-name")
+        self.assertIn("    repo: someone/custom-name\n", self.registry.read_text())
+
+    def test_engine_lock_is_written_and_checks(self):
+        out = self.gen(profile="craft")
+        self.assertTrue((out / "engine.lock").is_file())
+        spec = new_game.importlib.util.spec_from_file_location("el", out / "scripts/engine_lock.py")
+        el = new_game.importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(el)
+        self.assertEqual(el.check(out), 0)
+        (out / "lib/engine/engine.dart").write_text("// edited\n")
+        with contextlib.redirect_stderr(io.StringIO()):
+            self.assertEqual(el.check(out), 1)
+
+    def test_engine_hash_is_package_independent(self):
+        a = self.gen("a")
+        b = self.gen("b", over=dict(game_id="other_game", package="com.yaspark.other"))
+        self.assertEqual((a / "engine.lock").read_text(), (b / "engine.lock").read_text())
+        self.assertEqual((a / "engine.lock").read_text(),
+                         (new_game.TEMPLATE_DIR / "engine.lock").read_text())
 
 
 if __name__ == "__main__":
