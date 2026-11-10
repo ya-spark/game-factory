@@ -109,7 +109,7 @@ void main() {
     }
 
     test('reduce motion caps transitions at the fast duration', () {
-      final app = loadApp('craft_lowteen');
+      final app = loadApp(apps.first);
       final t = buildDesignTheme(
         app: app,
         shared: shared,

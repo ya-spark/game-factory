@@ -258,18 +258,21 @@ void main() {
       }
     });
 
-    testWidgets('younger level raises the touch size', (tester) async {
-      final d = loadDesign('craft_lowteen');
-      await pumpIn(
-        tester,
-        d,
-        kitSample(),
-        level: InterfaceLevel.younger,
-        mode: DesignMode.game,
-      );
-      final h = tester.getSize(find.byKey(TestIds.dsButton('p'))).height;
-      expect(h, greaterThanOrEqualTo(56));
-    });
+    // Scout has the younger level; a generated game carries it only for Scout.
+    if (appIds.contains('craft_lowteen')) {
+      testWidgets('younger level raises the touch size', (tester) async {
+        final d = loadDesign('craft_lowteen');
+        await pumpIn(
+          tester,
+          d,
+          kitSample(),
+          level: InterfaceLevel.younger,
+          mode: DesignMode.game,
+        );
+        final h = tester.getSize(find.byKey(TestIds.dsButton('p'))).height;
+        expect(h, greaterThanOrEqualTo(56));
+      });
+    }
 
     testWidgets('screen-reader labels on every shared control', (tester) async {
       final handle = tester.ensureSemantics();
