@@ -39,7 +39,10 @@ python3 scripts/new_game.py --id my_game --name "My Game" \
   `tokens.json`, icons, its font) into `assets/design/` and `assets/fonts/`, writes the `pubspec.yaml`
   asset and font entries, the `assets/LICENSES.md` rows and `theme.design`. Default: the game id when
   it is one of `craft_lowteen`, `craft_preteen`, `craft_highteen`, `mind_1`, `mind_9` (craft and mind
-  profiles); the plain puzzle profile has none. Generated games never contain `design/`.
+  profiles); when the id is not one of those (a sample or a new app) the profile and audience pick the
+  default look (craft child `craft_lowteen`, craft teen `craft_highteen`, mind `mind_1`). The plain puzzle
+  profile has none and drops the three design tests (`design_theme_test`, `kit_test`, `themed_screens_test`).
+  Generated games never contain `design/`.
 - Flags: `--profile puzzle|craft|mind` (default `puzzle` = the plain template). `craft` and `mind`
   delete the Block Puzzle game (`lib/game/{flame,rules,layout.dart}`, game screen and game over
   panel, their tests and the bot), keep `lib/game/tips.dart` and `share_card.dart`, and put a hub

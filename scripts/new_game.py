@@ -445,6 +445,31 @@ STUDIO_ORIGINAL = "Written by the studio (design phase, game-factory design/)"
 FONT_WEIGHTS = {"Regular": 400, "Bold": 700, "ExtraBold": 800}
 
 
+# A craft or mind game always gets a design; when its id is not one of the five apps (a sample game,
+# a new app) the profile and audience pick the default look.
+DEFAULT_DESIGN = {
+    ("craft", "child"): "craft_lowteen",
+    ("craft", "teen"): "craft_highteen",
+    ("mind", "adult"): "mind_1",
+}
+# Tests that read the design files; a game without a design (plain puzzle) does not carry them.
+DESIGN_TESTS = (
+    "test/ui/theme/design_theme_test.dart",
+    "test/ui/kit/kit_test.dart",
+    "test/ui/themed_screens_test.dart",
+)
+
+
+def drop_design_tests(out: Path) -> None:
+    for rel in DESIGN_TESTS:
+        path = out / rel
+        if path.is_file():
+            path.unlink()
+    for d in (out / "test/ui/theme", out / "test/ui/kit"):
+        if d.is_dir() and not any(d.iterdir()):
+            d.rmdir()
+
+
 def design_ids(template: Path) -> list[str]:
     d = template / "design"
     if not d.is_dir():
@@ -560,10 +585,15 @@ def generate(
     apply_profile_config(out, profile, audience)
     # Design: explicit --design, else the game id when it names one of the five apps (craft and
     # mind profiles only). The plain puzzle profile keeps today's look unless --design is given.
-    if design is None and profile != "puzzle" and game_id in design_ids(template):
-        design = game_id
+    if design is None and profile != "puzzle":
+        if game_id in design_ids(template):
+            design = game_id
+        else:
+            design = DEFAULT_DESIGN[(profile, audience if profile == "craft" else "adult")]
     if design is not None:
         apply_design(out, template, design)
+    else:
+        drop_design_tests(out)
     apply_ci_guard(out, ci)
     check_features(out, profile)
     write_engine_lock(out)

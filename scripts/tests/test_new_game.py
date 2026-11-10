@@ -260,6 +260,24 @@ class ProfileTest(unittest.TestCase):
         out2 = self.gen("g2", design="mind_9")
         self.assertTrue((out2 / "assets/design/mind_9/tokens.json").is_file())
 
+    def test_sample_ids_get_the_profile_default_design(self):
+        """CI samples (sample_craft_child ...) are not app ids: the profile and audience pick the look."""
+        for profile, audience, want in (("craft", "child", "craft_lowteen"), ("craft", "teen", "craft_highteen"),
+                                        ("mind", "adult", "mind_1")):
+            out = self.gen(f"s_{want}", profile=profile, audience=audience)
+            self.assertTrue((out / f"assets/design/{want}/tokens.json").is_file(), want)
+            for rel in ("test/ui/theme/design_theme_test.dart", "test/ui/kit/kit_test.dart",
+                        "test/ui/themed_screens_test.dart"):
+                self.assertTrue((out / rel).is_file(), f"{want}: {rel}")
+
+    def test_plain_puzzle_drops_the_design_tests(self):
+        out = self.gen()
+        for rel in ("test/ui/theme/design_theme_test.dart", "test/ui/kit/kit_test.dart",
+                    "test/ui/themed_screens_test.dart"):
+            self.assertFalse((out / rel).exists(), rel)
+        out2 = self.gen("g3", design="mind_9")
+        self.assertTrue((out2 / "test/ui/kit/kit_test.dart").is_file())
+
     def test_unknown_design_refused(self):
         with self.assertRaises(new_game.GenError):
             self.gen(design="nope")
