@@ -90,15 +90,23 @@ void main() {
       }
     }
 
-    test('a missing mode falls back to the only mode (Mind)', () {
-      final app = loadApp('mind_1');
-      final t = buildDesignTheme(
-        app: app,
-        shared: shared,
-        mode: DesignMode.study,
-      );
-      expect(t.extension<ThemeTokens>()!.mode, DesignMode.defaultMode);
-    });
+    // A Mind app has one (default) mode; a generated Craft game does not carry one, so the test
+    // runs only where a single-mode design is present (the template and Mind games).
+    final singleMode = [
+      for (final id in apps)
+        if (loadApp(id).modes.length == 1) id,
+    ];
+    if (singleMode.isNotEmpty) {
+      test('a missing mode falls back to the only mode (Mind)', () {
+        final app = loadApp(singleMode.first);
+        final t = buildDesignTheme(
+          app: app,
+          shared: shared,
+          mode: DesignMode.study,
+        );
+        expect(t.extension<ThemeTokens>()!.mode, DesignMode.defaultMode);
+      });
+    }
 
     test('reduce motion caps transitions at the fast duration', () {
       final app = loadApp('craft_lowteen');

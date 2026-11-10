@@ -30,6 +30,15 @@ void main() {
         ),
       );
       await tester.pump();
+      // A content-enabled (Craft) game starts at the player setup: make a player, pick a year.
+      if (find.byKey(TestIds.pickerNickname).evaluate().isNotEmpty) {
+        await tester.enterText(find.byKey(TestIds.pickerNickname), 'Mia');
+        await tester.tap(find.byKey(TestIds.pickerYear(3)));
+        await tester.pump();
+        await tester.tap(find.byKey(TestIds.pickerSave));
+        await tester.pump();
+        await tester.pump();
+      }
       expect(find.byKey(TestIds.homeShop), findsOneWidget);
       expect(find.byKey(TestIds.homeChallenges), findsOneWidget);
       expect(tester.takeException(), isNull);
