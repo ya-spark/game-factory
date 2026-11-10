@@ -5,6 +5,7 @@
 /// It is copied into each game by the sync script (issue 1C).
 library;
 
+export 'content/catalogue.dart';
 export 'content/content_source.dart';
 export 'content/csv.dart';
 export 'content/csv_import.dart';

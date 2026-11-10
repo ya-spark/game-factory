@@ -5,6 +5,12 @@ enum ProductType { consumable, nonConsumable }
 /// Extra learning packs are non-consumable products `pack_<id>`, listed in the content index.
 const String packProductPrefix = 'pack_';
 
+/// Year bundles are non-consumables `bundle_<year>_<id>` that own every pack they list.
+const String bundleProductPrefix = 'bundle_';
+
+bool isExtraProductId(String id) =>
+    id.startsWith(packProductPrefix) || id.startsWith(bundleProductPrefix);
+
 /// One entry of `products.yaml`.
 class ProductDef {
   const ProductDef({

@@ -189,7 +189,9 @@ class _ParentAreaScreenState extends State<ParentAreaScreen> {
       ),
       TextButton(
         key: TestIds.parentRestore,
-        onPressed: s.purchases.restore,
+        onPressed: () => learning != null
+            ? learning.restorePurchases()
+            : s.purchases.restore(),
         child: const Text('Restore purchases'),
       ),
       if (learning != null) ...[
@@ -200,6 +202,29 @@ class _ParentAreaScreenState extends State<ParentAreaScreen> {
           title: const Text('Show all year levels'),
           value: _allYears,
           onChanged: (v) => setState(() => _allYears = v),
+        ),
+        FutureBuilder<List<BundleEntry>>(
+          future: learning.bundlesFor(child?.year, allYears: _allYears),
+          builder: (context, snap) => Column(
+            children: [
+              for (final b in snap.data ?? const <BundleEntry>[])
+                ListTile(
+                  title: Text(b.title),
+                  subtitle: Text(
+                    'All ${b.packs.length} packs of year ${b.year}',
+                  ),
+                  trailing: learning.ownsBundle(b)
+                      ? const Text('Owned')
+                      : FilledButton(
+                          key: TestIds.parentBundleBuy(b.productId),
+                          onPressed: () => s.purchases.buy(b.productId),
+                          child: Text(
+                            s.purchases.priceOf(b.productId) ?? 'Buy',
+                          ),
+                        ),
+                ),
+            ],
+          ),
         ),
         FutureBuilder<List<CatalogPack>>(
           future: learning.packsFor(child?.year, allYears: _allYears),

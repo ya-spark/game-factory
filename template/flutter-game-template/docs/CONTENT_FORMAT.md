@@ -25,6 +25,8 @@ Run from the project root (`dart run tool/content_cli.dart ...`). Common options
 | `validate <file or dir>...` | Checks packs. Exit code 1 on any error; warnings do not fail. |
 | `pool <file or dir>...` | Counts items per type, subject, year and topic (and per subject, year and type together). Use it to check a minigame's minimum playable pool. |
 | `build-index --app <id> --packs <dir> --out <dir> [--version N]` | Writes `<out>/index.json` with the sha256 and size of every pack file (served as `packs/<file>`) and every asset the packs use. Validates first. |
+| `products --packs <dir> [--catalogue <file>] [--json-out f] [--csv-out f]` | Product list (JSON, for the sync workflow) and the Play Console import CSV, from the manifests and `content/catalogue.json` (price tiers, bundles). Stops on any problem. See `docs/PUBLISHING.md`. |
+| `publish --app <id> --packs <dir> --out <dir> [--version N] [--sign auto\|yes\|no]` | Validates, checks products, writes `index.json` (with `status` and bundles), signs when a key is set, and prints the files to upload (dry run). |
 | `sign --index <index.json> [--out <file>]` | Signs the index (Ed25519). The private key is read from the file named in `CONTENT_SIGNING_KEY_FILE`. Output is a base64 signature, by default `<index>.sig`. |
 | `public-key` | Prints the public key (base64) for the key file, to put in the app. |
 
@@ -60,7 +62,8 @@ subject and year is rejected. This is a first draft for the owner to review.
 }
 ```
 
-- `product_id`: `null` for built-in content, a Play product id for an extra pack.
+- `product_id`: `null` for built-in content, a Play product id for an extra pack (`pack_<subject>_<year>_<slug>`, see `docs/PUBLISHING.md`).
+- `tier`: price tier id from `content/catalogue.json` (extra packs; never a price). `status`: `draft` (default for extra packs) or `live`.
 - `preview` is required for an extra pack and optional for built-in content. `item_ids` may be
   empty and has no fixed size. Preview items are also in `items`: `items` is the full part.
   `outline` lists topic names and item counts of the full part; counts must match.
@@ -84,7 +87,7 @@ Every image and audio file must exist and be listed in `assets/LICENSES.md`.
 ## CSV layout
 
 Rows starting with `#meta` set pack fields: `id`, `version`, `subject`, `year`, `topic`, `title`,
-`product_id`, `preview_description`. Then one header row starting with `type`, then one row per item.
+`product_id`, `tier`, `status`, `preview_description`. Then one header row starting with `type`, then one row per item.
 Columns can be in any order and unused columns can be left out. Rows starting with another `#` are
 comments.
 

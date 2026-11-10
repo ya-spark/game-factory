@@ -82,7 +82,7 @@ class PlayPurchaseService implements PurchaseService {
   Future<void> registerExtraProducts(Set<String> productIds) async {
     final wanted = {
       for (final id in productIds)
-        if (id.startsWith(packProductPrefix) && !_details.containsKey(id)) id,
+        if (isExtraProductId(id) && !_details.containsKey(id)) id,
     };
     if (!_available || wanted.isEmpty) return;
     try {
@@ -102,7 +102,7 @@ class PlayPurchaseService implements PurchaseService {
   Future<void> buy(String productId) async {
     final details = _details[productId];
     final def = catalog.byId(productId);
-    final isPack = productId.startsWith(packProductPrefix);
+    final isPack = isExtraProductId(productId);
     if (details == null || (def == null && !isPack)) {
       _updates.add(PurchaseUpdate(productId, PurchaseStatus.failed));
       return;

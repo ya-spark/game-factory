@@ -28,6 +28,7 @@ abstract final class TestIds {
   static const parentBuyFull = Key('parent.buy.full');
   static const parentRestore = Key('parent.restore');
   static Key parentPackPreview(String id) => Key('parent.pack.preview.$id');
+  static Key parentBundleBuy(String id) => Key('parent.bundle.buy.$id');
   static Key parentPackBuy(String id) => Key('parent.pack.buy.$id');
   static Key parentPackDownload(String id) => Key('parent.pack.download.$id');
   static const parentMobileConfirm = Key('parent.mobile.confirm');

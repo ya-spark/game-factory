@@ -249,7 +249,7 @@ class ProfileStore extends ChangeNotifier {
       if (!_data.adsRemoved) await _commit(_data.copyWith(adsRemoved: true));
       return;
     }
-    if (u.productId.startsWith(packProductPrefix)) {
+    if (isExtraProductId(u.productId)) {
       // Extra pack: bought once, shared by every child on this device.
       if (!_data.ownedPacks.contains(u.productId)) {
         await _commit(

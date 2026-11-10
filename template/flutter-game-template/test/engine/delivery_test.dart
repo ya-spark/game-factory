@@ -29,6 +29,7 @@ Map<String, dynamic> pack(
   String subject = 'maths',
   List<String> preview = const [],
   String? image,
+  String status = 'live',
 }) => {
   'id': id,
   'version': version,
@@ -38,6 +39,7 @@ Map<String, dynamic> pack(
   'topic': 'times_tables',
   'title': 'Pack $id',
   'product_id': ?productId,
+  if (productId != null) 'status': status,
   if (preview.isNotEmpty) 'preview': {'item_ids': preview},
   'items': [
     for (var i = 1; i <= n; i++)

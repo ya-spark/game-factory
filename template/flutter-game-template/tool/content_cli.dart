@@ -2,7 +2,7 @@
 ///
 ///   dart run tool/content_cli.dart COMMAND [options]
 ///
-/// Commands: from-csv, validate, pool, build-index, sign, public-key.
+/// Commands: from-csv, validate, pool, build-index, products, publish, sign, public-key.
 /// See docs/CONTENT_FORMAT.md.
 library;
 
@@ -20,11 +20,17 @@ Usage: dart run tool/content_cli.dart <command> [options]
   pool <file|dir>...                   count items per type, subject, year and topic
   build-index --app <id> --packs <dir> --out <dir> [--version N]
                                        write <dir>/index.json with sha256 and size of every file
+  products --packs <dir> [--catalogue <file>] [--json-out <file>] [--csv-out <file>]
+                                       product list (JSON, for the sync workflow) and the Play
+                                       Console import CSV, from the pack manifests and price tiers
+  publish --app <id> --packs <dir> --out <dir> [--version N] [--catalogue <file>] [--sign auto|yes|no]
+                                       validate, build the index (status, bundles), sign when a key
+                                       is set, list the files to upload (dry run, uploads nothing)
   sign --index <index.json> [--out <file>]
                                        sign with the key file named in CONTENT_SIGNING_KEY_FILE
   public-key                           print the public key for CONTENT_SIGNING_KEY_FILE
 
-Common options: --topics <file> (default content/topics.yaml), --root <dir> (project root
+Common options: --catalogue <file> (default content/catalogue.json), --topics <file> (default content/topics.yaml), --root <dir> (project root
 for asset paths and assets/LICENSES.md, default .)
 ''';
 
@@ -78,6 +84,10 @@ Future<int> runCli(
         return _pool(o, root, topicsPath, out, err);
       case 'build-index':
         return _buildIndex(o, root, topicsPath, out, err);
+      case 'products':
+        return _products(o, root, out, err);
+      case 'publish':
+        return await _publish(o, root, topicsPath, env, out, err);
       case 'sign':
         return await _sign(o, env, out, err);
       case 'public-key':
@@ -298,6 +308,166 @@ int _buildIndex(
   Directory(outDir).createSync(recursive: true);
   File('$outDir/index.json').writeAsBytesSync(encodeIndex(index));
   out.writeln('wrote $outDir/index.json (${files.length} pack(s))');
+  return 0;
+}
+
+Catalogue _catalogue(_Opts o, String root) {
+  final path = o.named['catalogue'] ?? '$root/content/catalogue.json';
+  final f = File(path);
+  if (!f.existsSync()) throw FormatException('catalogue not found: $path');
+  return Catalogue.parse(f.readAsStringSync());
+}
+
+List<Map<String, dynamic>> _manifests(
+  List<MapEntry<String, Object?>> decoded,
+) => [for (final d in decoded) d.value as Map<String, dynamic>];
+
+int _products(_Opts o, String root, StringSink out, StringSink err) {
+  final dir = o.named['packs'];
+  if (dir == null) {
+    err.writeln('products needs --packs <dir>');
+    return 64;
+  }
+  final files = _packFiles([dir]);
+  if (files.isEmpty) {
+    err.writeln('no pack files in $dir');
+    return 1;
+  }
+  final plan = buildProducts(
+    _catalogue(o, root),
+    _manifests(_decode(files, err)),
+  );
+  if (!plan.ok) {
+    for (final p in plan.problems) {
+      err.writeln('ERROR [products] $p');
+    }
+    err.writeln('${plan.problems.length} problem(s): nothing written');
+    return 1;
+  }
+  final jsonOut = o.named['json-out'];
+  final csvOut = o.named['csv-out'];
+  if (jsonOut == null && csvOut == null) {
+    out.write(plan.toJsonText());
+    return 0;
+  }
+  if (jsonOut != null) {
+    File(jsonOut).writeAsStringSync(plan.toJsonText());
+    out.writeln('wrote $jsonOut (${plan.products.length} product(s))');
+  }
+  if (csvOut != null) {
+    File(csvOut).writeAsStringSync(plan.toPlayCsv());
+    out.writeln('wrote $csvOut (${plan.products.length} product(s))');
+  }
+  return 0;
+}
+
+Future<int> _publish(
+  _Opts o,
+  String root,
+  String topicsPath,
+  Map<String, String> env,
+  StringSink out,
+  StringSink err,
+) async {
+  final app = o.named['app'];
+  final packsDir = o.named['packs'];
+  final outDir = o.named['out'];
+  final mode = o.named['sign'] ?? 'auto';
+  if (app == null ||
+      packsDir == null ||
+      outDir == null ||
+      !{'auto', 'yes', 'no'}.contains(mode)) {
+    err.writeln('publish needs --app, --packs and --out (--sign auto|yes|no)');
+    return 64;
+  }
+  final files = _packFiles([packsDir]);
+  if (files.isEmpty) {
+    err.writeln('no pack files in $packsDir');
+    return 1;
+  }
+  final decoded = _decode(files, err);
+  final r = validatePacks(
+    decoded,
+    topics: _topics(topicsPath),
+    assets: _assets(root),
+  );
+  _print(r, out);
+  if (!r.ok) {
+    err.writeln('publish stopped: fix the ${r.errors.length} error(s) first');
+    return 1;
+  }
+  final manifests = _manifests(decoded);
+  final plan = buildProducts(_catalogue(o, root), manifests);
+  if (!plan.ok) {
+    for (final p in plan.problems) {
+      err.writeln('ERROR [products] $p');
+    }
+    err.writeln('publish stopped: fix the product problems first');
+    return 1;
+  }
+  final keyPath = env['CONTENT_SIGNING_KEY_FILE'];
+  final haveKey = keyPath != null && keyPath.isNotEmpty;
+  if (mode == 'yes' && !haveKey) {
+    err.writeln('--sign yes needs CONTENT_SIGNING_KEY_FILE');
+    return 1;
+  }
+  final packFiles = <String, Uint8List>{
+    for (final f in files)
+      'packs/${f.uri.pathSegments.last}': f.readAsBytesSync(),
+  };
+  final index = buildIndex(
+    app: app,
+    version: int.parse(o.named['version'] ?? '1'),
+    packFiles: packFiles,
+    readAsset: (p) {
+      final f = File('$root/$p');
+      return f.existsSync() ? f.readAsBytesSync() : null;
+    },
+    bundles: [
+      for (final b in plan.catalogue.bundles)
+        {
+          'product_id': b.productId,
+          'title': b.title,
+          'year': b.year,
+          'status': b.status,
+          'packs': bundlePackIds(b, manifests),
+        },
+    ],
+  );
+  Directory(outDir).createSync(recursive: true);
+  final indexBytes = encodeIndex(index);
+  File('$outDir/index.json').writeAsBytesSync(indexBytes);
+  final upload = <String, int>{'index.json': indexBytes.length};
+
+  if (mode != 'no' && haveKey) {
+    final sig = await signIndex(indexBytes, _key(env));
+    File('$outDir/index.sig').writeAsStringSync('$sig\n');
+    upload['index.sig'] = sig.length + 1;
+    out.writeln('signed: index.sig written');
+  } else {
+    final why = mode == 'no' ? '--sign no' : 'no CONTENT_SIGNING_KEY_FILE';
+    out.writeln(
+      'NOT SIGNED ($why): apps accept this only while their signing key '
+      'is a placeholder',
+    );
+  }
+  for (final e in packFiles.entries) {
+    upload[e.key] = e.value.length;
+  }
+  for (final p in index['packs'] as List) {
+    for (final a in (p as Map)['assets'] as List) {
+      upload[(a as Map)['path'] as String] = a['size'] as int;
+    }
+  }
+  out.writeln('DRY RUN: files to upload under $app/ (nothing is uploaded):');
+  for (final e in upload.entries) {
+    out.writeln('  ${e.key}  (${e.value} bytes)');
+  }
+  final live = plan.products.where((p) => p.status == 'live').length;
+  out.writeln(
+    '${upload.length} file(s); ${plan.products.length} product(s), '
+    '$live live, ${plan.products.length - live} draft',
+  );
   return 0;
 }
 

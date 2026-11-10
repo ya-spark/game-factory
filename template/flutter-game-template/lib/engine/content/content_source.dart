@@ -68,6 +68,7 @@ class PackEntry {
     required this.file,
     required this.previewFile,
     required this.assets,
+    this.status = 'live',
   });
 
   final String id;
@@ -82,6 +83,11 @@ class PackEntry {
   final FileRef? previewFile;
   final List<FileRef> assets;
 
+  /// `draft` (not for sale yet, hidden in the app) or `live` (buyable). An index written before
+  /// 1D has no status and counts as `live`.
+  final String status;
+
+  bool get isLive => status == 'live';
   bool get isExtra => productId != null;
 
   FileRef? fileFor(PackPart part) => part == PackPart.full ? file : previewFile;
@@ -110,6 +116,7 @@ class PackEntry {
       topic: j['topic'] as String,
       title: j['title'] as String,
       productId: j['product_id'] as String?,
+      status: j['status'] == 'draft' ? 'draft' : 'live',
       items: j['items'] as int,
       file: FileRef.fromJson(j['file']),
       previewFile: j['preview_file'] == null
@@ -122,12 +129,53 @@ class PackEntry {
   }
 }
 
+/// A year bundle as listed in an index: one product that owns every pack in [packs].
+class BundleEntry {
+  const BundleEntry({
+    required this.productId,
+    required this.title,
+    required this.year,
+    required this.packs,
+    this.status = 'live',
+  });
+  final String productId;
+  final String title;
+  final int year;
+  final List<String> packs;
+  final String status;
+
+  bool get isLive => status == 'live';
+
+  factory BundleEntry.fromJson(Object? j) {
+    if (j is! Map ||
+        j['product_id'] is! String ||
+        j['title'] is! String ||
+        j['year'] is! int ||
+        j['packs'] is! List) {
+      throw const ContentException('bad_index', 'bad bundle entry');
+    }
+    return BundleEntry(
+      productId: j['product_id'] as String,
+      title: j['title'] as String,
+      year: j['year'] as int,
+      packs: [for (final p in j['packs'] as List) '$p'],
+      status: j['status'] == 'draft' ? 'draft' : 'live',
+    );
+  }
+}
+
 /// A parsed, not yet trusted, index.
 class ContentIndex {
-  const ContentIndex(this.app, this.version, this.packs);
+  const ContentIndex(
+    this.app,
+    this.version,
+    this.packs, [
+    this.bundles = const [],
+  ]);
   final String app;
   final int version;
   final List<PackEntry> packs;
+  final List<BundleEntry> bundles;
 
   static ContentIndex empty(String app) => ContentIndex(app, 0, const []);
 
@@ -152,9 +200,15 @@ class ContentIndex {
         j['packs'] is! List) {
       throw const ContentException('bad_index', 'unknown index shape');
     }
-    return ContentIndex(j['app'] as String, j['version'] as int, [
-      for (final p in j['packs'] as List) PackEntry.fromJson(p),
-    ]);
+    return ContentIndex(
+      j['app'] as String,
+      j['version'] as int,
+      [for (final p in j['packs'] as List) PackEntry.fromJson(p)],
+      [
+        for (final b in (j['bundles'] as List? ?? const []))
+          BundleEntry.fromJson(b),
+      ],
+    );
   }
 }
 
@@ -219,6 +273,9 @@ class BuiltInContentSource implements ContentSource {
 
   @override
   Future<List<PackEntry>> listPacks() async => (await _ensureIndex()).packs;
+
+  Future<List<BundleEntry>> listBundles() async =>
+      (await _ensureIndex()).bundles;
 
   @override
   Future<ContentPack?> loadPack(
@@ -394,6 +451,9 @@ class ServerContentSource implements ContentSource {
 
   @override
   Future<List<PackEntry>> listPacks() async => (await cachedIndex()).packs;
+
+  Future<List<BundleEntry>> listBundles() async =>
+      (await cachedIndex()).bundles;
 
   @override
   Future<UpdateResult> checkForUpdates() async {

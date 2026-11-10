@@ -39,10 +39,7 @@ class LearningService {
         connection: await connectivity.current(),
         settings: downloadSettings,
       );
-      await purchases.registerExtraProducts({
-        for (final c in await repository.catalog())
-          if (c.entry.productId != null) c.entry.productId!,
-      });
+      await purchases.registerExtraProducts(await repository.productIds());
     } on Object {
       // silent: the app works offline from the built-in content
     }
@@ -101,11 +98,25 @@ class LearningService {
     bool allYears = false,
   }) async => [
     for (final c in await repository.catalog())
-      if (c.isExtra && (allYears || year == null || c.entry.year == year)) c,
+      if (c.isExtra &&
+          c.entry.isLive &&
+          (allYears || year == null || c.entry.year == year))
+        c,
   ];
 
-  bool owns(CatalogPack c) =>
-      c.entry.productId != null && profile.ownsPack(c.entry.productId!);
+  /// Live year bundles for the parent area: the child's year only, or every year.
+  Future<List<BundleEntry>> bundlesFor(
+    int? year, {
+    bool allYears = false,
+  }) async => [
+    for (final b in await repository.bundles())
+      if (b.isLive && (allYears || year == null || b.year == year)) b,
+  ];
+
+  /// Owned through its own product or a bundle that lists it.
+  bool owns(CatalogPack c) => repository.owns(c.entry);
+
+  bool ownsBundle(BundleEntry b) => profile.ownsPack(b.productId);
 
   Future<DownloadResult> downloadPreview(CatalogPack c) async => repository
       .download(c, PackPart.preview, connection: await connectivity.current());
@@ -126,5 +137,15 @@ class LearningService {
   /// Starts the purchase (the caller has already passed the parent gate).
   Future<void> buy(String productId) => purchases.buy(productId);
 
-  Future<void> restorePurchases() => purchases.restore();
+  /// Restore. The products named in the index are registered first, so what Play returns is
+  /// checked against the current index: an owned id that is not in the index has no effect, and
+  /// a bundle restores every pack it lists.
+  Future<void> restorePurchases() async {
+    try {
+      await purchases.registerExtraProducts(await repository.productIds());
+    } on Object {
+      // restore still runs without the index
+    }
+    await purchases.restore();
+  }
 }

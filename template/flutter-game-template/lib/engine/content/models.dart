@@ -140,6 +140,11 @@ class ContentPack {
   String get title => json['title'] as String;
   String? get productId => json['product_id'] as String?;
   bool get isExtra => productId != null;
+
+  /// `draft` or `live`. A pack without a status is `draft` when it is an extra pack, else `live`.
+  String get status =>
+      json['status'] as String? ?? (isExtra ? 'draft' : 'live');
+  String? get tier => json['tier'] as String?;
   Map<String, dynamic>? get preview => json['preview'] as Map<String, dynamic>?;
 
   List<ContentItem> get items => [

@@ -48,6 +48,8 @@ const _packKeys = {
   'topic',
   'title',
   'product_id',
+  'tier',
+  'status',
   'licence',
   'preview',
   'items',
@@ -251,6 +253,14 @@ class _PackValidator {
       _err('schema', w, '"product_id" must be null or a product id');
     }
     final isExtra = _text(productId);
+    final status = pack['status'];
+    if (status != null && status != 'draft' && status != 'live') {
+      _err('schema', w, '"status" must be draft or live');
+    }
+    final tier = pack['tier'];
+    if (tier != null && !_text(tier)) {
+      _err('schema', w, '"tier" must be a price tier id');
+    }
 
     final itemsRaw = pack['items'];
     final itemIds = <String>{};

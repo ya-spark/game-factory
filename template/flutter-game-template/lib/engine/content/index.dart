@@ -32,6 +32,7 @@ Map<String, dynamic> buildIndex({
   required Map<String, Uint8List> packFiles,
   required Uint8List? Function(String assetPath) readAsset,
   Map<String, MapEntry<String, Uint8List>> previewFiles = const {},
+  List<Map<String, dynamic>> bundles = const [],
 }) {
   final packs = <Map<String, dynamic>>[];
   for (final e in packFiles.entries) {
@@ -52,6 +53,7 @@ Map<String, dynamic> buildIndex({
       'topic': pack.topic,
       'title': pack.title,
       'product_id': pack.productId,
+      'status': pack.status,
       'items': pack.items.length,
       'file': _fileEntry(e.key, e.value),
       // Free preview of an extra pack: pack id -> (path, bytes) in [previewFiles].
@@ -74,6 +76,7 @@ Map<String, dynamic> buildIndex({
     'lang': contentLang,
     'version': version,
     'packs': packs,
+    if (bundles.isNotEmpty) 'bundles': bundles,
   };
 }
 

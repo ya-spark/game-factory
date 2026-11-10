@@ -3,7 +3,7 @@
 ///
 /// Layout (see docs/CONTENT_FORMAT.md):
 ///  * `#meta,<key>,<value>` rows set pack fields (id, version, subject, year,
-///    topic, title, product_id, preview_description).
+///    topic, title, product_id, tier, status, preview_description).
 ///  * One header row starting with `type`, then one row per item.
 ///  * Multi-value cells: `|` separates entries, `=` separates a pair, `/`
 ///    separates accepted alternatives; `\|`, `\=` and `\/` write the symbol.
@@ -49,6 +49,8 @@ const Set<String> _metaKeys = {
   'topic',
   'title',
   'product_id',
+  'tier',
+  'status',
   'preview_description',
 };
 
@@ -306,6 +308,8 @@ CsvConversion convertCsv(String csvText, {String? previousIds}) {
     'topic': meta['topic'] ?? '',
     'title': meta['title'] ?? '',
     'product_id': productId,
+    if ((meta['tier'] ?? '').isNotEmpty) 'tier': meta['tier'],
+    if ((meta['status'] ?? '').isNotEmpty) 'status': meta['status'],
     'licence': contentLicence,
     'preview': ?preview,
     'items': items,

@@ -50,11 +50,48 @@ class ContentRepository {
   final OwnedCheck isOwned;
   final Duration checkInterval;
 
+  List<BundleEntry> _bundles = const [];
+
+  /// Bundles of the built-in and the cached server index (the server one wins per product id).
+  /// Also refreshes the copy [owns] reads.
+  Future<List<BundleEntry>> bundles() async {
+    final byId = <String, BundleEntry>{
+      for (final b in await builtIn.listBundles()) b.productId: b,
+    };
+    final srv = server;
+    if (srv != null) {
+      for (final b in await srv.listBundles()) {
+        byId[b.productId] = b;
+      }
+    }
+    return _bundles = byId.values.toList()
+      ..sort((a, b) => a.productId.compareTo(b.productId));
+  }
+
+  /// Every product id the app should ask Play about: live extra packs and live bundles named
+  /// in the index. A new pack needs no app update. Draft entries are left out.
+  Future<Set<String>> productIds() async => {
+    for (final c in await catalog())
+      if (c.entry.productId != null && c.entry.isLive) c.entry.productId!,
+    for (final b in await bundles())
+      if (b.isLive) b.productId,
+  };
+
+  /// True when the pack's own product, or a bundle that lists the pack, is confirmed owned.
+  /// Reads the bundles loaded last (see [bundles]); [catalog] and [loadForPlay] refresh them.
+  bool owns(PackEntry e) {
+    final pid = e.productId;
+    if (pid == null) return false;
+    if (isOwned(pid)) return true;
+    return _bundles.any((b) => b.packs.contains(e.id) && isOwned(b.productId));
+  }
+
   static const String _lastCheckName = 'last_check.json';
 
   /// Every pack: built-in ones plus those in the verified server index. The newest version of
   /// an id wins. Works offline.
   Future<List<CatalogPack>> catalog() async {
+    await bundles();
     final byId = <String, PackEntry>{};
     final builtInIds = <String>{};
     for (final e in await builtIn.listPacks()) {
@@ -96,6 +133,9 @@ class ContentRepository {
     CatalogPack c,
   ) async {
     final srv = server;
+    await bundles();
+    // A draft pack is not for sale yet: hidden, never played.
+    if (!c.entry.isLive) return null;
     if (!c.isExtra) {
       if (srv != null && c.cachedFull) {
         final p = await srv.loadPack(c.id);
@@ -105,7 +145,7 @@ class ContentRepository {
       return b == null ? null : (pack: b, previewOnly: false);
     }
     if (srv == null) return null;
-    final owned = isOwned(c.entry.productId!);
+    final owned = owns(c.entry);
     if (owned && c.cachedFull) {
       final p = await srv.loadPack(c.id);
       if (p != null) return (pack: p, previewOnly: false);
@@ -140,7 +180,11 @@ class ContentRepository {
     if (srv == null) {
       return const DownloadResult(DownloadStatus.failed, 'no_server');
     }
-    if (part == PackPart.full && c.isExtra && !isOwned(c.entry.productId!)) {
+    if (!c.entry.isLive) {
+      return const DownloadResult(DownloadStatus.failed, 'draft');
+    }
+    await bundles();
+    if (part == PackPart.full && c.isExtra && !owns(c.entry)) {
       return const DownloadResult(DownloadStatus.notPurchased);
     }
     return srv.download(
