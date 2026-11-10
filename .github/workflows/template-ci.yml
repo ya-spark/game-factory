@@ -54,6 +54,8 @@ jobs:
         run: bash scripts/ad_safety_check.sh
       - name: Ad safety self-test (script must fail on violations)
         run: bash scripts/test_ad_safety_check.sh
+      - name: Engine lock
+        run: python3 scripts/engine_lock.py check
       - name: Profile check (audience rules)
         run: bash scripts/profile_check.sh
       - name: Profile check self-test (script must fail on violations)
@@ -75,6 +77,14 @@ jobs:
   # and run the same gates (including a debug APK build) inside it.
   generator:
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { profile: puzzle, audience: adult, id: sample_puzzle }
+          - { profile: craft, audience: child, id: sample_craft_child }
+          - { profile: craft, audience: teen, id: sample_craft_teen }
+          - { profile: mind, audience: adult, id: sample_mind }
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -84,8 +94,9 @@ jobs:
         run: python3 -m unittest discover -s scripts/tests -v
       - name: Generate sample game
         run: |
-          python3 scripts/new_game.py --id sample_game --name "Sample Game" \
-            --package com.yaspark.samplegame --seed-color "#3366CC" \
+          python3 scripts/new_game.py --id ${{ matrix.id }} --name "Sample Game" \
+            --package com.yaspark.${{ matrix.id }} --seed-color "#3366CC" \
+            --profile ${{ matrix.profile }} --audience ${{ matrix.audience }} \
             --out "$RUNNER_TEMP/sample_game"
       - uses: actions/setup-java@v4
         with:
@@ -111,6 +122,12 @@ jobs:
       - name: Ad safety check
         working-directory: ${{ runner.temp }}/sample_game
         run: bash scripts/ad_safety_check.sh
+      - name: Profile check
+        working-directory: ${{ runner.temp }}/sample_game
+        run: bash scripts/profile_check.sh
+      - name: Engine lock
+        working-directory: ${{ runner.temp }}/sample_game
+        run: python3 scripts/engine_lock.py check
       - name: Assets license check
         working-directory: ${{ runner.temp }}/sample_game
         run: bash scripts/check_asset_licenses.sh
