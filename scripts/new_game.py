@@ -4,7 +4,8 @@
 Usage:
   python3 scripts/new_game.py --id my_game --name "My Game" \
       --package com.yaspark.mygame --seed-color "#RRGGBB" --out <dir> [--register] \
-      [--profile puzzle|craft|mind] [--audience child|teen|adult] [--ci on|off] [--repo owner/name]
+      [--profile puzzle|craft|mind] [--audience child|teen|adult] [--ci on|off] [--repo owner/name] \
+      [--design <design app_id>]
 
 Python 3 standard library only. Never writes secrets: admob.release and play_games values
 stay PLACEHOLDER_* (they are only filled in later by the release config / CI secrets).
@@ -14,6 +15,7 @@ from __future__ import annotations
 
 import argparse
 import importlib.util
+import json
 import re
 import shutil
 import sys
@@ -135,6 +137,9 @@ def register(registry: Path, game_id: str, package: str, repo: str | None = None
 # ---------------------------------------------------------------- generation
 def _ignore(src_dir: str, names: list[str]) -> set[str]:
     ignored = set()
+    # design/ holds all five apps' files; a game gets only its own, copied by apply_design.
+    if "design" in names and (Path(src_dir) / "pubspec.yaml").is_file():
+        ignored.add("design")
     in_android = Path(src_dir).name == "android"
     for n in names:
         if n in EXCLUDE_DIRS and (Path(src_dir) / n).is_dir():
@@ -432,6 +437,79 @@ def leftover_template_refs(out: Path) -> list[str]:
     return hits
 
 
+FONT_LICENSE = {
+    "Nunito": ("OFL-Nunito.txt", "https://github.com/googlefonts/nunito"),
+    "Plus Jakarta Sans": ("OFL-PlusJakartaSans.txt", "https://github.com/tokotype/PlusJakartaSans"),
+}
+STUDIO_ORIGINAL = "Written by the studio (design phase, game-factory design/)"
+FONT_WEIGHTS = {"Regular": 400, "Bold": 700, "ExtraBold": 800}
+
+
+def design_ids(template: Path) -> list[str]:
+    d = template / "design"
+    if not d.is_dir():
+        return []
+    return sorted(p.name for p in d.iterdir() if (p / "tokens.json").is_file())
+
+
+def apply_design(out: Path, template: Path, design_id: str) -> None:
+    """Copy only this game's design files into assets/, wire pubspec, LICENSES and app.config."""
+    src = template / "design"
+    if design_id not in design_ids(template):
+        raise GenError(f"unknown --design {design_id!r}: one of {', '.join(design_ids(template))}")
+    tokens = json.loads((src / design_id / "tokens.json").read_text(encoding="utf-8"))
+    font = tokens["font"]
+    rows: list[tuple[str, str, str, str]] = []  # path, source, license, notes
+    dest = out / "assets" / "design"
+    (dest / design_id).mkdir(parents=True, exist_ok=True)
+    shutil.copy2(src / "tokens.json", dest / "tokens.json")
+    rows.append(("assets/design/tokens.json", STUDIO_ORIGINAL, "original", "shared design tokens"))
+    shutil.copy2(src / design_id / "tokens.json", dest / design_id / "tokens.json")
+    rows.append((f"assets/design/{design_id}/tokens.json", STUDIO_ORIGINAL, "original",
+                 "this app's colours and radii"))
+    art = src / design_id / "art"
+    if art.is_dir():
+        shutil.copytree(art, dest / design_id / "art")
+        for f in sorted(art.iterdir()):
+            kind = "mascot (a friendly shape, no human figure)" if f.name.startswith("mascot") else "hero scene"
+            rows.append((f"assets/design/{design_id}/art/{f.name}", STUDIO_ORIGINAL, "original", f"{kind}; SVG"))
+    (dest / "icons").mkdir(exist_ok=True)
+    for f in sorted((src / "icons").glob("*.svg")):
+        shutil.copy2(f, dest / "icons" / f.name)
+        rows.append((f"assets/design/icons/{f.name}", STUDIO_ORIGINAL, "original", "24 x 24 icon, currentColor"))
+    fonts = out / "assets" / "fonts"
+    fonts.mkdir(parents=True, exist_ok=True)
+    lic_file, url = FONT_LICENSE[font["family"]]
+    for name in [*font["files"], lic_file]:
+        shutil.copy2(src / "fonts" / name, fonts / name)
+        what = f"{font['family']} font" if name.endswith(".ttf") else f"{font['family']} licence text"
+        rows.append((f"assets/fonts/{name}", url, "SIL OFL 1.1", what))
+    lic = out / "assets" / "LICENSES.md"
+    text = lic.read_text(encoding="utf-8").rstrip("\n") + "\n\n"
+    text += "".join(f"| {a} | {b} | {c} | {d} |\n" for a, b, c, d in rows)
+    lic.write_text(text, encoding="utf-8")
+
+    dirs = ["assets/design/", f"assets/design/{design_id}/", "assets/design/icons/"]
+    if art.is_dir():
+        dirs.insert(2, f"assets/design/{design_id}/art/")
+    pub = out / "pubspec.yaml"
+    ptext = pub.read_text(encoding="utf-8")
+    marker = "    - assets/content/\n"
+    if marker not in ptext:
+        raise GenError("generator bug: assets/content/ entry not found in pubspec.yaml")
+    ptext = ptext.replace(marker, marker + "".join(f"    - {d}\n" for d in dirs), 1)
+    if len(font["files"]) == 1:
+        entries = f"        - asset: assets/fonts/{font['files'][0]}\n"
+    else:
+        entries = "".join(
+            f"        - asset: assets/fonts/{f}\n          weight: {FONT_WEIGHTS[Path(f).stem.split('-')[1]]}\n"
+            for f in font["files"]
+        )
+    ptext = ptext.rstrip("\n") + f"\n  fonts:\n    - family: {font['family']}\n      fonts:\n{entries}"
+    pub.write_text(ptext, encoding="utf-8")
+    _sub_file(out / "app.config.yaml", r"^  # design:.*$", f"  design: {design_id}", 1, re.M)
+
+
 def generate(
     game_id: str,
     name: str,
@@ -445,6 +523,7 @@ def generate(
     audience: str | None = None,
     ci: str = "off",
     repo: str | None = None,
+    design: str | None = None,
 ) -> Path:
     if profile not in PROFILES:
         raise GenError(f"invalid --profile {profile!r}: one of {', '.join(PROFILES)}")
@@ -479,6 +558,12 @@ def generate(
     if profile != "puzzle":
         strip_puzzle(out)
     apply_profile_config(out, profile, audience)
+    # Design: explicit --design, else the game id when it names one of the five apps (craft and
+    # mind profiles only). The plain puzzle profile keeps today's look unless --design is given.
+    if design is None and profile != "puzzle" and game_id in design_ids(template):
+        design = game_id
+    if design is not None:
+        apply_design(out, template, design)
     apply_ci_guard(out, ci)
     check_features(out, profile)
     write_engine_lock(out)
@@ -504,12 +589,15 @@ def main(argv: list[str] | None = None) -> int:
                    help="compliance profile; craft: child or teen, mind: adult")
     p.add_argument("--ci", default="off", choices=("on", "off"),
                    help="off (default): ci.yml runs only when repo variable CI_ENABLED is 'true'")
+    p.add_argument("--design", help="design app_id (craft_lowteen, mind_1, ...); default: the game id "
+                   "when it names one of the five apps (craft and mind profiles)")
     p.add_argument("--repo", help="owner/name for the registry (default ya-spark/game-<kebab-id>)")
     args = p.parse_args(argv)
     try:
         out = generate(
             args.game_id, args.name, args.package, args.seed_color, args.out, args.register,
             profile=args.profile, audience=args.audience, ci=args.ci, repo=args.repo,
+            design=args.design,
         )
     except GenError as e:
         print(f"error: {e}", file=sys.stderr)

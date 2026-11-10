@@ -6,18 +6,25 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_game_template/ui/theme/app_theme.dart';
 import 'package:flutter_game_template/ui/theme/design_tokens.dart';
 
-const apps = [
-  'craft_lowteen',
-  'craft_preteen',
-  'craft_highteen',
-  'mind_1',
-  'mind_9',
-];
+/// The template keeps all five apps under `design/`; a generated game has only its own,
+/// copied to `assets/design/` (fonts in `assets/fonts/`).
+final designRoot = Directory('design').existsSync()
+    ? 'design'
+    : 'assets/design';
+final fontRoot = Directory('design/fonts').existsSync()
+    ? 'design/fonts'
+    : 'assets/fonts';
+
+final apps = [
+  for (final d in Directory(designRoot).listSync())
+    if (File('${d.path}/tokens.json').existsSync())
+      d.uri.pathSegments[d.uri.pathSegments.length - 2],
+]..sort();
 
 SharedTokens loadShared() =>
-    SharedTokens.fromJson(File('design/tokens.json').readAsStringSync());
+    SharedTokens.fromJson(File('$designRoot/tokens.json').readAsStringSync());
 AppTokens loadApp(String id) =>
-    AppTokens.fromJson(File('design/$id/tokens.json').readAsStringSync());
+    AppTokens.fromJson(File('$designRoot/$id/tokens.json').readAsStringSync());
 
 void main() {
   final shared = loadShared();
@@ -119,7 +126,7 @@ void main() {
     Future<void> load(String family, List<String> files) async {
       final loader = FontLoader(family);
       for (final f in files) {
-        final bytes = File('design/fonts/$f').readAsBytesSync();
+        final bytes = File('$fontRoot/$f').readAsBytesSync();
         loader.addFont(Future.value(ByteData.view(bytes.buffer)));
       }
       await loader.load();
@@ -141,26 +148,37 @@ void main() {
       return p.width;
     }
 
-    test('Nunito renders 400, 700 and 800 as distinct weights', () async {
-      await load('Nunito', ['Nunito-Variable.ttf']);
-      final w4 = width('Nunito', 400, true);
-      final w7 = width('Nunito', 700, true);
-      final w8 = width('Nunito', 800, true);
-      expect(w7, greaterThan(w4));
-      expect(w8, greaterThan(w7));
-    });
+    final hasNunito = File('$fontRoot/Nunito-Variable.ttf').existsSync();
+    final hasJakarta = File('$fontRoot/PlusJakartaSans-Bold.ttf').existsSync();
 
-    test('Plus Jakarta Sans loads 400, 700 and 800', () async {
-      await load('Plus Jakarta Sans', [
-        'PlusJakartaSans-Regular.ttf',
-        'PlusJakartaSans-Bold.ttf',
-        'PlusJakartaSans-ExtraBold.ttf',
-      ]);
-      // Three files registered under one family: the weights are told apart by the
-      // pubspec entries in a real build; here we check they all load and measure.
-      expect(width('Plus Jakarta Sans', 400, false), greaterThan(0));
-      expect(width('Plus Jakarta Sans', 800, false), greaterThan(0));
-    });
+    test(
+      'Nunito renders 400, 700 and 800 as distinct weights',
+      skip: !hasNunito,
+      () async {
+        await load('Nunito', ['Nunito-Variable.ttf']);
+        final w4 = width('Nunito', 400, true);
+        final w7 = width('Nunito', 700, true);
+        final w8 = width('Nunito', 800, true);
+        expect(w7, greaterThan(w4));
+        expect(w8, greaterThan(w7));
+      },
+    );
+
+    test(
+      'Plus Jakarta Sans loads 400, 700 and 800',
+      skip: !hasJakarta,
+      () async {
+        await load('Plus Jakarta Sans', [
+          'PlusJakartaSans-Regular.ttf',
+          'PlusJakartaSans-Bold.ttf',
+          'PlusJakartaSans-ExtraBold.ttf',
+        ]);
+        // Three files registered under one family: the weights are told apart by the
+        // pubspec entries in a real build; here we check they all load and measure.
+        expect(width('Plus Jakarta Sans', 400, false), greaterThan(0));
+        expect(width('Plus Jakarta Sans', 800, false), greaterThan(0));
+      },
+    );
   });
 
   test('no person-like icon or image in the design files', () {
@@ -173,7 +191,7 @@ void main() {
       'avatar',
       'people',
     ];
-    for (final f in Directory('design').listSync(recursive: true)) {
+    for (final f in Directory(designRoot).listSync(recursive: true)) {
       if (f is! File || !f.path.endsWith('.svg')) continue;
       final name = f.uri.pathSegments.last.toLowerCase();
       for (final b in banned) {

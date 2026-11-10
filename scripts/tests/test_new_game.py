@@ -208,6 +208,62 @@ class ProfileTest(unittest.TestCase):
         self.assertIn("  max_ad_content_rating: PG", cfg)
         self.assertIn("  rewarded_enabled: false", cfg)
 
+    def check_design(self, out, design_id, family, font_files, other_font, has_art):
+        """Only this game's design files are copied; every file is licensed; pubspec lists them."""
+        self.assertFalse((out / "design").exists())
+        d = out / "assets/design"
+        self.assertTrue((d / "tokens.json").is_file())
+        self.assertEqual(sorted(p.name for p in d.iterdir() if p.is_dir()), sorted(["icons", design_id]))
+        self.assertTrue((d / design_id / "tokens.json").is_file())
+        self.assertEqual((d / design_id / "art").is_dir(), has_art)
+        self.assertTrue((d / "icons" / "coin.svg").is_file())
+        for f in font_files:
+            self.assertTrue((out / "assets/fonts" / f).is_file(), f)
+        self.assertFalse((out / "assets/fonts" / other_font).exists())
+        pub = (out / "pubspec.yaml").read_text()
+        self.assertIn("    - assets/design/\n", pub)
+        self.assertIn(f"    - assets/design/{design_id}/\n", pub)
+        self.assertIn(f"    - family: {family}\n", pub)
+        self.assertIn(f"  design: {design_id}\n", (out / "app.config.yaml").read_text())
+        lic = (out / "assets/LICENSES.md").read_text()
+        for f in (out / "assets").rglob("*"):
+            if f.is_file() and f.name != "LICENSES.md":
+                self.assertIn(str(f.relative_to(out)), lic)
+        self.assertIn("SIL OFL 1.1", lic)
+        # no person-like names in what was copied
+        for f in d.rglob("*.svg"):
+            for bad in ("person", "user", "face", "human", "avatar"):
+                self.assertNotIn(bad, f.name)
+
+    def test_craft_copies_its_design_files(self):
+        out = self.gen(profile="craft", audience="child", over={"game_id": "craft_lowteen"})
+        self.check_design(out, "craft_lowteen", "Nunito", ["Nunito-Variable.ttf"],
+                          "PlusJakartaSans-Bold.ttf", True)
+        self.assertFalse((out / "assets/design/craft_preteen").exists())
+        # variable font: one file, no weight entries
+        self.assertNotIn("weight: 400", (out / "pubspec.yaml").read_text())
+
+    def test_mind_copies_its_design_files(self):
+        out = self.gen(profile="mind", audience="adult", over={"game_id": "mind_1"})
+        self.check_design(out, "mind_1", "Plus Jakarta Sans",
+                          ["PlusJakartaSans-Regular.ttf", "PlusJakartaSans-Bold.ttf",
+                           "PlusJakartaSans-ExtraBold.ttf"], "Nunito-Variable.ttf", True)
+        pub = (out / "pubspec.yaml").read_text()
+        for w in ("400", "700", "800"):
+            self.assertIn(f"weight: {w}", pub)
+
+    def test_plain_puzzle_has_no_design_unless_asked(self):
+        out = self.gen()
+        self.assertFalse((out / "design").exists())
+        self.assertFalse((out / "assets/design").exists())
+        self.assertNotIn("\n  design:", (out / "app.config.yaml").read_text())
+        out2 = self.gen("g2", design="mind_9")
+        self.assertTrue((out2 / "assets/design/mind_9/tokens.json").is_file())
+
+    def test_unknown_design_refused(self):
+        with self.assertRaises(new_game.GenError):
+            self.gen(design="nope")
+
     def test_mind_adult(self):
         cfg = (self.gen(profile="mind", audience="adult") / "app.config.yaml").read_text()
         self.assertIn("audience: adult", cfg)
