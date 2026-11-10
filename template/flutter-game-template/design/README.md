@@ -9,9 +9,9 @@ everything they need is committed here as files. Issue 02 builds the themes, mod
 - **Icons:** `icons/*.svg`, 24 x 24, drawn with `currentColor` so they take the theme colour
 - **Fonts:** `fonts/` (open licence, see below)
 
-Nothing under `design/` is bundled in the app yet. Issue 02 decides what each generated game copies (only its own
-`<app_id>` folder, the icons and its font) into `assets/`, adds the `assets/LICENSES.md` rows and the `pubspec.yaml`
-entries. These files are not under `assets/`, so `scripts/check_asset_licenses.sh` does not check them.
+Issue 02A (done): `scripts/new_game.py` copies only the game's own `<app_id>` folder, the shared `tokens.json`, the icons and
+its font into `assets/design/` and `assets/fonts/`, and writes the `pubspec.yaml` and `assets/LICENSES.md` entries. The
+generated game has no `design/` folder. The app loads the JSON at start-up. See `docs/DESIGN_SYSTEM.md`.
 
 ## The five apps
 

@@ -35,6 +35,11 @@ python3 scripts/new_game.py --id my_game --name "My Game" \
   `registry/apps.yaml` (turning `apps: []` into list form) and refuses duplicate ids or
   packages.
 
+- `--design <app_id>` (issue 02A): copies only that app's design files (`design/<app_id>/`, shared
+  `tokens.json`, icons, its font) into `assets/design/` and `assets/fonts/`, writes the `pubspec.yaml`
+  asset and font entries, the `assets/LICENSES.md` rows and `theme.design`. Default: the game id when
+  it is one of `craft_lowteen`, `craft_preteen`, `craft_highteen`, `mind_1`, `mind_9` (craft and mind
+  profiles); the plain puzzle profile has none. Generated games never contain `design/`.
 - Flags: `--profile puzzle|craft|mind` (default `puzzle` = the plain template). `craft` and `mind`
   delete the Block Puzzle game (`lib/game/{flame,rules,layout.dart}`, game screen and game over
   panel, their tests and the bot), keep `lib/game/tips.dart` and `share_card.dart`, and put a hub

@@ -93,6 +93,10 @@ Menu, game, shop, settings, daily reward, ... with test IDs (`lib/ui/test_ids.da
 
 ## 8. Art and audio
 Style, palette, asset list (every asset must be in `assets/LICENSES.md`).
+Look (issue 02A): when `app.config.yaml` has `theme.design`, the app uses the design system in
+`docs/DESIGN_SYSTEM.md`: tokens per mode, the app's font, the shared widgets in `lib/ui/kit/`, text that follows the
+phone's size setting plus a large-text option, a reduce-motion option, 4.5 to 1 contrast and screen-reader labels.
+No human figures, faces or silhouettes in any art. Debug builds have a theme gallery in Settings.
 Sound: `AudioService` plays the narrator lines `assets/voice/<name>.mp3` (a playing line is
 never cut off; priorities in `lib/core/audio/voice_arbiter.dart`: list the game's own line
 names there) and loops one ambience track from `assets/ambience/` under it, ducked while a line
