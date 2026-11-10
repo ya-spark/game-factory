@@ -132,4 +132,30 @@ abstract final class TestIds {
   static const tipHome = Key('tip.home');
   static const tipClose = Key('tip.close');
   static const tipDontShow = Key('tip.dontShow');
+
+  // Design system kit (lib/ui/kit/). Every shared widget takes an `id` and keys itself
+  // `ds.<kind>.<id>`; use these builders in tests.
+  static Key dsButton(String id) => Key('ds.button.$id');
+  static Key dsCoinChip(String id) => Key('ds.coinChip.$id');
+  static Key dsStatChip(String id) => Key('ds.statChip.$id');
+  static Key dsTopBar(String id) => Key('ds.topBar.$id');
+  static Key dsBottomBar(String id) => Key('ds.bottomBar.$id');
+  static Key dsTab(String barId, String tabId) => Key('ds.tab.$barId.$tabId');
+  static Key dsCard(String id) => Key('ds.card.$id');
+  static Key dsProgress(String id) => Key('ds.progress.$id');
+  static Key dsMasteryChip(String id) => Key('ds.masteryChip.$id');
+  static Key dsGameTile(String id) => Key('ds.gameTile.$id');
+  static Key dsTopicCard(String id) => Key('ds.topicCard.$id');
+  static Key dsPackCard(String id) => Key('ds.packCard.$id');
+  static Key dsSuggestedCard(String id) => Key('ds.suggestedCard.$id');
+  static Key dsHero(String id) => Key('ds.hero.$id');
+  static Key dsDialog(String id) => Key('ds.dialog.$id');
+  static Key dsDialogAction(String id, String action) =>
+      Key('ds.dialog.$id.$action');
+
+  // Theme gallery (debug only)
+  static const themeGallery = Key('gallery.theme');
+  static Key galleryMode(String mode) => Key('gallery.mode.$mode');
+  static const galleryLargeText = Key('gallery.largeText');
+  static const galleryReduceMotion = Key('gallery.reduceMotion');
 }
