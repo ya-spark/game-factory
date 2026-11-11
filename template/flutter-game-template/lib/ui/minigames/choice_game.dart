@@ -94,7 +94,11 @@ class ChoiceGameScreen extends StatefulWidget {
     this.random,
     this.autoRead,
     this.recordedClip,
+    this.promptOf,
   });
+
+  /// The text shown (and read aloud) for an item; null: the item's `prompt`.
+  final String Function(PoolItem item)? promptOf;
 
   final String gameId;
   final String title;
@@ -275,7 +279,8 @@ class _ChoiceGameScreenState extends State<ChoiceGameScreen>
       ? Future.value()
       : _reader!.read(_prompt(p), audioRef: p.item.audio);
 
-  String _prompt(PoolItem p) => p.item.json['prompt'] as String;
+  String _prompt(PoolItem p) =>
+      widget.promptOf?.call(p) ?? p.item.json['prompt'] as String;
 
   void _maybeAutoRead(PoolItem p) {
     if (!_autoRead || _reader == null || _autoReadIndex == _s.index) return;

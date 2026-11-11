@@ -141,6 +141,12 @@ abstract final class TestIds {
   static Key mgStars(String g) => Key('$g.stars');
   static Key mgDone(String g) => Key('$g.done');
   static Key mgBanner(String g) => Key('$g.banner');
+  // Tug-of-war and flash review.
+  static Key mgRope(String g) => Key('$g.rope');
+  static Key mgCard(String g) => Key('$g.card');
+  static Key mgFlip(String g) => Key('$g.flip');
+  static Key mgKnew(String g) => Key('$g.knew');
+  static Key mgNotYet(String g) => Key('$g.not_yet');
 
   // Memory match
   static const matchScreen = Key('match.screen');
