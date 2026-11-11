@@ -465,6 +465,10 @@ def drop_design_tests(out: Path) -> None:
         path = out / rel
         if path.is_file():
             path.unlink()
+    # Any other test that borrows the design helpers (imports kit_test.dart) goes too.
+    for path in sorted((out / "test").rglob("*_test.dart")):
+        if "kit/kit_test.dart" in path.read_text(encoding="utf-8"):
+            path.unlink()
     for d in (out / "test/ui/theme", out / "test/ui/kit"):
         if d.is_dir() and not any(d.iterdir()):
             d.rmdir()

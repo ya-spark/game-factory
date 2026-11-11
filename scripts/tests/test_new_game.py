@@ -275,6 +275,8 @@ class ProfileTest(unittest.TestCase):
         for rel in ("test/ui/theme/design_theme_test.dart", "test/ui/kit/kit_test.dart",
                     "test/ui/themed_screens_test.dart"):
             self.assertFalse((out / rel).exists(), rel)
+        for f in (out / "test").rglob("*_test.dart"):
+            self.assertNotIn("kit/kit_test.dart", f.read_text(), str(f))
         out2 = self.gen("g3", design="mind_9")
         self.assertTrue((out2 / "test/ui/kit/kit_test.dart").is_file())
 
