@@ -10,6 +10,7 @@ import 'tabs/challenges_tab.dart';
 import 'tabs/play_tab.dart';
 import 'tabs/shop_tab.dart';
 import 'tabs/study_tab.dart';
+import 'tabs/tab_data.dart';
 import 'test_ids.dart';
 import 'theme/design_scope.dart';
 
@@ -33,7 +34,10 @@ List<DsTab> tabsFor({required bool hasModes, required LearnMode mode}) {
 /// Main screen of a learning game: top bar (mode toggle, coins), the page of the selected tab
 /// and the bottom bar, which changes with the mode.
 class AppShell extends StatefulWidget {
-  const AppShell({super.key, this.registry});
+  const AppShell({super.key, this.registry, this.loaders});
+
+  /// Where the tabs read open items and packs (tests pass their own).
+  final TabLoaders? loaders;
 
   /// The minigames to list (default: the app's own registry).
   final MiniGameRegistry? registry;
@@ -65,9 +69,17 @@ class _AppShellState extends State<AppShell> {
         final id = tabs[_tab].id;
         final registry = widget.registry ?? appGames;
         final Widget page = switch (id) {
-          'play' => PlayTab(child: child, registry: registry),
+          'play' => PlayTab(
+            child: child,
+            registry: registry,
+            loaders: widget.loaders,
+          ),
           'challenges' => ChallengesTab(child: child),
-          'shop' => ShopTab(child: child),
+          'shop' => ShopTab(
+            child: child,
+            registry: registry,
+            loaders: widget.loaders,
+          ),
           _ => StudyTab(child: child, page: id),
         };
         return Scaffold(

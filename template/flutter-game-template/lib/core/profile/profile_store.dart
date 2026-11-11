@@ -210,6 +210,34 @@ class ProfileStore extends ChangeNotifier {
     return true;
   }
 
+  /// Free items are owned from the start; the rest once bought.
+  bool ownsItem(ShopItem i) => i.price == 0 || _data.ownedItems.contains(i.id);
+
+  /// Buys a shop item with coins. False when the coins are not enough; owned items cost nothing.
+  Future<bool> buyItem(ShopItem i) async {
+    if (ownsItem(i)) return true;
+    if (_data.coins < i.price) return false;
+    await _commit(
+      _data.copyWith(
+        coins: _data.coins - i.price,
+        ownedItems: {..._data.ownedItems, i.id},
+      ),
+    );
+    return true;
+  }
+
+  /// Uses an owned avatar or colour theme for a child. False when the child does not own it.
+  Future<bool> equipItem(String childId, ShopItem i) async {
+    if (!ownsItem(i)) return false;
+    await _updateChild(
+      childId,
+      (p) => i.kind == ShopKind.avatar
+          ? p.copyWith(avatar: i.id)
+          : p.copyWith(colorTheme: i.id),
+    );
+    return true;
+  }
+
   Future<bool> spendCoins(int n) async {
     if (_data.coins < n) return false;
     await _commit(_data.copyWith(coins: _data.coins - n));

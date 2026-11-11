@@ -67,6 +67,9 @@ class LearningService {
     return profile.children.firstWhere((c) => c.id == childId);
   }
 
+  /// Every pack ready to play (a round needs them for the topic bonus).
+  Future<List<LoadedPack>> loadedPacks() => _loaded();
+
   /// Items this child can open now.
   Future<List<PoolItem>> openItems(String childId) async {
     final child = profile.children.firstWhere((c) => c.id == childId);

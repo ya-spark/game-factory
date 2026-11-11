@@ -31,6 +31,7 @@ class SaveData {
     this.fullUnlock = false,
     this.ownedPacks = const {},
     this.unlockedGames = const {},
+    this.ownedItems = const {},
     this.downloadWifiOnly = false,
   });
 
@@ -85,6 +86,9 @@ class SaveData {
   /// Coin-locked minigames unlocked on this device (permanent, shared by all children).
   final Set<String> unlockedGames;
 
+  /// Shop items bought with coins (avatars, colour themes), shared by every child.
+  final Set<String> ownedItems;
+
   /// Parent setting: full packs never download on mobile data.
   final bool downloadWifiOnly;
 
@@ -113,12 +117,14 @@ class SaveData {
     bool? fullUnlock,
     Set<String>? ownedPacks,
     Set<String>? unlockedGames,
+    Set<String>? ownedItems,
     bool? downloadWifiOnly,
   }) => SaveData(
     profiles: profiles ?? this.profiles,
     fullUnlock: fullUnlock ?? this.fullUnlock,
     ownedPacks: ownedPacks ?? this.ownedPacks,
     unlockedGames: unlockedGames ?? this.unlockedGames,
+    ownedItems: ownedItems ?? this.ownedItems,
     downloadWifiOnly: downloadWifiOnly ?? this.downloadWifiOnly,
     coins: coins ?? this.coins,
     bestScore: bestScore ?? this.bestScore,
@@ -168,6 +174,7 @@ class SaveData {
     'fullUnlock': fullUnlock,
     'ownedPacks': ownedPacks.toList()..sort(),
     'unlockedGames': unlockedGames.toList()..sort(),
+    'ownedItems': ownedItems.toList()..sort(),
     'downloadWifiOnly': downloadWifiOnly,
   };
 
@@ -207,6 +214,7 @@ class SaveData {
     fullUnlock: j['fullUnlock'] as bool? ?? false,
     ownedPacks: {...?(j['ownedPacks'] as List?)?.cast<String>()},
     unlockedGames: {...?(j['unlockedGames'] as List?)?.cast<String>()},
+    ownedItems: {...?(j['ownedItems'] as List?)?.cast<String>()},
     downloadWifiOnly: j['downloadWifiOnly'] as bool? ?? false,
   );
 

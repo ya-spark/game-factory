@@ -35,6 +35,7 @@ class ChildProfile {
     required this.nickname,
     this.avatar = 'fox',
     this.year,
+    this.colorTheme = 'default',
     this.mode = LearnMode.game,
     this.lockedMode,
     this.progress = const ChildProgress(),
@@ -46,6 +47,9 @@ class ChildProfile {
 
   /// Year level (0 = Foundation); null until the child picks one at first launch.
   final int? year;
+
+  /// The colour theme the child picked in the shop ('default' until then).
+  final String colorTheme;
 
   /// The mode the child last used (Game on first launch). A lock overrides it.
   final LearnMode mode;
@@ -61,6 +65,7 @@ class ChildProfile {
     String? nickname,
     String? avatar,
     int? year,
+    String? colorTheme,
     LearnMode? mode,
     LearnMode? lockedMode,
     bool clearLock = false,
@@ -70,6 +75,7 @@ class ChildProfile {
     nickname: nickname ?? this.nickname,
     avatar: avatar ?? this.avatar,
     year: year ?? this.year,
+    colorTheme: colorTheme ?? this.colorTheme,
     mode: mode ?? this.mode,
     lockedMode: clearLock ? null : (lockedMode ?? this.lockedMode),
     progress: progress ?? this.progress,
@@ -80,6 +86,7 @@ class ChildProfile {
     'nickname': nickname,
     'avatar': avatar,
     'year': year,
+    'colorTheme': colorTheme,
     'mode': mode.name,
     'lockedMode': lockedMode?.name,
     'progress': progress.toJson(),
@@ -90,6 +97,7 @@ class ChildProfile {
     nickname: j['nickname'] as String? ?? 'Player',
     avatar: j['avatar'] as String? ?? 'fox',
     year: (j['year'] as num?)?.toInt(),
+    colorTheme: j['colorTheme'] as String? ?? 'default',
     mode: LearnMode.parse(j['mode']) ?? LearnMode.game,
     lockedMode: LearnMode.parse(j['lockedMode']),
     progress: ChildProgress.fromJson(
@@ -97,3 +105,30 @@ class ChildProfile {
     ),
   );
 }
+
+/// Something a child can buy with coins in the shop: an avatar (a shape, never a person) or a
+/// colour theme. [price] 0 means every child has it from the start.
+class ShopItem {
+  const ShopItem(this.id, this.kind, this.title, this.price);
+  final String id;
+  final ShopKind kind;
+  final String title;
+  final int price;
+}
+
+enum ShopKind { avatar, theme }
+
+const List<ShopItem> shopItems = [
+  ShopItem('fox', ShopKind.avatar, 'Fox', 0),
+  ShopItem('owl', ShopKind.avatar, 'Owl', 0),
+  ShopItem('bear', ShopKind.avatar, 'Bear', 0),
+  ShopItem('cat', ShopKind.avatar, 'Cat', 40),
+  ShopItem('frog', ShopKind.avatar, 'Frog', 40),
+  ShopItem('panda', ShopKind.avatar, 'Panda', 60),
+  ShopItem('rabbit', ShopKind.avatar, 'Rabbit', 60),
+  ShopItem('penguin', ShopKind.avatar, 'Penguin', 80),
+  ShopItem('default', ShopKind.theme, 'Classic', 0),
+  ShopItem('sunset', ShopKind.theme, 'Sunset', 50),
+  ShopItem('forest', ShopKind.theme, 'Forest', 50),
+  ShopItem('ocean', ShopKind.theme, 'Ocean', 50),
+];
