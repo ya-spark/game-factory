@@ -125,6 +125,7 @@ class _PlayTabState extends State<PlayTab> {
       gameId: e.game.id,
     );
     if (session == null) return;
+    int? gameScore;
     await nav.push(
       MaterialPageRoute<void>(
         builder: (_) => e.game.build(
@@ -135,6 +136,7 @@ class _PlayTabState extends State<PlayTab> {
               await s.profile.setChildProgress(child.id, sess.progress);
               if (r.coins > 0) await s.profile.addCoins(r.coins);
             },
+            onScore: (v) => gameScore = v,
             onExit: () async {
               final cur = s.profile.children.firstWhere(
                 (c) => c.id == child.id,
@@ -143,7 +145,7 @@ class _PlayTabState extends State<PlayTab> {
                 child.id,
                 cur.progress.recordScore(
                   e.game.id,
-                  session.report.correct * 10,
+                  gameScore ?? session.report.correct * 10,
                 ),
               );
               if (nav.mounted) nav.pop();

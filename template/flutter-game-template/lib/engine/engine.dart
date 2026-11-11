@@ -21,7 +21,10 @@ export 'content/validator.dart';
 
 // Issue 1C1: minigames, rewards, AI tutor hook.
 export 'ai/ai_tutor.dart';
+export 'minigames/balloon_pop/rules/balloon_pop_rules.dart';
+export 'minigames/door_runner/rules/door_runner_rules.dart';
 export 'minigames/minigame.dart';
+export 'minigames/minigame_level.dart';
 export 'minigames/quick_quiz.dart';
 export 'minigames/quiz_session.dart';
 export 'rewards/rewards.dart';

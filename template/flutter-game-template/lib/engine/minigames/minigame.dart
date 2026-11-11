@@ -25,10 +25,15 @@ class MiniGameContext {
     required this.mode,
     required this.onExit,
     this.onAnswered,
+    this.onScore,
   });
 
   /// Called after every answer: save `session.progress` and add `result.coins` to the wallet.
   final void Function(AnswerResult result, QuizSession session)? onAnswered;
+
+  /// Called once when a round ends with the game's own score; the app keeps the best one
+  /// (`ChildProgress.recordScore`). Games without a score of their own do not call it.
+  final void Function(int score)? onScore;
   final QuizSession session;
   final MiniGameMode mode;
 

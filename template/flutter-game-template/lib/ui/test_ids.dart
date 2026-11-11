@@ -123,6 +123,25 @@ abstract final class TestIds {
   static const quizSummary = Key('quiz.summary');
   static Key quizOption(int i) => Key('quiz.option.$i');
 
+  // Shared minigames (door runner, balloon pop); [g] is the game id.
+  static Key mgScreen(String g) => Key('$g.screen');
+  static Key mgIntro(String g) => Key('$g.intro');
+  static Key mgStart(String g) => Key('$g.start');
+  static Key mgExit(String g) => Key('$g.exit');
+  static Key mgPrompt(String g) => Key('$g.prompt');
+  static Key mgProgress(String g) => Key('$g.progress');
+  static Key mgScore(String g) => Key('$g.score');
+  static Key mgSpeak(String g) => Key('$g.speak');
+  static Key mgTimer(String g) => Key('$g.timer');
+  static Key mgField(String g) => Key('$g.field');
+  static Key mgChoice(String g, int i) => Key('$g.choice.$i');
+  static Key mgFeedback(String g) => Key('$g.feedback');
+  static Key mgNext(String g) => Key('$g.next');
+  static Key mgResults(String g) => Key('$g.results');
+  static Key mgStars(String g) => Key('$g.stars');
+  static Key mgDone(String g) => Key('$g.done');
+  static Key mgBanner(String g) => Key('$g.banner');
+
   // Minigame menu
   static Key miniGameCard(String id) => Key('minigame.card.$id');
   static Key miniGameUnlock(String id) => Key('minigame.unlock.$id');

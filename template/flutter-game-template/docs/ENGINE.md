@@ -137,3 +137,19 @@ engine differs from its lock.
   `masteryOf` (rule from `design/tokens.json`), `ChildProgress.topicToRevise` (for "try next").
 - Shop: `shopItems` (avatars and colour themes, coins), `ProfileStore.buyItem` / `equipItem`.
   The chosen colour theme is stored per child; applying it to the theme comes with 2B2.
+
+## Shared minigames: Door runner and Balloon pop (issue M1)
+
+- Rules (pure Dart): `lib/engine/minigames/door_runner/rules/` and `balloon_pop/rules/`, with the
+  shared `MiniGameLevel` and `scoreForAnswer` in `minigame_level.dart`. The random source is injected.
+- Views: `lib/ui/minigames/`. `ChoiceGameScreen` is the shared start, play and results screen (scoring
+  through `QuizSession`, timer, read aloud, banners on the start and results screens only); each game only
+  supplies its options and draws its field (doors, balloons) in code with `ThemeTokens` colours.
+- Door runner plays `mcq`; Balloon pop plays `mcq` and `numeric` (the answer plus nearby numbers as
+  balloons). Both are Game mode only, free, `minPool` 4, and are in `appGames`. Champion uses
+  `doorRunnerGameFor(harder: true)` / `balloonPopGameFor(harder: true)`.
+- Level comes from the items' year: Foundation to Year 2 is younger (no timer, no failing, a wrong pick is
+  greyed out and the child tries another, so no first-pass star after a wrong try); Year 3 and up is older
+  (gentle timer, a miss or time out shows the answer and moves on, streak bonus).
+- `MiniGameContext.onScore` reports the game's own score; the Play tab stores the best one per game.
+- Not yet: item pictures (`image`) are not shown in these games, since the UI has no pack image loader.
