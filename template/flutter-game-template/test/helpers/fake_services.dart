@@ -24,6 +24,8 @@ Future<Services> buildFakeServices({
   FakeShareService? share,
   FakeAudioService? audio,
   bool tips = false,
+  bool contentEnabled =
+      false, // true: a learning game (child profiles, the app shell)
   ParentGateGuard? parentGate,
   SaveService? profileSaves,
   String?
@@ -34,6 +36,12 @@ Future<Services> buildFakeServices({
   var yaml = File('app.config.yaml').readAsStringSync();
   if (audience != null) {
     yaml = yaml.replaceFirst('audience: adult', 'audience: $audience');
+  }
+  if (contentEnabled) {
+    yaml = yaml.replaceFirst(
+      RegExp(r'content:\n  enabled: false'),
+      'content:\n  enabled: true',
+    );
   }
   final config = AppConfig.fromYamlString(yaml);
   final catalog = ProductCatalog.fromYamlString(

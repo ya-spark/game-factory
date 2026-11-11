@@ -155,12 +155,12 @@ class DsTopBar extends StatelessWidget {
                   style: t.styles['title']!,
                 ),
               ),
-            )
-          else
-            const Spacer(),
+            ),
           if (modeToggle != null || coins != null)
             // Wraps to a second line at large text instead of overflowing.
             Flexible(
+              // Without a title the toggle and coins take the whole row, aligned to the end.
+              fit: title == null ? FlexFit.tight : FlexFit.loose,
               child: Padding(
                 padding: EdgeInsets.only(left: t.sp('sm')),
                 child: Wrap(

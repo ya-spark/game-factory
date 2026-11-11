@@ -2,11 +2,11 @@ import 'package:flutter/material.dart';
 
 import '../test_ids.dart';
 import '../theme/app_theme.dart';
+import '../../engine/content/progress.dart' show Mastery;
 import 'ds_buttons.dart';
 
-/// Mastery of a topic, shown by [DsMasteryChip] as a coloured dot and a word.
-/// The calculation is issue 02B; this is only the look.
-enum Mastery { learning, gettingThere, mastered }
+// Mastery (the engine's enum and rule) is shown by [DsMasteryChip] as a coloured dot and a word.
+export '../../engine/content/progress.dart' show Mastery;
 
 /// A rounded chip: optional leading widget and a label. Used by every chip below.
 class _Pill extends StatelessWidget {

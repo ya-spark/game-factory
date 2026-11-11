@@ -39,6 +39,30 @@ void main() {
         await tester.pump();
         await tester.pump();
       }
+      if (find.byKey(TestIds.shell).evaluate().isNotEmpty) {
+        // A learning game opens the app shell: visit every tab of every mode.
+        expect(tester.takeException(), isNull);
+        for (final m in [TestIds.modeGame, TestIds.modeStudy]) {
+          if (find.byKey(m).evaluate().isEmpty) continue;
+          await tester.tap(find.byKey(m));
+          await tester.pump();
+          for (final tab in [
+            'play',
+            'challenges',
+            'shop',
+            'learn',
+            'progress',
+            'revise',
+          ]) {
+            final f = find.byKey(TestIds.dsTab(TestIds.shellBottomBar, tab));
+            if (f.evaluate().isEmpty) continue;
+            await tester.tap(f);
+            await tester.pumpAndSettle();
+            expect(tester.takeException(), isNull, reason: '$id $tab');
+          }
+        }
+        return;
+      }
       expect(find.byKey(TestIds.homeShop), findsOneWidget);
       expect(find.byKey(TestIds.homeChallenges), findsOneWidget);
       expect(tester.takeException(), isNull);

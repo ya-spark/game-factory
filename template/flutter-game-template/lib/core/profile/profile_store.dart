@@ -351,6 +351,15 @@ class ProfileStore extends ChangeNotifier {
   Future<void> setChildYear(String id, int year) =>
       _updateChild(id, (p) => p.copyWith(year: year.clamp(0, 12)));
 
+  /// Switches the child to [mode] and remembers it. False (nothing changes) while a parent
+  /// has locked the child to a mode.
+  Future<bool> setChildMode(String id, LearnMode mode) async {
+    final c = _data.profiles.where((p) => p.id == id).firstOrNull;
+    if (c == null || c.lockedMode != null) return false;
+    await _updateChild(id, (p) => p.copyWith(mode: mode));
+    return true;
+  }
+
   /// Locks a child to Game or Study mode; null lifts the lock.
   Future<void> setChildLockedMode(String id, LearnMode? mode) => _updateChild(
     id,

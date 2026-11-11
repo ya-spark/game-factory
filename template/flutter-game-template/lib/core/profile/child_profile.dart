@@ -35,6 +35,7 @@ class ChildProfile {
     required this.nickname,
     this.avatar = 'fox',
     this.year,
+    this.mode = LearnMode.game,
     this.lockedMode,
     this.progress = const ChildProgress(),
   });
@@ -46,6 +47,12 @@ class ChildProfile {
   /// Year level (0 = Foundation); null until the child picks one at first launch.
   final int? year;
 
+  /// The mode the child last used (Game on first launch). A lock overrides it.
+  final LearnMode mode;
+
+  /// The mode shown now: the lock when set, else the last used one.
+  LearnMode get effectiveMode => lockedMode ?? mode;
+
   /// Null: the child may switch. Otherwise only this mode is offered.
   final LearnMode? lockedMode;
   final ChildProgress progress;
@@ -54,6 +61,7 @@ class ChildProfile {
     String? nickname,
     String? avatar,
     int? year,
+    LearnMode? mode,
     LearnMode? lockedMode,
     bool clearLock = false,
     ChildProgress? progress,
@@ -62,6 +70,7 @@ class ChildProfile {
     nickname: nickname ?? this.nickname,
     avatar: avatar ?? this.avatar,
     year: year ?? this.year,
+    mode: mode ?? this.mode,
     lockedMode: clearLock ? null : (lockedMode ?? this.lockedMode),
     progress: progress ?? this.progress,
   );
@@ -71,6 +80,7 @@ class ChildProfile {
     'nickname': nickname,
     'avatar': avatar,
     'year': year,
+    'mode': mode.name,
     'lockedMode': lockedMode?.name,
     'progress': progress.toJson(),
   };
@@ -80,6 +90,7 @@ class ChildProfile {
     nickname: j['nickname'] as String? ?? 'Player',
     avatar: j['avatar'] as String? ?? 'fox',
     year: (j['year'] as num?)?.toInt(),
+    mode: LearnMode.parse(j['mode']) ?? LearnMode.game,
     lockedMode: LearnMode.parse(j['lockedMode']),
     progress: ChildProgress.fromJson(
       (j['progress'] as Map?)?.cast<String, Object?>(),

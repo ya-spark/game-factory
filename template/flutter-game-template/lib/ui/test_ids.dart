@@ -80,7 +80,6 @@ abstract final class TestIds {
   static Key dailyDay(int i) => Key('daily.day.$i');
 
   // Challenges / achievements
-  static Key challengeClaim(String id) => Key('challenge.claim.$id');
   static Key challengeTile(int i) => Key('challenge.tile.$i');
   static Key achievementTile(String id) => Key('achievement.$id');
   static Key achievementShare(String id) => Key('achievement.share.$id');
@@ -152,6 +151,29 @@ abstract final class TestIds {
   static Key dsDialog(String id) => Key('ds.dialog.$id');
   static Key dsDialogAction(String id, String action) =>
       Key('ds.dialog.$id.$action');
+
+  // Mode system and app shell (issue 2B1)
+  static const modeToggle = Key('mode.toggle');
+  static const modeGame = Key('mode.game');
+  static const modeStudy = Key('mode.study');
+  static const modeLock = Key('mode.lock');
+  static const shell = Key('shell.screen');
+  static const shellBottomBar =
+      'shell'; // id of the bottom bar: `dsTab('shell', tabId)`
+  static const playTab = Key('tab.play');
+  static const challengesTab = Key('tab.challenges');
+  static const shopTab = Key('tab.shop');
+  static const learnTab = Key('tab.learn');
+  static const playTryNext = Key('play.tryNext');
+  static const playDaily = Key('play.daily');
+  static const playHero = Key('play.hero');
+  static Key playGame(String id) => Key('play.game.$id');
+  static Key challengeClaim(String id) => Key('challenge.claim.$id');
+  static Key challengeGoal(String id) => Key('challenge.goal.$id');
+  static Key shopAvatar(String id) => Key('shop.avatar.$id');
+  static Key shopTheme(String id) => Key('shop.theme.$id');
+  static Key shopGame(String id) => Key('shop.game.$id');
+  static const shopParentArea = Key('shop.parentArea');
 
   // Theme gallery (debug only)
   static const themeGallery = Key('gallery.theme');

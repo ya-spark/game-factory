@@ -171,6 +171,16 @@ class AppTokens {
   final Map<DesignMode, ModeTokens> modes;
   final Map<InterfaceLevel, LevelTokens> levels;
 
+  /// The interface level for a year level, or null when the app has no levels (Champion, Mind).
+  /// Scout: Foundation to Year 2 younger, Years 3 to 6 older. Ranger: Years 7 to 8 younger,
+  /// Years 9 to 10 older. No year yet: younger.
+  InterfaceLevel? levelForYear(int? year) {
+    if (levels.isEmpty) return null;
+    if (year == null) return InterfaceLevel.younger;
+    final olderFrom = appId == 'craft_preteen' ? 9 : 3;
+    return year >= olderFrom ? InterfaceLevel.older : InterfaceLevel.younger;
+  }
+
   /// True for Nunito, which ships as one variable file.
   bool get variableFont => fontFiles.length == 1;
 
