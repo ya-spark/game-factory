@@ -20,6 +20,17 @@ and the item selector are described in `CONTENT_FORMAT.md`.
   Full Unlock rules from 1B).
 - Quick quiz (`lib/ui/quick_quiz_screen.dart`, `quickQuizGame`): plain multiple choice and true or
   false, Game and Study mode, shows the explanation after every answer, always free.
+- Memory match (`memoryMatchGame`, view `lib/ui/minigames/memory_match_screen.dart`, rules
+  `lib/engine/minigames/memory_match/rules/`): flip cards to find pairs; one `pairs` item is one board;
+  needs 3 open `pairs` items. `MatchLevel` (younger: up to 3 pairs, no timer, never fails; older: up to 6
+  pairs, gentle clock; hard: up to 8 pairs, tighter limits, for Craft Champion). Pass `hard: true` to the screen.
+- Sort into bins (`sortBinsGame`, view `lib/ui/minigames/sort_bins_screen.dart`, rules
+  `lib/engine/minigames/sort_bins/rules/`): drag (or tap a bin) to sort items; one `category` item is one round;
+  needs 3 open `category` items. `SortLevel` (younger: 2 bins, no timer, never fails; older: 3 bins and a
+  gentle clock; hard: 4 bins). A wrong drop keeps the item.
+  Both are not in the template's `appGames`: a Craft app adds `RegistryEntry(memoryMatchGame)` / `RegistryEntry(sortBinsGame)`
+  itself. Both score through `QuizSession` (one answer per board or round, stars on first pass). Test IDs:
+  `match.*` and `sort.*` in `test_ids.dart`. Level comes from the theme's `InterfaceLevel` unless `level:` is given.
 
 Adding a minigame: create a `MiniGame`, add a `RegistryEntry` to the app's registry, build its screen
 from `ctx.session`, call `ctx.onAnswered` after each answer. Never score outside `QuizSession`.

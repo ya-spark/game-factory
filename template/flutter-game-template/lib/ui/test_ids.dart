@@ -142,6 +142,33 @@ abstract final class TestIds {
   static Key mgDone(String g) => Key('$g.done');
   static Key mgBanner(String g) => Key('$g.banner');
 
+  // Memory match
+  static const matchScreen = Key('match.screen');
+  static const matchExit = Key('match.exit');
+  static const matchProgress = Key('match.progress');
+  static const matchPrompt = Key('match.prompt');
+  static const matchSpeak = Key('match.speak');
+  static const matchTimer = Key('match.timer');
+  static const matchNext = Key('match.next');
+  static const matchFeedback = Key('match.feedback');
+  static const matchSummary = Key('match.summary');
+  static const matchStars = Key('match.stars');
+  static Key matchCard(int i) => Key('match.card.$i');
+
+  // Sort into bins
+  static const sortScreen = Key('sort.screen');
+  static const sortExit = Key('sort.exit');
+  static const sortProgress = Key('sort.progress');
+  static const sortPrompt = Key('sort.prompt');
+  static const sortSpeak = Key('sort.speak');
+  static const sortTimer = Key('sort.timer');
+  static const sortItem = Key('sort.item');
+  static const sortNext = Key('sort.next');
+  static const sortFeedback = Key('sort.feedback');
+  static const sortSummary = Key('sort.summary');
+  static const sortStars = Key('sort.stars');
+  static Key sortBin(int i) => Key('sort.bin.$i');
+
   // Minigame menu
   static Key miniGameCard(String id) => Key('minigame.card.$id');
   static Key miniGameUnlock(String id) => Key('minigame.unlock.$id');
