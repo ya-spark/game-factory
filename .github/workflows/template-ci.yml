@@ -1,15 +1,25 @@
 name: template-ci
 
 on:
-  # PAUSED (owner, 2026-11-11): "disable CI for now, finish the coding first". It runs only when started by hand
-  # (Actions, template-ci, Run workflow). To switch push and pull-request runs back on, restore the two
-  # blocks below (docs-only changes are skipped: markdown at the root, docs/, store/).
-  #
-  #   pull_request:
-  #     paths-ignore: ['*.md', 'docs/**', 'template/*/*.md', 'template/*/docs/**', 'template/*/store/**']
-  #   push:
-  #     branches: [main]
-  #     paths-ignore: ['*.md', 'docs/**', 'template/*/*.md', 'template/*/docs/**', 'template/*/store/**']
+  # CI is controlled by the repository variable CI_ENABLED (Settings, Secrets and variables, Actions, Variables):
+  # off (not 'true') = pushes and pull requests run nothing; on = every push runs all steps. A run started
+  # by hand (Run workflow) always runs. Currently OFF (owner, 2026-11-11: finish the coding first, same rule as
+  # the generated game repos). Docs-only changes (markdown at the root, docs/, store/) never run CI.
+  pull_request:
+    paths-ignore:
+      - '*.md'
+      - 'docs/**'
+      - 'template/*/*.md'
+      - 'template/*/docs/**'
+      - 'template/*/store/**'
+  push:
+    branches: [main]
+    paths-ignore:
+      - '*.md'
+      - 'docs/**'
+      - 'template/*/*.md'
+      - 'template/*/docs/**'
+      - 'template/*/store/**'
   workflow_dispatch:
 
 permissions:
@@ -68,6 +78,7 @@ jobs:
   # Proves the generator output is a working project: unit tests, then generate a sample game
   # and run the same gates (including a debug APK build) inside it.
   generator:
+    if: ${{ vars.CI_ENABLED == 'true' || github.event_name == 'workflow_dispatch' }}
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
