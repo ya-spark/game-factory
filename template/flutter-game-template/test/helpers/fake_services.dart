@@ -50,6 +50,9 @@ Future<Services> buildFakeServices({
   final profile = ProfileStore(
     saves: profileSaves ?? MemorySaveService(),
     retention: config.retention,
+    cappedRewards: config.content.enabled && config.rewards.starsEnabled
+        ? config.rewards
+        : null,
     clock: clock,
   );
   await profile.init();

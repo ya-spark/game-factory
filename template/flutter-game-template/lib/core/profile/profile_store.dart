@@ -30,8 +30,16 @@ class GameSummary {
 /// Holds the player's [SaveData], applies the retention engines and persists every change.
 /// UI listens to it; game rules never touch it.
 class ProfileStore extends ChangeNotifier {
-  ProfileStore({required this._saves, required this.retention, Clock? clock})
-    : _clock = clock ?? DateTime.now;
+  ProfileStore({
+    required this._saves,
+    required this.retention,
+    this.cappedRewards,
+    Clock? clock,
+  }) : _clock = clock ?? DateTime.now;
+
+  /// Set in the Craft apps: coins from the daily reward and the daily challenges count against
+  /// the active child's weekly coin cap (`RewardsEngine.grantCapped`). Null: paid in full.
+  final RewardsConfig? cappedRewards;
 
   final SaveService _saves;
   final RetentionConfig retention;
@@ -106,10 +114,42 @@ class ProfileStore extends ChangeNotifier {
     if (!retention.dailyReward) return null;
     final c = DailyRewardEngine.claim(_data.dailyReward, today);
     if (c == null) return null;
+    final paid = _capped(c.coins);
     await _commit(
-      _data.copyWith(dailyReward: c.state, coins: _data.coins + c.coins),
+      _withCappedChild(
+        _data.copyWith(dailyReward: c.state, coins: _data.coins + paid.coins),
+        paid.rewards,
+      ),
     );
-    return c.coins;
+    return paid.coins;
+  }
+
+  /// [wanted] coins cut to the active child's weekly cap, when the cap applies.
+  ({int coins, RewardState? rewards}) _capped(int wanted) {
+    final cfg = cappedRewards;
+    final child = activeChild;
+    if (cfg == null || child == null) return (coins: wanted, rewards: null);
+    final g = RewardsEngine.grantCapped(
+      child.progress.rewards,
+      wanted,
+      today,
+      cfg,
+    );
+    return (coins: g.coins, rewards: g.state);
+  }
+
+  SaveData _withCappedChild(SaveData d, RewardState? rewards) {
+    final id = _activeId;
+    if (rewards == null || id == null) return d;
+    return d.copyWith(
+      profiles: [
+        for (final p in d.profiles)
+          if (p.id == id)
+            p.copyWith(progress: p.progress.copyWith(rewards: rewards))
+          else
+            p,
+      ],
+    );
   }
 
   // ---- streak -------------------------------------------------------------
@@ -124,10 +164,14 @@ class ProfileStore extends ChangeNotifier {
   Future<int?> claimChallenge(String id) async {
     final r = DailyChallengeEngine.claim(_data.challenges, id);
     if (r == null) return null;
+    final paid = _capped(r.coins);
     await _commit(
-      _data.copyWith(challenges: r.state, coins: _data.coins + r.coins),
+      _withCappedChild(
+        _data.copyWith(challenges: r.state, coins: _data.coins + paid.coins),
+        paid.rewards,
+      ),
     );
-    return r.coins;
+    return paid.coins;
   }
 
   // ---- gameplay -----------------------------------------------------------

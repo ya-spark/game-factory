@@ -36,9 +36,9 @@ Per child, stored in `ChildProgress.rewards`.
   (60) per child per week (weeks start on Monday). Events: finishing a topic (`topic`), a streak
   milestone (`streak_milestones`), a daily goal (`daily_goal_items` passes) and a weekly goal
   (`weekly_goal_items` passes). Each milestone pays once; a payout is cut to what is left of the cap
-  and is not retried later. `RewardsEngine.grantCapped` cuts coins from any other earner to the same cap. Not done yet:
-  routing the template's daily reward and challenges through it in Craft apps (they still pay
-  uncapped and per device); Mind hubs keep them as uncapped coin earners. Learning content is never bought with coins.
+  and is not retried later. `RewardsEngine.grantCapped` cuts coins from any other earner to the same cap. In Craft apps
+  (`content.enabled` and stars on) `ProfileStore` routes the daily reward and the daily challenges
+  through it, against the active child's cap (issue 2B1); Mind hubs keep them as uncapped coin earners. Learning content is never bought with coins.
 
 ## Access (`minigames:` in `app.config.yaml`)
 
@@ -124,3 +124,16 @@ engine differs from its lock.
    game's `main` and moves the pin. A game that fails its checks is left alone and reported.
 5. `python3 game-factory/scripts/sync_engine.py --check apps/game-<id> ...` lists games behind the
    template or edited locally (exit 1). Run it before and after.
+
+## Modes, shell and card data (issue 2B1)
+
+- Each child has a `mode` (Game by default, remembered) and a parent `lockedMode`; `ProfileStore.setChildMode`
+  refuses while locked. The theme follows the active child's mode and level (`AppTokens.levelForYear`).
+- `lib/ui/app_shell.dart` is the home of a learning game with a design: top bar (mode toggle, coins),
+  tabs by mode (Game: Play, Challenges, Shop; Study: Learn, Progress, Revise; Mind: Games, Challenges, Shop).
+  Study pages are a placeholder until 2B2. A learning game without a design keeps `HomeScreen`.
+- `lib/ui/game_registry.dart` (`appGames`) is the app's minigame list: add each game there.
+- Card data: `TopicResult.accuracy`, `ChildProgress.games` (passed and best score per game),
+  `masteryOf` (rule from `design/tokens.json`), `ChildProgress.topicToRevise` (for "try next").
+- Shop: `shopItems` (avatars and colour themes, coins), `ProfileStore.buyItem` / `equipItem`.
+  The chosen colour theme is stored per child; applying it to the theme comes with 2B2.
