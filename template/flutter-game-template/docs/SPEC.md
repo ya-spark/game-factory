@@ -91,6 +91,13 @@ Menu, game, shop, settings, daily reward, ... with test IDs (`lib/ui/test_ids.da
 - Third-party: `url_launcher` 6.3.3 (exact pin), only in `lib/core/links/url_external_link_service.dart`,
   to open Play Store pages; the Android manifest `<queries>` lists the `market` and `https` VIEW intents.
 
+- Modes and Study screens (learning games with a design): Game (Play, Challenges, Shop) and Study (Learn, Progress,
+  Revise) per child, remembered, parent lock behind the gate; the Mind hubs have no modes. Test IDs: `tab.learn`,
+  `tab.progress`, `tab.revise`, `learn.goal`, `progress.topic.<key>`, `revise.topic.<key>`.
+  Mastery: Mastered at 90% passed and 80% correct, Learning below 40% passed. Accuracy shows for Ranger and Champion,
+  never for Scout. Pack cards show no price. Data (in the child's save, `ChildProgress`): `topics` (passed, answers,
+  correct), `items` (attempts, passes, last result: the "revise" list), `games` (passed, best score), `rewards`.
+
 ## 8. Art and audio
 Style, palette, asset list (every asset must be in `assets/LICENSES.md`).
 Look (issue 02A): when `app.config.yaml` has `theme.design`, the app uses the design system in

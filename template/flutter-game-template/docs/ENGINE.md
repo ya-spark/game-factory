@@ -131,7 +131,7 @@ engine differs from its lock.
   refuses while locked. The theme follows the active child's mode and level (`AppTokens.levelForYear`).
 - `lib/ui/app_shell.dart` is the home of a learning game with a design: top bar (mode toggle, coins),
   tabs by mode (Game: Play, Challenges, Shop; Study: Learn, Progress, Revise; Mind: Games, Challenges, Shop).
-  Study pages are a placeholder until 2B2. A learning game without a design keeps `HomeScreen`.
+  Study pages (Learn, Progress, Revise) are in `lib/ui/tabs/study_tab.dart` (2B2). A learning game without a design keeps `HomeScreen`.
 - `lib/ui/game_registry.dart` (`appGames`) is the app's minigame list: add each game there.
 - Card data: `TopicResult.accuracy`, `ChildProgress.games` (passed and best score per game),
   `masteryOf` (rule from `design/tokens.json`), `ChildProgress.topicToRevise` (for "try next").

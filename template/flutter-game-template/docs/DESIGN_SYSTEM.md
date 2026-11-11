@@ -86,6 +86,26 @@ unchanged.
 Settings, in a debug build of an app that has a design: "Theme gallery (debug)". It shows every shared widget in
 every mode and level of the app, with switches for large text and reduce motion, to review on a device.
 
+## Modes, screens and mastery (issue 2B2)
+
+- **Modes.** Craft apps have Game and Study (the top-bar toggle, `ModeToggle`); a parent can lock a child to one.
+  The bottom bar follows the mode: Game = Play, Challenges, Shop; Study = Learn, Progress, Revise. The Mind hubs have
+  no modes: Games, Challenges, Shop, and no study content.
+- **Study screens** (`lib/ui/tabs/study_tab.dart`), all untimed; practice uses the Quick quiz in study mode with the
+  explanation after each answer (no coins):
+  - *Learn*: today's goal card, a "Try next" card (the topic with most items to revise, else the first topic), the
+    topics by year as `DsTopicCard`s (progress, mastery chip, "to revise" chip, accuracy), and the extra packs the
+    parent has downloaded as `DsPackCard`s (no price; the price only shows behind the parent gate).
+  - *Progress*: per topic items passed, still to pass, next release, and the star earned for the topic.
+  - *Revise*: the "revise mistakes" list, grouped by topic; a tap practises just those items.
+- **Mastery** (rule in `design/tokens.json`, `mastery`, code `masteryOf`): Mastered at 90% passed and 80% correct,
+  Learning below 40% passed, else Getting there. Shown as a coloured dot and a word.
+- **Accuracy** ("74% correct") shows for Ranger and Champion only (`AppTokens.showsAccuracy`); Scout shows stars, bars
+  and chips with no percentages.
+- **Mind home**: the same page as Play (`PlayTab`) with the hero, a "Continue" card and the game tiles (best score,
+  coin price on locked games); no mode toggle.
+- Screens with no Figma frame (Progress, Revise, parent area, settings) reuse the same widgets and tokens.
+
 ## Art rules
 
 - **No human figures, faces or silhouettes** in any art; characters are friendly shapes. Never add a person icon

@@ -181,6 +181,9 @@ class AppTokens {
     return year >= olderFrom ? InterfaceLevel.older : InterfaceLevel.younger;
   }
 
+  /// Accuracy shows in every app except Scout, which uses stars and bars.
+  bool get showsAccuracy => appId != 'craft_lowteen';
+
   /// True for Nunito, which ships as one variable file.
   bool get variableFont => fontFiles.length == 1;
 

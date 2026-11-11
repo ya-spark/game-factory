@@ -164,6 +164,11 @@ abstract final class TestIds {
   static const challengesTab = Key('tab.challenges');
   static const shopTab = Key('tab.shop');
   static const learnTab = Key('tab.learn');
+  static const progressTab = Key('tab.progress');
+  static const reviseTab = Key('tab.revise');
+  static const learnGoal = Key('learn.goal');
+  static Key progressTopic(String key) => Key('progress.topic.$key');
+  static Key reviseTopic(String key) => Key('revise.topic.$key');
   static const playTryNext = Key('play.tryNext');
   static const playDaily = Key('play.daily');
   static const playHero = Key('play.hero');

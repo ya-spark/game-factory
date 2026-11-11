@@ -80,7 +80,12 @@ class _AppShellState extends State<AppShell> {
             registry: registry,
             loaders: widget.loaders,
           ),
-          _ => StudyTab(child: child, page: id),
+          _ => StudyTab(
+            key: ValueKey(id),
+            child: child,
+            page: id,
+            loaders: widget.loaders,
+          ),
         };
         return Scaffold(
           key: TestIds.shell,

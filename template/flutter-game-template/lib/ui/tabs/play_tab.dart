@@ -181,6 +181,8 @@ class _PlayTabState extends State<PlayTab> {
     final s = ServicesScope.of(context);
     final design = DesignScope.bundleOf(context);
     final child = widget.child;
+    // The Mind hubs have no modes: a "Continue" card and tiles with the best score.
+    final mind = design != null && design.app.modes.length <= 1;
     return FutureBuilder<List<PoolItem>>(
       future: _open,
       builder: (context, snap) {
@@ -196,7 +198,7 @@ class _PlayTabState extends State<PlayTab> {
             if (!e.offer.locked) e,
         ];
         final reviseKey = child.progress.topicToRevise(pool: open);
-        final tryNext = playable.isEmpty
+        final tryNext = playable.isEmpty || mind
             ? null
             : (reviseKey == null ? null : splitTopicKey(reviseKey));
         final daily = playable.isEmpty
@@ -212,7 +214,7 @@ class _PlayTabState extends State<PlayTab> {
               sceneAsset: design?.sceneFor(DesignMode.game) ?? '',
               mascotAsset: design?.mascotFor(DesignMode.game),
               title: 'Hi, ${child.nickname}!',
-              subtitle: 'Ready to play?',
+              subtitle: mind ? 'Pick a game' : 'Ready to play?',
               chips: [
                 if (s.config.rewards.starsEnabled)
                   DsStatChip(
@@ -239,7 +241,7 @@ class _PlayTabState extends State<PlayTab> {
                   if (playable.isNotEmpty)
                     DsSuggestedCard(
                       id: 'next',
-                      eyebrow: 'Try next',
+                      eyebrow: mind ? 'Continue' : 'Try next',
                       title: tryNext != null
                           ? tryNext.topic
                           : playable.first.game.title,
@@ -325,7 +327,11 @@ class _PlayTabState extends State<PlayTab> {
         progress: locked
             ? null
             : ((stat?.passed ?? 0) / max(e.pool, 1)).clamp(0, 1).toDouble(),
-        note: locked ? null : '${e.pool} questions open',
+        note: locked
+            ? null
+            : (stat != null && stat.best > 0
+                  ? 'Best ${stat.best}'
+                  : '${e.pool} questions open'),
         lockedPrice: locked ? e.offer.price : null,
         onTap: () => _play(e),
       ),
