@@ -17,6 +17,7 @@ void main() {
       tester.view.devicePixelRatio = 1;
       addTearDown(tester.view.reset);
       final s = await buildFakeServices();
+      await s.profile.addChild('Mia', year: 3);
       await tester.pumpWidget(
         DefaultAssetBundle(
           bundle: FileDesignBundle(),
@@ -30,12 +31,12 @@ void main() {
         ),
       );
       await tester.pump();
-      // A content-enabled (Craft) game starts at the player setup: make a player, pick a year.
-      if (find.byKey(TestIds.pickerNickname).evaluate().isNotEmpty) {
-        await tester.enterText(find.byKey(TestIds.pickerNickname), 'Mia');
-        await tester.tap(find.byKey(TestIds.pickerYear(3)));
-        await tester.pump();
-        await tester.tap(find.byKey(TestIds.pickerSave));
+      // A content-enabled (Craft) game starts at the player picker: choose the player.
+      final childChip = find.byKey(
+        TestIds.pickerChild(s.profile.children.first.id),
+      );
+      if (childChip.evaluate().isNotEmpty) {
+        await tester.tap(childChip);
         await tester.pump();
         await tester.pump();
       }
