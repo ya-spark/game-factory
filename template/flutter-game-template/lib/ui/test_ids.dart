@@ -148,6 +148,19 @@ abstract final class TestIds {
   static Key mgKnew(String g) => Key('$g.knew');
   static Key mgNotYet(String g) => Key('$g.not_yet');
 
+  // Equation builder, Cloze fix, Word grid (M4b)
+  static Key mgTile(String g, int i) => Key('$g.tile.$i');
+  static Key mgSlot(String g, int i) => Key('$g.slot.$i');
+  static Key mgCheck(String g) => Key('$g.check');
+  static Key mgClear(String g) => Key('$g.clear');
+  static Key mgUndo(String g) => Key('$g.undo');
+  static Key mgGiveUp(String g) => Key('$g.give_up');
+  static Key mgStartAlt(String g) => Key('$g.start_alt');
+  static Key mgCell(String g, int r, int c) => Key('$g.cell.$r.$c');
+  static Key mgClue(String g, int i) => Key('$g.clue.$i');
+  static Key mgLetter(String g, int i) => Key('$g.letter.$i');
+  static Key mgGrid(String g) => Key('$g.grid');
+
   // Memory match
   static const matchScreen = Key('match.screen');
   static const matchExit = Key('match.exit');

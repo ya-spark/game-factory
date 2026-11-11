@@ -1,5 +1,7 @@
 # Learning engine: minigames, rewards and access (issue 1C1)
 
+> Also see "Shared minigames: Equation builder, Cloze fix, Word grid (issue M4b)" at the end.
+
 Code lives in `lib/engine/` (pure Dart, no Flutter except the screens in `lib/ui/`). Content, release
 and the item selector are described in `CONTENT_FORMAT.md`.
 
@@ -178,3 +180,28 @@ engine differs from its lock.
   (gentle timer, a miss or time out shows the answer and moves on, streak bonus).
 - `MiniGameContext.onScore` reports the game's own score; the Play tab stores the best one per game.
 - Not yet: item pictures (`image`) are not shown in these games, since the UI has no pack image loader.
+
+## Shared minigames: Equation builder, Cloze fix, Word grid (issue M4b)
+
+All three are free with ads, play in Game and Study mode, appear only when `minPool` (4) items of their
+types are open, and use `...For(harder: true)` for Champion. Rules are pure Dart under
+`lib/engine/minigames/<game>/rules/`; views are in `lib/ui/minigames/`. Study mode has no timer and lets
+the child retry after a wrong try.
+
+- **Equation builder** (`equationBuilderGame`, `equation_builder_screen.dart`): plays `numeric` items
+  whose answer is a whole number from 0 to 999. The game builds the tiles from a known solution plus
+  distractors (younger: + and −; older: adds ×; harder: adds ÷). `evaluateTokens` computes with the usual
+  order; `equationHitsTarget` accepts **any** expression that equals the target. It reuses
+  `ChoiceGameScreen` (timer, score, results), with the equation field as the play field.
+- **Cloze fix** (`clozeFixGame`, `cloze_fix_screen.dart`): plays `cloze` items (first gap blanked, other
+  gaps filled, wrong words borrowed from other items' gaps) and `mcq` items whose topic or id contains
+  `grammar` or `punctuation` (choose the corrected sentence). `clozeFixPlays` is the filter.
+- **Word grid** (`wordGridGame`, `word_grid_screen.dart`): builds a word search or a crossword from the
+  `word` items of the round (`answer` 3 to 10 letters only; spelling is matched exactly as listed, in any
+  case). The child picks which on the start screen. Word search: tap the first and last letter, or drag;
+  seeded placement, overlaps only on equal letters. Crossword: tap a clue, then its letters in order.
+  The grid always holds a prefix of the round's items, so answers are recorded in round order when the
+  round ends (found cleanly: right; not found or needed retries: not a first pass).
+- Test IDs: `mgTile`, `mgSlot`, `mgCheck`, `mgClear`, `mgUndo`, `mgGiveUp`, `mgStartAlt`, `mgCell`,
+  `mgClue`, `mgLetter`, `mgGrid` in `lib/ui/test_ids.dart`.
+- Tests: `test/engine/minigames/m4b_rules_test.dart`, `test/ui/minigames/m4b_screens_test.dart`.

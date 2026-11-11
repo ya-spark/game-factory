@@ -1,9 +1,12 @@
 import '../engine/engine.dart';
 import 'minigames/balloon_pop_screen.dart';
+import 'minigames/cloze_fix_screen.dart';
 import 'minigames/door_runner_screen.dart';
+import 'minigames/equation_builder_screen.dart';
 import 'minigames/flash_review_screen.dart';
 import 'minigames/true_false_screen.dart';
 import 'minigames/tug_of_war_screen.dart';
+import 'minigames/word_grid_screen.dart';
 import 'quick_quiz_screen.dart';
 
 /// The minigames of this app. A generated game adds its own games here (one `RegistryEntry` per
@@ -19,4 +22,9 @@ final MiniGameRegistry appGames = MiniGameRegistry([
   RegistryEntry(tugOfWarGame),
   RegistryEntry(trueFalseGame),
   RegistryEntry(flashReviewGame),
+  // Equation builder, Cloze fix and Word grid are free with ads, Game and Study mode. They
+  // appear only when enough items of their types are open. Champion uses `...For(harder: true)`.
+  RegistryEntry(equationBuilderGame),
+  RegistryEntry(clozeFixGame),
+  RegistryEntry(wordGridGame),
 ]);
