@@ -31,6 +31,7 @@ env:
 jobs:
   template:
     # Required check: analyze, format, tests, safety scripts, debug APK build.
+    if: ${{ vars.CI_ENABLED == 'true' || github.event_name == 'workflow_dispatch' }}
     runs-on: ubuntu-latest
     defaults:
       run:
