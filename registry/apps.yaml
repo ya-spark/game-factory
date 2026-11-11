@@ -16,3 +16,23 @@ apps:
     repo: ya-spark/game-wingy
     package: com.activemindcraft.wingy
     status: draft
+  - id: craft_lowteen
+    repo: ya-spark/game-craft-lowteen
+    package: com.activemindcraft.craftscout
+    status: draft
+  - id: craft_preteen
+    repo: ya-spark/game-craft-preteen
+    package: com.activemindcraft.craftranger
+    status: draft
+  - id: craft_highteen
+    repo: ya-spark/game-craft_highteen
+    package: com.activemindcraft.craftchampion
+    status: draft
+  - id: mind_1
+    repo: ya-spark/game-mind-1
+    package: com.activemindcraft.mindember
+    status: draft
+  - id: mind_9
+    repo: ya-spark/game-mind-9
+    package: com.activemindcraft.mindpresto
+    status: draft
