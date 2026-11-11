@@ -1,23 +1,15 @@
 name: template-ci
 
 on:
-  # Docs-only changes (markdown at the root, docs/, store/) skip CI and are pushed straight to main.
-  # Any change to code, tests, assets, scripts, Android files, pubspec or workflows runs every step.
-  pull_request:
-    paths-ignore:
-      - '*.md'
-      - 'docs/**'
-      - 'template/*/*.md'
-      - 'template/*/docs/**'
-      - 'template/*/store/**'
-  push:
-    branches: [main]
-    paths-ignore:
-      - '*.md'
-      - 'docs/**'
-      - 'template/*/*.md'
-      - 'template/*/docs/**'
-      - 'template/*/store/**'
+  # PAUSED (owner, 2026-11-11): "disable CI for now, finish the coding first". It runs only when started by hand
+  # (Actions, template-ci, Run workflow). To switch push and pull-request runs back on, restore the two
+  # blocks below (docs-only changes are skipped: markdown at the root, docs/, store/).
+  #
+  #   pull_request:
+  #     paths-ignore: ['*.md', 'docs/**', 'template/*/*.md', 'template/*/docs/**', 'template/*/store/**']
+  #   push:
+  #     branches: [main]
+  #     paths-ignore: ['*.md', 'docs/**', 'template/*/*.md', 'template/*/docs/**', 'template/*/store/**']
   workflow_dispatch:
 
 permissions:
