@@ -175,6 +175,37 @@ abstract final class TestIds {
   static const sortStars = Key('sort.stars');
   static Key sortBin(int i) => Key('sort.bin.$i');
 
+  // Series builder (M3)
+  static const seriesScreen = Key('series.screen');
+  static const seriesExit = Key('series.exit');
+  static const seriesProgress = Key('series.progress');
+  static const seriesPrompt = Key('series.prompt');
+  static const seriesSpeak = Key('series.speak');
+  static const seriesTimer = Key('series.timer');
+  static const seriesNext = Key('series.next');
+  static const seriesFeedback = Key('series.feedback');
+  static const seriesSummary = Key('series.summary');
+  static const seriesStars = Key('series.stars');
+  static Key seriesTile(int i) => Key('series.tile.$i');
+  static Key seriesSlot(int i) => Key('series.slot.$i');
+
+  // Word builder (M3)
+  static const wordBuilderScreen = Key('wordb.screen');
+  static const wordBuilderExit = Key('wordb.exit');
+  static const wordBuilderProgress = Key('wordb.progress');
+  static const wordBuilderHint = Key('wordb.hint');
+  static const wordBuilderSpeak = Key('wordb.speak');
+  static const wordBuilderTimer = Key('wordb.timer');
+  static const wordBuilderBuilt = Key('wordb.built');
+  static const wordBuilderCheck = Key('wordb.check');
+  static const wordBuilderUndo = Key('wordb.undo');
+  static const wordBuilderClear = Key('wordb.clear');
+  static const wordBuilderNext = Key('wordb.next');
+  static const wordBuilderFeedback = Key('wordb.feedback');
+  static const wordBuilderSummary = Key('wordb.summary');
+  static const wordBuilderStars = Key('wordb.stars');
+  static Key wordBuilderTile(int i) => Key('wordb.tile.$i');
+
   // Minigame menu
   static Key miniGameCard(String id) => Key('minigame.card.$id');
   static Key miniGameUnlock(String id) => Key('minigame.unlock.$id');
