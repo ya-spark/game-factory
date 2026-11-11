@@ -52,6 +52,7 @@ class QuizSession {
     required this.rewardsConfig,
     required this.today,
     this.streakDays = 0,
+    this.gameId,
   }) : _topicSizes = _sizes(packs);
 
   /// Starts a round, or returns null when fewer than [minPool] matching items are open.
@@ -69,6 +70,7 @@ class QuizSession {
     int count = 10,
     int minPool = 4,
     int streakDays = 0,
+    String? gameId,
   }) {
     final matching = [
       for (final p in open)
@@ -95,9 +97,12 @@ class QuizSession {
       rewardsConfig: rewardsConfig,
       today: today,
       streakDays: streakDays,
+      gameId: gameId,
     );
   }
 
+  /// The minigame being played, for its per-game stats.
+  final String? gameId;
   final List<PoolItem> items;
   final RewardsConfig rewardsConfig;
 
@@ -137,7 +142,7 @@ class QuizSession {
     final p = current;
     if (p == null) throw StateError('The round is finished');
     final firstPass = correct && !(progress.items[p.id]?.passed ?? false);
-    var next = progress.record(p, correct: correct);
+    var next = progress.record(p, correct: correct, gameId: gameId);
     var stars = 0;
     var coins = 0;
     var topicDone = false;

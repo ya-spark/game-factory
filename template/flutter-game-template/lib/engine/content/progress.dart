@@ -87,15 +87,66 @@ class ItemResult {
 
 /// Items attempted and passed (distinct items) in one topic.
 class TopicResult {
-  const TopicResult({this.attempted = 0, this.passed = 0});
+  const TopicResult({
+    this.attempted = 0,
+    this.passed = 0,
+    this.answers = 0,
+    this.correct = 0,
+  });
   final int attempted;
   final int passed;
 
-  Map<String, Object?> toJson() => {'a': attempted, 'p': passed};
+  /// Every answer given in the topic, and how many were right (for accuracy).
+  final int answers;
+  final int correct;
+
+  /// Correct over answers given, 0..1; null before the first answer.
+  double? get accuracy => answers == 0 ? null : correct / answers;
+
+  Map<String, Object?> toJson() => {
+    'a': attempted,
+    'p': passed,
+    'n': answers,
+    'c': correct,
+  };
   factory TopicResult.fromJson(Map<String, Object?> j) => TopicResult(
     attempted: (j['a'] as num?)?.toInt() ?? 0,
     passed: (j['p'] as num?)?.toInt() ?? 0,
+    answers: (j['n'] as num?)?.toInt() ?? 0,
+    correct: (j['c'] as num?)?.toInt() ?? 0,
   );
+}
+
+/// What one child did in one minigame: distinct-by-answer passes and the best score.
+class GameStat {
+  const GameStat({this.passed = 0, this.best = 0});
+  final int passed;
+  final int best;
+
+  Map<String, Object?> toJson() => {'p': passed, 'b': best};
+  factory GameStat.fromJson(Map<String, Object?> j) => GameStat(
+    passed: (j['p'] as num?)?.toInt() ?? 0,
+    best: (j['b'] as num?)?.toInt() ?? 0,
+  );
+}
+
+/// Mastery of a topic. Rule (design/tokens.json, `mastery`): Mastered when at least 90% of the
+/// items are passed and at least 80% of answers are right; Learning when under 40% are passed;
+/// Getting there otherwise.
+enum Mastery { learning, gettingThere, mastered }
+
+Mastery masteryOf({
+  required int passed,
+  required int total,
+  required int answers,
+  required int correct,
+}) {
+  if (total <= 0) return Mastery.learning;
+  final passedShare = passed / total;
+  final accuracy = answers == 0 ? 0.0 : correct / answers;
+  if (passedShare >= 0.9 && accuracy >= 0.8) return Mastery.mastered;
+  if (passedShare < 0.4) return Mastery.learning;
+  return Mastery.gettingThere;
 }
 
 String releaseKey(String subject, int year) => '$subject/$year';
@@ -110,7 +161,11 @@ class ChildProgress {
     this.release = const {},
     this.recent = const [],
     this.rewards = const RewardState(),
+    this.games = const {},
   });
+
+  /// Per-minigame stats, by game id.
+  final Map<String, GameStat> games;
 
   /// Stars and capped coins earned by this child.
   final RewardState rewards;
@@ -141,7 +196,9 @@ class ChildProgress {
     Map<String, ReleaseState>? release,
     List<String>? recent,
     RewardState? rewards,
+    Map<String, GameStat>? games,
   }) => ChildProgress(
+    games: games ?? this.games,
     items: items ?? this.items,
     topics: topics ?? this.topics,
     release: release ?? this.release,
@@ -150,7 +207,7 @@ class ChildProgress {
   );
 
   /// Records one answer.
-  ChildProgress record(PoolItem p, {required bool correct}) {
+  ChildProgress record(PoolItem p, {required bool correct, String? gameId}) {
     final before = items[p.id];
     final now = ItemResult(
       attempts: (before?.attempts ?? 0) + 1,
@@ -162,9 +219,21 @@ class ChildProgress {
     final newTopic = TopicResult(
       attempted: t.attempted + (before == null ? 1 : 0),
       passed: t.passed + ((before?.passed ?? false) || !correct ? 0 : 1),
+      answers: t.answers + 1,
+      correct: t.correct + (correct ? 1 : 0),
     );
+    final gs = gameId == null ? null : (games[gameId] ?? const GameStat());
     final rec = [...recent.where((i) => i != p.id), p.id];
     return copyWith(
+      games: gs == null
+          ? null
+          : {
+              ...games,
+              gameId!: GameStat(
+                passed: gs.passed + (correct ? 1 : 0),
+                best: gs.best,
+              ),
+            },
       items: {...items, p.id: now},
       topics: {...topics, tk: newTopic},
       recent: rec.length > recentLimit
@@ -173,7 +242,41 @@ class ChildProgress {
     );
   }
 
+  /// Keeps the best score of [gameId].
+  ChildProgress recordScore(String gameId, int score) {
+    final g = games[gameId] ?? const GameStat();
+    if (score <= g.best) return this;
+    return copyWith(
+      games: {
+        ...games,
+        gameId: GameStat(passed: g.passed, best: score),
+      },
+    );
+  }
+
+  /// The topic key with the most items to revise (last answered wrongly), among [topicKeys]
+  /// when given; null when nothing needs revising. Ties go to the smaller key.
+  String? topicToRevise({Iterable<PoolItem>? pool}) {
+    final byId = {
+      if (pool != null)
+        for (final p in pool) p.id: p,
+    };
+    final count = <String, int>{};
+    for (final id in mistakeIds) {
+      final p = byId[id];
+      if (pool != null && p == null) continue;
+      final k = p == null ? id : topicKey(p.subject, p.year, p.topic);
+      count[k] = (count[k] ?? 0) + 1;
+    }
+    String? best;
+    for (final k in count.keys.toList()..sort()) {
+      if (best == null || count[k]! > count[best]!) best = k;
+    }
+    return best;
+  }
+
   Map<String, Object?> toJson() => {
+    'games': {for (final e in games.entries) e.key: e.value.toJson()},
     'items': {for (final e in items.entries) e.key: e.value.toJson()},
     'topics': {for (final e in topics.entries) e.key: e.value.toJson()},
     'release': {for (final e in release.entries) e.key: e.value.toJson()},
@@ -192,6 +295,7 @@ class ChildProgress {
       items: read(j['items'], ItemResult.fromJson),
       topics: read(j['topics'], TopicResult.fromJson),
       release: read(j['release'], ReleaseState.fromJson),
+      games: read(j['games'], GameStat.fromJson),
       recent: [...?(j['recent'] as List?)?.cast<String>()],
       rewards: RewardState.fromJson(
         (j['rewards'] as Map?)?.cast<String, Object?>(),
