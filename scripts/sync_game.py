@@ -45,23 +45,30 @@ GAMES: dict[str, dict] = {
             "lib/core/save/save_data.dart",
             "lib/core/retention",
             "lib/core/clock.dart",
-            # Stage 1: the part with no standalone service behind it. The screens (game_screen,
-            # game_over_panel, boost_widgets, widgets) need the hub host adapter and come next.
             "lib/ui/best_move_dialog.dart",
+            "lib/ui/boost_widgets.dart",
+            "lib/ui/game_over_panel.dart",
+            "lib/ui/game_screen.dart",
+            "lib/ui/home_hero.dart",
+            "lib/ui/widgets.dart",
             "lib/ui/share_card.dart",
             "lib/ui/theme_background.dart",
             "lib/ui/test_ids.dart",
             "test/game",
+            "test/helpers/puzzle_bot.dart",
             "assets/voice",
             "assets/ambience",
         ],
-        # Widget tests that build the standalone's own Services; the hub tests its host instead.
-        "exclude": ["test/game/theme_test.dart"],
         "host": {
             "lib/core/services.dart": "services.dart",
             "lib/core/profile/profile_store.dart": "profile_store.dart",
             "lib/core/ads/ad_service.dart": "ad_service.dart",
             "lib/ui/routes.dart": "routes.dart",
+        },
+        # Test helpers that build the standalone's own Services: the hub provides its own under
+        # test/games/<game>/host/ (imported by a relative path).
+        "test_host": {
+            "test/helpers/fake_services.dart": "fake_services.dart",
         },
     },
 }
@@ -119,7 +126,8 @@ _IMPORT = re.compile(r"""^(\s*(?:import|export|part)\s+)(['"])([^'"]+)\2""", re.
 
 
 def rewrite_dart(text: str, rel: str, game: str, src_pkg: str, hub_pkg: str,
-                 copied: set[str], host: dict[str, str]) -> str:
+                 copied: set[str], host: dict[str, str],
+                 test_host: dict[str, str] | None = None) -> str:
     """Rewrite the imports of one source file `rel` (repo-relative) for the hub."""
     here = posixpath.dirname(rel)
 
@@ -127,6 +135,12 @@ def rewrite_dart(text: str, rel: str, game: str, src_pkg: str, hub_pkg: str,
         pre, q, target = m.group(1), m.group(2), m.group(3)
         if target.startswith("dart:"):
             return m.group(0)
+        if not target.startswith("package:") and rel.startswith("test/"):
+            hit = posixpath.normpath(posixpath.join(here, target))
+            if hit in (test_host or {}):
+                dest_dir = posixpath.dirname(_dest(game, rel))
+                hub_file = f"test/games/{game}/host/{test_host[hit]}"
+                return f"{pre}{q}{posixpath.relpath(hub_file, dest_dir)}{q}"
         if target.startswith("package:"):
             if target.startswith(f"package:{src_pkg}/"):
                 resolved = "lib/" + target[len(f"package:{src_pkg}/"):]
@@ -158,14 +172,15 @@ def _plan(game: str, src: Path, hub: Path) -> dict[str, bytes]:
         raise SyncError(f"unknown game '{game}' (known: {', '.join(sorted(GAMES)) or 'none'})")
     src_pkg, hub_pkg = package_name(src), package_name(hub)
     files = [f for f in _expand(src, cfg["copy"]) if f not in cfg.get("exclude", [])]
-    copied = {f for f in files if f.startswith("lib/")}
+    copied = {f for f in files if f.startswith(("lib/", "test/"))}
     host = cfg.get("host", {})
     out: dict[str, bytes] = {}
     for rel in files:
         data = (src / rel).read_bytes()
         if rel.endswith(".dart"):
             data = rewrite_dart(
-                data.decode(), rel, game, src_pkg, hub_pkg, copied, host
+                data.decode(), rel, game, src_pkg, hub_pkg, copied, host,
+                cfg.get("test_host", {}),
             ).encode()
         if rel.startswith("test/") and rel.endswith(".dart"):
             # tests that read source files by path (purity checks) look in the copy
