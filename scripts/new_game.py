@@ -377,7 +377,9 @@ def apply_profile_config(out: Path, profile: str, audience: str) -> None:
     _set_key(cfg, "ads", "max_ad_content_rating", "G" if audience == "child" else "PG")
     if audience in ("child", "teen"):
         _set_key(cfg, "ads", "rewarded_enabled", "false")
-    _set_key(cfg, "content", "enabled", "true")
+    # Only the learning (craft) profile has child profiles and a picker; hubs go straight to the shell.
+    if profile == "craft":
+        _set_key(cfg, "content", "enabled", "true")
     if profile == "mind":
         _set_key(cfg, "minigames", "coin_price", "300")
         text = cfg.read_text(encoding="utf-8")

@@ -66,21 +66,23 @@ class ChallengesTab extends StatelessWidget {
           child: Text('Challenges', style: t.styles['title']!),
         ),
         SizedBox(height: t.sp('md')),
-        goal(
-          'daily',
-          'Today\'s goal',
-          todayPasses,
-          cfg.dailyGoalItems,
-          cfg.dailyGoalCoins,
-        ),
-        SizedBox(height: t.sp('md')),
-        goal(
-          'weekly',
-          'This week\'s goal',
-          weekPasses,
-          cfg.weeklyGoalItems,
-          cfg.weeklyGoalCoins,
-        ),
+        if (s.config.content.enabled) ...[
+          goal(
+            'daily',
+            'Today\'s goal',
+            todayPasses,
+            cfg.dailyGoalItems,
+            cfg.dailyGoalCoins,
+          ),
+          SizedBox(height: t.sp('md')),
+          goal(
+            'weekly',
+            'This week\'s goal',
+            weekPasses,
+            cfg.weeklyGoalItems,
+            cfg.weeklyGoalCoins,
+          ),
+        ],
         SizedBox(height: t.sp('md')),
         goal(
           'streak',

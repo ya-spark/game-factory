@@ -78,7 +78,15 @@ class GameApp extends StatelessWidget {
               level: level,
               child: child!,
             ),
-      home: cfg.content.enabled
+      home: !cfg.content.enabled && design != null
+          ? FutureBuilder<ChildProfile>(
+              // No learning content: no picker, one built-in local player.
+              future: services.profile.ensureLocalPlayer(),
+              builder: (_, snap) => snap.hasData
+                  ? const AppShell()
+                  : const Scaffold(body: SizedBox.shrink()),
+            )
+          : cfg.content.enabled
           ? ProfilePickerScreen(
               // The shell needs the design theme; a learning game without one keeps the old home.
               home: (_) =>

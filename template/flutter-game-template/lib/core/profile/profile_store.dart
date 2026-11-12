@@ -377,6 +377,15 @@ class ProfileStore extends ChangeNotifier {
     }
   }
 
+  /// Hubs without learning content have no picker: one built-in local player, selected at once.
+  Future<ChildProfile> ensureLocalPlayer() async {
+    var p = _data.profiles.isEmpty ? null : _data.profiles.first;
+    p ??= await addChild('Player');
+    _activeId = p!.id;
+    notifyListeners();
+    return p;
+  }
+
   /// Back to the picker.
   void leaveChild() {
     _activeId = null;

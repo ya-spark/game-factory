@@ -201,6 +201,10 @@ class ProfileTest(unittest.TestCase):
         self.assertIn("  stars:\n    enabled: true", cfg)
         new_game.check_features(out, "craft")
 
+    def test_mind_hub_has_no_learning_content(self):
+        cfg = (self.gen(profile="mind", audience="adult") / "app.config.yaml").read_text()
+        self.assertIn("  enabled: false # learning games", cfg)
+
     def test_craft_teen(self):
         cfg = (self.gen(profile="craft", audience="teen") / "app.config.yaml").read_text()
         self.assertIn("audience: teen", cfg)
@@ -292,7 +296,7 @@ class ProfileTest(unittest.TestCase):
         self.assertIn("  rewarded_enabled: true", cfg)
         self.assertIn("  coin_price: 300", cfg)
         self.assertIn("  stars:\n    enabled: false", cfg)
-        self.assertIn("  enabled: true # learning games", cfg)
+        self.assertIn("  enabled: false # learning games", cfg)
 
     def test_profile_defaults_for_audience(self):
         self.assertIn("audience: child",
