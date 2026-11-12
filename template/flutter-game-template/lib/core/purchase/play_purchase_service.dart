@@ -119,6 +119,9 @@ class PlayPurchaseService implements PurchaseService {
   Future<void> restore() => _iap.restorePurchases();
 
   @override
+  String? get unavailableMessage => null;
+
+  @override
   void dispose() {
     _sub?.cancel();
     _updates.close();

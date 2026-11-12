@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 
 import 'test_ids.dart';
@@ -42,6 +43,10 @@ class AppImage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final reduce = MediaQuery.maybeDisableAnimationsOf(context) ?? false;
+    // A browser has no local files: a file image shows the drawn fallback there.
+    if (asset == null && kIsWeb) {
+      return _Fallback(width: width, height: height);
+    }
     final ImageProvider provider = asset != null
         ? AssetImage(asset!)
         : FileImage(File(filePath!));

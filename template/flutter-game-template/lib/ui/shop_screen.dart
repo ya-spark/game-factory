@@ -38,9 +38,16 @@ class ShopScreen extends StatelessWidget {
                 if (p.def.grants != ProductDef.unlockFullGrant) p,
             ];
             if (!s.purchases.available || products.isEmpty) {
-              return const Center(
+              return Center(
                 key: TestIds.shopUnavailable,
-                child: Text('Store unavailable right now.'),
+                child: Padding(
+                  padding: const EdgeInsets.all(24),
+                  child: Text(
+                    s.purchases.unavailableMessage ??
+                        'Store unavailable right now.',
+                    textAlign: TextAlign.center,
+                  ),
+                ),
               );
             }
             // Remove Ads first, then the coin packs in ascending size.

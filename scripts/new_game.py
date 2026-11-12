@@ -212,6 +212,18 @@ def rewrite_android(out: Path, package: str) -> None:
         d = d.parent
 
 
+def rewrite_web(out: Path, name: str) -> None:
+    """Puts the game name in the web page title and manifest (the web copy, web/)."""
+    web = out / "web"
+    if not web.is_dir():
+        return
+    esc = name.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
+    for fn in ("index.html", "manifest.json"):
+        f = web / fn
+        text = f.read_text(encoding="utf-8")
+        f.write_text(text.replace("Block Puzzle", name if fn == "manifest.json" else esc), encoding="utf-8")
+
+
 def move_workflows(out: Path) -> None:
     # Template workflows already assume the repo root is the Flutter project, so they
     # live in the template root's .github/workflows and stay at <out>/.github/workflows.
@@ -584,6 +596,7 @@ def generate(
     rewrite_config(out, game_id, name, package, color)
     rewrite_dart_package(out, game_id)
     rewrite_android(out, package)
+    rewrite_web(out, name)
     move_workflows(out)
     rewrite_docs(out, name)
     if profile != "puzzle":

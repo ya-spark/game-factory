@@ -229,7 +229,7 @@ class SettingsScreen extends StatelessWidget {
                     onTap: s.ads.showPrivacyOptions,
                   ),
                 ),
-              if (s.config.playGames.enabled)
+              if (s.config.playGames.enabled && !kIsWeb)
                 KidPanel(
                   child: ListTile(
                     key: TestIds.settingsPlayGames,

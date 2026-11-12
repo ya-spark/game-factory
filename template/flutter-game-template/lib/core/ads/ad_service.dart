@@ -63,3 +63,24 @@ class FakeAdService implements AdService {
   @override
   Future<void> showPrivacyOptions() async {}
 }
+
+/// Web build: there is no ad SDK in a browser, so no ad is ever shown and no ad is ever earned.
+/// Nothing here pretends an ad ran.
+class NoAdService implements AdService {
+  @override
+  Future<void> initialize() async {}
+  @override
+  bool get adsEnabled => false;
+  @override
+  set adsRemoved(bool value) {}
+  @override
+  bool get isRewardedReady => false;
+  @override
+  Future<bool> showRewarded(RewardedPlacement placement) async => false;
+  @override
+  Widget buildBanner(AdPlacement placement) => const SizedBox.shrink();
+  @override
+  bool get privacyOptionsRequired => false;
+  @override
+  Future<void> showPrivacyOptions() async {}
+}

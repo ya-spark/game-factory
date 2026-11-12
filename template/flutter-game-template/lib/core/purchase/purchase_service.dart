@@ -43,6 +43,39 @@ abstract interface class PurchaseService {
   Future<void> buy(String productId);
   Future<void> restore();
   void dispose();
+
+  /// Non-null when purchases cannot work in this build (the web copy): a parent-friendly sentence
+  /// the UI shows instead of a buy flow.
+  String? get unavailableMessage;
+}
+
+/// Shown in the web copy wherever a purchase would start.
+const String webPurchasesMessage =
+    'Purchases are not available in this web version. They work in the Android app.';
+
+/// Web build: there is no store in a browser. Nothing can be bought or restored, and no product
+/// is listed. It never pretends a purchase happened.
+class UnavailablePurchaseService implements PurchaseService {
+  @override
+  Future<void> initialize() async {}
+  @override
+  bool get available => false;
+  @override
+  List<StoreProduct> get products => const [];
+  @override
+  Stream<PurchaseUpdate> get updates => const Stream.empty();
+  @override
+  Future<void> registerExtraProducts(Set<String> productIds) async {}
+  @override
+  String? priceOf(String productId) => null;
+  @override
+  Future<void> buy(String productId) async {}
+  @override
+  Future<void> restore() async {}
+  @override
+  void dispose() {}
+  @override
+  String? get unavailableMessage => webPurchasesMessage;
 }
 
 /// In-memory fake for tests: `buy` immediately emits a purchase.
@@ -82,4 +115,6 @@ class FakePurchaseService implements PurchaseService {
   Future<void> restore() async {}
   @override
   void dispose() => _controller.close();
+  @override
+  String? get unavailableMessage => null;
 }

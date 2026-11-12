@@ -5,7 +5,7 @@ import 'package:path_provider/path_provider.dart';
 
 import '../../engine/engine.dart';
 
-/// The content cache in the app documents directory.
+/// The content cache in the app documents directory. (The web build uses `content_io_web.dart`.)
 Future<DirectoryContentStore> openContentCache() async {
   final docs = await getApplicationDocumentsDirectory();
   final dir = Directory('${docs.path}/content');

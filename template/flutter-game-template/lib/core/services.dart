@@ -3,7 +3,6 @@ import 'package:flutter/services.dart' show rootBundle;
 import 'package:flutter/widgets.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-import 'ads/admob_ad_service.dart';
 import 'ads/ad_service.dart';
 import 'analytics/analytics_service.dart';
 import 'speech/speech_service.dart';
@@ -12,22 +11,18 @@ import 'audio/audio_service.dart';
 import 'audio/audioplayers_audio_service.dart';
 import '../engine/engine.dart';
 import 'config/app_config.dart';
-import 'content/connectivity_probe.dart';
-import 'content/content_io.dart';
 import 'content/learning_service.dart';
 import 'config/products.dart';
 import 'identity/identity_service.dart';
 import 'leaderboard/leaderboard_service.dart';
 import 'links/external_link_service.dart';
 import 'links/url_external_link_service.dart';
-import 'notifications/local_notification_service.dart';
 import 'notifications/notification_service.dart';
+import 'platform/platform_services.dart';
 import 'profile/profile_store.dart';
 import 'purchase/parent_gate_guard.dart';
-import 'purchase/play_purchase_service.dart';
 import 'purchase/purchase_service.dart';
 import 'remote_config/remote_config_service.dart';
-import 'save/play_games_save.dart';
 import 'save/save_service.dart';
 import 'share/share_service.dart';
 import 'share/system_share_service.dart';
@@ -96,11 +91,9 @@ class Services {
     required ProductCatalog catalog,
   }) async {
     final prefs = await SharedPreferences.getInstance();
-    final local = LocalIdentityService(prefs);
-    final playGames = config.playGames.enabled;
     final saves = SyncingSaveService(
       LocalSaveService(prefs),
-      playGames ? PlayGamesCloudSave() : const NoCloudSave(),
+      createCloudSave(config),
     );
     final profile = ProfileStore(
       saves: saves,
@@ -112,16 +105,17 @@ class Services {
     );
     await profile.init();
 
-    final ads = AdMobAdService(
-      ids: config.admobFor(release: kReleaseMode),
-      pacing: config.adPacing,
-      isReleaseBuild: kReleaseMode,
-    )..adsRemoved = profile.data.adsRemoved;
-    final purchases = PlayPurchaseService(catalog);
-    final notifications = LocalNotificationService();
+    // Vendor-backed on Android, honest stubs in the web build (see platform/platform_services.dart).
+    final ads = createAdService(
+      config,
+      release: kReleaseMode,
+      adsRemoved: profile.data.adsRemoved,
+    );
+    final purchases = createPurchaseService(catalog);
+    final notifications = createNotificationService();
 
     // Learning content: built-in assets plus the static server. Check stays silent and offline-safe.
-    final store = await openContentCache();
+    final store = await createContentStore();
     if (config.content.signingOff) {
       debugPrint(
         'WARNING: content signing is off (content.signing_public_key is a placeholder). '
@@ -132,7 +126,7 @@ class Services {
       config: config.content,
       profile: profile,
       purchases: purchases,
-      connectivity: PluginConnectivityProbe(),
+      connectivity: createConnectivityProbe(),
       repository: ContentRepository(
         builtIn: BuiltInContentSource((path) async {
           try {
@@ -143,9 +137,9 @@ class Services {
           }
         }, appId: config.appId),
         server: ServerContentSource(
-          baseUrl: config.content.baseUrl,
+          baseUrl: _contentBaseUrl(config),
           appId: config.appId,
-          fetcher: HttpContentFetcher(),
+          fetcher: createContentFetcher(),
           store: store,
           signing: config.content.signing,
         ),
@@ -157,11 +151,9 @@ class Services {
     final s = Services(
       config: config,
       catalog: catalog,
-      identity: playGames ? PlayGamesIdentityService(local) : local,
+      identity: createIdentity(config, prefs),
       saves: saves,
-      leaderboard: playGames
-          ? PlayGamesLeaderboardService(LocalLeaderboardService(prefs))
-          : LocalLeaderboardService(prefs),
+      leaderboard: createLeaderboard(config, prefs),
       ads: ads,
       purchases: purchases,
       notifications: notifications,
@@ -180,6 +172,16 @@ class Services {
     s.wirePurchases();
     return s;
   }
+
+  /// The content server base URL. `--dart-define=CONTENT_BASE_URL=https://.../v1/` overrides the
+  /// one in app.config.yaml at build time (it must stay https, with a path).
+  static const String _contentBaseUrlOverride = String.fromEnvironment(
+    'CONTENT_BASE_URL',
+  );
+  static String _contentBaseUrl(AppConfig config) =>
+      _contentBaseUrlOverride.isEmpty
+      ? config.content.baseUrl
+      : _contentBaseUrlOverride;
 
   /// Applies purchase deliveries to the profile and the ad service.
   void wirePurchases() {

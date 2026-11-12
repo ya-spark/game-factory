@@ -224,7 +224,7 @@ class _ParentAreaScreenState extends State<ParentAreaScreen> {
             ? const Text('Owned')
             : FilledButton(
                 key: TestIds.parentRemoveAds,
-                onPressed: () => s.purchases.buy('remove_ads_all'),
+                onPressed: () => _buy(context, s, 'remove_ads_all'),
                 child: Text(s.purchases.priceOf('remove_ads_all') ?? 'Buy'),
               ),
       ),
@@ -235,7 +235,7 @@ class _ParentAreaScreenState extends State<ParentAreaScreen> {
             ? const Text('Owned')
             : FilledButton(
                 key: TestIds.parentBuyFull,
-                onPressed: () => s.purchases.buy('unlock_full'),
+                onPressed: () => _buy(context, s, 'unlock_full'),
                 child: Text(s.purchases.priceOf('unlock_full') ?? 'Buy'),
               ),
       ),
@@ -269,7 +269,7 @@ class _ParentAreaScreenState extends State<ParentAreaScreen> {
                       ? const Text('Owned')
                       : FilledButton(
                           key: TestIds.parentBundleBuy(b.productId),
-                          onPressed: () => s.purchases.buy(b.productId),
+                          onPressed: () => _buy(context, s, b.productId),
                           child: Text(
                             s.purchases.priceOf(b.productId) ?? 'Buy',
                           ),
@@ -294,6 +294,16 @@ class _ParentAreaScreenState extends State<ParentAreaScreen> {
         ),
       ],
     ];
+  }
+
+  /// A purchase, or the "not available in this web version" note where there is no store.
+  Future<void> _buy(BuildContext context, Services s, String productId) async {
+    final note = s.purchases.unavailableMessage;
+    if (note != null) {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(note)));
+      return;
+    }
+    await s.purchases.buy(productId);
   }
 
   Widget _packTile(
@@ -322,7 +332,7 @@ class _ParentAreaScreenState extends State<ParentAreaScreen> {
           if (!owned)
             FilledButton(
               key: TestIds.parentPackBuy(c.id),
-              onPressed: () => s.purchases.buy(pid),
+              onPressed: () => _buy(context, s, pid),
               child: Text(s.purchases.priceOf(pid) ?? 'Buy'),
             ),
           if (owned && !c.cachedFull)
