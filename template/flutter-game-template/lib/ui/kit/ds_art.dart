@@ -139,6 +139,12 @@ final Map<String, String> gameArt = {
     '<rect x="25" y="14" width="12" height="7" rx="2"/>'
     '<circle cx="28" cy="31" r="3"/><rect x="14" y="40" width="20" height="4" rx="2"/>',
   ),
+  'runner': _svg(
+    '<rect x="4" y="38" width="40" height="4" rx="2"/>'
+    '<rect x="28" y="28" width="9" height="10" rx="2" opacity=".6"/>'
+    '<circle cx="19" cy="20" r="8"/><path d="M13 17a8 8 0 0 1 8-4" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" opacity=".8"/>'
+    '<path d="M4 18h6M5 24h5M7 30h4" stroke="currentColor" stroke-width="2" stroke-linecap="round" opacity=".5"/>',
+  ),
   'stack': _svg(
     '<rect x="10" y="34" width="28" height="8" rx="2"/><rect x="13" y="25" width="24" height="8" rx="2" opacity=".75"/>'
     '<rect x="14" y="16" width="20" height="8" rx="2" opacity=".55"/><rect x="21" y="7" width="20" height="8" rx="2" opacity=".35"/>',

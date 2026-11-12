@@ -136,3 +136,5 @@ Testable statements the test agent turns into tests.
 - Challenges (learning profiles) hold only learning goals paid by the rewards engine within the caps: today's goal, this week's goal and the streak goal (next streak milestone). The block puzzle daily challenges (combo, lines, score) stay in the puzzle profile only (`challenges_screen.dart`).
 - Play lists each game once. The daily game is its own tile with a "Daily" badge, not a second tile. There is one tile per game, not per subject.
 - Every game tile and every avatar has its own original art (`lib/ui/kit/ds_art.dart`, `DsGameArt`, `DsAvatarArt`); a test fails when a registered game or avatar has none.
+
+- Hubs (owner issue 138): `retention.game_challenges: true` swaps the puzzle daily challenges for game-based ones (score in any game, play N different games, streak milestone), see `lib/game/rules/game_challenges.dart`. The template keeps it off.
