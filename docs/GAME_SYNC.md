@@ -41,6 +41,7 @@ mapped onto the hub:
 ## Status
 - Mind Ember: `block_puzzle` (free with ads) and `blockfall` (coin-locked, 300 coins) are copied,
   adapted, registered (`lib/ui/game_registry.dart`) and tiled in the Games tab. Rules, game and
-  `theme_test` tests of both run in the hub.
+  `theme_test` tests of Block Puzzle, and the rules and game tests of Blockfall, run in the hub
+  (Blockfall's `test/ui/*` widget tests are not copied yet).
 - Not yet: the standalone widget/e2e tests that need the standalone's own shop and ads (not copied),
   and Wingy in Presto.
