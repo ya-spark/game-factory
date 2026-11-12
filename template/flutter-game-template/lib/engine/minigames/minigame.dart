@@ -45,6 +45,9 @@ class MiniGameContext {
 /// passes a `Widget`.
 typedef MiniGameBuilder = Object Function(MiniGameContext context);
 
+/// Builds a standalone game's screen; [onScore] is called with the score of each finished game.
+typedef StandaloneBuilder = Object Function(void Function(int score) onScore);
+
 /// One pluggable minigame.
 class MiniGame {
   const MiniGame({
@@ -56,6 +59,8 @@ class MiniGame {
     this.modes = const {MiniGameMode.game, MiniGameMode.study},
     this.access = GameAccess.freeWithAds,
     this.coinPrice = 0,
+    this.buildStandalone,
+    this.starScores,
   });
 
   final String id;
@@ -73,6 +78,25 @@ class MiniGame {
   final int coinPrice;
   final MiniGameBuilder build;
 
+  /// Set for a copied standalone game (Block Puzzle, Blockfall): it has no quiz items, so it
+  /// needs no subject, pool or session. The app passes the callback that records the game's
+  /// score (best score and stars on the tile); the result is a `Widget`.
+  final StandaloneBuilder? buildStandalone;
+
+  /// Best-score thresholds for 1, 2 and 3 stars on a standalone game's tile.
+  final List<int>? starScores;
+
+  bool get standalone => buildStandalone != null;
+
+  /// 0 to 3 stars for a standalone game's best score.
+  int starsForBest(int best) {
+    var n = 0;
+    for (final v in starScores ?? const <int>[]) {
+      if (best >= v) n++;
+    }
+    return n;
+  }
+
   MiniGame withAccess(GameAccess access, int coinPrice) => MiniGame(
     id: id,
     title: title,
@@ -82,6 +106,8 @@ class MiniGame {
     modes: modes,
     access: access,
     coinPrice: coinPrice,
+    buildStandalone: buildStandalone,
+    starScores: starScores,
   );
 }
 
@@ -147,6 +173,10 @@ class MiniGameRegistry {
       final g = e.game;
       if (!(e.modes ?? g.modes).contains(mode)) continue;
       if (year < e.minYear || year > e.maxYear) continue;
+      if (g.standalone) {
+        out.add(MiniGameOffer(g, locked: !isPlayable(g, unlocked)));
+        continue;
+      }
       final pool = open
           .where(
             (p) =>

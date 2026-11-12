@@ -58,6 +58,62 @@ QuizSession session(
 );
 
 void main() {
+  group('standalone games', () {
+    MiniGame standalone({List<int>? stars}) => MiniGame(
+      id: 'solo',
+      title: 'Solo',
+      itemTypes: const {},
+      build: (_) => Object(),
+      buildStandalone: stars == null ? null : (_) => Object(),
+      starScores: stars,
+    );
+
+    test('standalone is true only with buildStandalone', () {
+      expect(standalone().standalone, isFalse);
+      expect(standalone(stars: const [10]).standalone, isTrue);
+    });
+
+    test('starsForBest counts the thresholds reached, 0 when none', () {
+      final g = standalone(stars: const [100, 300, 600]);
+      expect(g.starsForBest(0), 0);
+      expect(g.starsForBest(99), 0);
+      expect(g.starsForBest(100), 1);
+      expect(g.starsForBest(450), 2);
+      expect(g.starsForBest(600), 3);
+      expect(standalone().starsForBest(999), 0);
+    });
+
+    test('withAccess keeps the standalone fields', () {
+      final g = standalone(stars: const [1, 2, 3])
+          .withAccess(GameAccess.coins, 300);
+      expect(g.standalone, isTrue);
+      expect(g.starsForBest(2), 2);
+      expect(g.coinPrice, 300);
+    });
+
+    test('a standalone game is offered without any pool, subject or year', () {
+      final reg = MiniGameRegistry([
+        RegistryEntry(standalone(stars: const [1])),
+        RegistryEntry(
+          MiniGame(
+            id: 'quiz',
+            title: 'Quiz',
+            itemTypes: const {ItemType.mcq},
+            build: (_) => Object(),
+          ),
+        ),
+      ]);
+      final offers = reg.offers(
+        open: const [],
+        subject: 'maths',
+        year: 3,
+        mode: MiniGameMode.game,
+        unlocked: const {},
+      );
+      expect(offers.map((o) => o.game.id), ['solo']);
+    });
+  });
+
   group('QuizSession scoring', () {
     test('first pass earns a star; a repeat pass earns none', () {
       final packs = packsOf(10);
