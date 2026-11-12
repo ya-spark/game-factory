@@ -43,5 +43,9 @@ mapped onto the hub:
   adapted, registered (`lib/ui/game_registry.dart`) and tiled in the Games tab. Rules, game and
   `theme_test` tests of Block Puzzle, and the rules and game tests of Blockfall, run in the hub
   (Blockfall's `test/ui/*` widget tests are not copied yet).
-- Not yet: the standalone widget/e2e tests that need the standalone's own shop and ads (not copied),
-  and Wingy in Presto.
+- Mind Presto: `wingy` (free with ads; stars 10/25/50 from Wingy's Bronze, Silver and Gold medals) is
+  copied, adapted (`lib/games/wingy/host/`: its own `rewarded()` keeps the standalone's Remove Ads
+  rule, Dash Refill is bought with the hub's coins, the Dash Refill ad shows nothing), registered and
+  tiled. Only the free Moth skin exists in the hub (no Wingy skins shop). The copied rules tests run in
+  the hub (`test/games/wingy/rules`); Wingy's `test/ui/*` and `test/core/*` are not copied.
+- Not yet: the standalone widget/e2e tests that need the standalone's own shop and ads (not copied).
