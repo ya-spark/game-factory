@@ -71,6 +71,39 @@ GAMES: dict[str, dict] = {
             "test/helpers/fake_services.dart": "fake_services.dart",
         },
     },
+    "blockfall": {
+        "copy": [
+            "lib/game",
+            "lib/core/audio",
+            "lib/core/save/save_data.dart",
+            "lib/core/retention",
+            "lib/core/clock.dart",
+            "lib/core/tips/tip_service.dart",
+            "lib/ui/game_over_panel.dart",
+            "lib/ui/game_screen.dart",
+            "lib/ui/home_hero.dart",
+            "lib/ui/hud_widgets.dart",
+            "lib/ui/share_card.dart",
+            "lib/ui/test_ids.dart",
+            "lib/ui/theme_fade.dart",
+            "lib/ui/tip_card.dart",
+            "lib/ui/widgets.dart",
+            "test/rules",
+            "test/game",
+            "test/helpers/blockfall_bot.dart",
+            "test/helpers/blockfall_scenario.dart",
+            "test/helpers/game_harness.dart",
+        ],
+        "host": {
+            "lib/core/services.dart": "services.dart",
+            "lib/core/profile/profile_store.dart": "profile_store.dart",
+            "lib/core/ads/ad_service.dart": "ad_service.dart",
+            "lib/ui/routes.dart": "routes.dart",
+        },
+        "test_host": {
+            "test/helpers/fake_services.dart": "fake_services.dart",
+        },
+    },
 }
 
 
