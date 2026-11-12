@@ -27,3 +27,28 @@ class TabLoaders {
   final p = key.split('/');
   return (subject: p[0], year: int.parse(p[1]), topic: p.sublist(2).join('/'));
 }
+
+/// "adjectives_adverbs" tidied for display: underscores to spaces, first letter capital.
+String tidyTopicId(String id) {
+  final s = id.replaceAll('_', ' ').trim();
+  return s.isEmpty ? id : s[0].toUpperCase() + s.substring(1);
+}
+
+/// The name to show for a topic: the title of its pack (which carries the display name from
+/// `content/topics.yaml`), or the tidied id when no pack of that topic is loaded.
+String topicDisplayName(
+  Iterable<LoadedPack> packs,
+  String subject,
+  int year,
+  String topic,
+) {
+  LoadedPack? best;
+  for (final lp in packs) {
+    final p = lp.pack;
+    if (p.subject != subject || p.year != year || p.topic != topic) continue;
+    if (p.title.trim().isEmpty) continue;
+    // Prefer the base (non-extra) pack's title.
+    if (best == null || (best.pack.isExtra && !p.isExtra)) best = lp;
+  }
+  return best?.pack.title.trim() ?? tidyTopicId(topic);
+}

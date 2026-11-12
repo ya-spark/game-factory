@@ -241,6 +241,8 @@ abstract final class TestIds {
   static Key dsMasteryChip(String id) => Key('ds.masteryChip.$id');
   static Key dsGameTile(String id) => Key('ds.gameTile.$id');
   static Key dsTopicCard(String id) => Key('ds.topicCard.$id');
+  static Key gameArt(String id) => Key('art.game.$id');
+  static Key avatarArt(String id) => Key('art.avatar.$id');
   static Key dsPackCard(String id) => Key('ds.packCard.$id');
   static Key dsSuggestedCard(String id) => Key('ds.suggestedCard.$id');
   static Key dsHero(String id) => Key('ds.hero.$id');

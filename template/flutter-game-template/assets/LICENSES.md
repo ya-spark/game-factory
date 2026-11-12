@@ -14,3 +14,5 @@ its source and license. `scripts/check_asset_licenses.sh` fails CI otherwise.
 | assets/content/index.json | Written by the studio (content CLI `build-index`); empty list in the template | original | built-in content index; every pack and asset the games add under assets/content/ is listed here too |
 
 Format for an asset row: `| assets/sfx/pop.ogg | https://example.org/pop | CC0-1.0 | by Jane Doe |`
+
+Art drawn in code (no files under `assets/`): the game tile art and the avatar shapes in `lib/ui/kit/ds_art.dart` (quick_quiz, door_runner, balloon_pop, tug_of_war, true_false, flash_review, equation_builder, cloze_fix, word_grid, memory_match, series_builder, word_builder, sort_bins; fox, owl, bear, cat, frog, panda, rabbit, penguin) are original SVG shapes written by the studio. License: original.

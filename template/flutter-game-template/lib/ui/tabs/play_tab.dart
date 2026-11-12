@@ -5,7 +5,7 @@ import 'package:flutter/material.dart';
 import '../../core/profile/child_profile.dart';
 import '../../core/services.dart';
 import '../../engine/engine.dart';
-import '../kit/ds_buttons.dart';
+import '../kit/ds_art.dart';
 import '../kit/ds_cards.dart';
 import '../kit/ds_chips.dart';
 import '../test_ids.dart';
@@ -91,15 +91,26 @@ class PlayTab extends StatefulWidget {
 
 class _PlayTabState extends State<PlayTab> {
   Future<List<PoolItem>>? _open;
+  List<LoadedPack>? _packs;
 
   TabLoaders get _loaders => widget.loaders ?? TabLoaders.of(context);
 
-  void _reload() => setState(() => _open = _loaders.openItems(widget.child.id));
+  void _loadPacks() => _loaders.packs().then((p) {
+    if (mounted) setState(() => _packs = p);
+  });
+
+  void _reload() {
+    setState(() => _open = _loaders.openItems(widget.child.id));
+    _loadPacks();
+  }
 
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    _open ??= _loaders.openItems(widget.child.id);
+    if (_open == null) {
+      _open = _loaders.openItems(widget.child.id);
+      _loadPacks();
+    }
   }
 
   Future<void> _play(PlayEntry e, {String? topic}) async {
@@ -245,7 +256,12 @@ class _PlayTabState extends State<PlayTab> {
                       id: 'next',
                       eyebrow: mind ? 'Continue' : 'Try next',
                       title: tryNext != null
-                          ? tryNext.topic
+                          ? topicDisplayName(
+                              _packs ?? const <LoadedPack>[],
+                              tryNext.subject,
+                              tryNext.year,
+                              tryNext.topic,
+                            )
                           : playable.first.game.title,
                       subtitle: tryNext != null
                           ? 'A few to practise again'
@@ -275,26 +291,27 @@ class _PlayTabState extends State<PlayTab> {
                         spacing: gap,
                         runSpacing: gap,
                         children: [
-                          if (daily != null)
-                            SizedBox(
-                              width: w,
-                              child: _tile(
-                                daily,
-                                t,
-                                id: 'daily',
-                                badge: 'Daily',
-                                key: TestIds.playDaily,
-                              ),
-                            ),
+                          // Each game shows once; the daily game is marked with a badge.
                           for (final e in entries)
                             SizedBox(
                               width: w,
-                              child: _tile(
-                                e,
-                                t,
-                                id: e.game.id,
-                                key: TestIds.playGame(e.game.id),
-                              ),
+                              child: daily != null && e.game.id == daily.game.id
+                                  ? KeyedSubtree(
+                                      key: TestIds.playDaily,
+                                      child: _tile(
+                                        e,
+                                        t,
+                                        id: e.game.id,
+                                        badge: 'Daily',
+                                        key: TestIds.playGame(e.game.id),
+                                      ),
+                                    )
+                                  : _tile(
+                                      e,
+                                      t,
+                                      id: e.game.id,
+                                      key: TestIds.playGame(e.game.id),
+                                    ),
                             ),
                         ],
                       );
@@ -323,7 +340,9 @@ class _PlayTabState extends State<PlayTab> {
       child: DsGameTile(
         id: id,
         title: e.game.title,
-        art: Center(child: DsIcon('gamepad', size: t.size('icon_lg'))),
+        art: Center(
+          child: DsGameArt(e.game.id, size: t.size('icon_lg'), color: t.text),
+        ),
         badge: badge,
         stars: locked ? null : gameStars(stat, e.pool),
         progress: locked

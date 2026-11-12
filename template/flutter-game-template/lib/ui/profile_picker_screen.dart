@@ -1,3 +1,5 @@
+import 'kit/ds_art.dart';
+
 import 'package:flutter/material.dart';
 
 import '../core/profile/child_profile.dart';
@@ -36,7 +38,7 @@ class ProfilePickerScreen extends StatelessWidget {
                 Card(
                   child: ListTile(
                     key: TestIds.pickerChild(c.id),
-                    leading: Icon(avatarIcon(c.avatar), size: 36),
+                    leading: DsAvatarArt(c.avatar, size: 36),
                     title: Text(c.nickname),
                     onTap: () => s.profile.selectChild(c.id),
                   ),
@@ -158,7 +160,7 @@ class _NewChildScreenState extends State<_NewChildScreen> {
                 for (final a in avatarIds)
                   ChoiceChip(
                     key: TestIds.pickerAvatar(a),
-                    avatar: Icon(avatarIcon(a)),
+                    avatar: DsAvatarArt(a, size: 24),
                     label: Text(a),
                     selected: _avatar == a,
                     onSelected: (_) => setState(() => _avatar = a),

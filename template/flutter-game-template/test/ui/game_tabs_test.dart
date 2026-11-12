@@ -3,6 +3,8 @@ import 'package:flutter_game_template/core/profile/child_profile.dart';
 import 'package:flutter_game_template/core/services.dart';
 import 'package:flutter_game_template/engine/engine.dart';
 import 'package:flutter_game_template/ui/app_shell.dart';
+import 'package:flutter_game_template/ui/kit/ds_art.dart';
+import 'package:flutter_game_template/ui/kit/ds_cards.dart';
 import 'package:flutter_game_template/ui/tabs/tab_data.dart';
 import 'package:flutter_game_template/ui/test_ids.dart';
 import 'package:flutter_game_template/ui/theme/app_theme.dart';
@@ -112,6 +114,9 @@ void main() {
         ); // key is on the card below
         expect(find.byKey(TestIds.dsSuggestedCard('next')), findsOneWidget);
         expect(find.byKey(TestIds.playDaily), findsOneWidget);
+        // Each game shows once (the daily game is a badge, not a second tile).
+        expect(find.byType(DsGameTile), findsNWidgets(2));
+        expect(find.byType(DsGameArt), findsNWidgets(2));
         // The coin price is on the locked game's tile and it is read out.
         expect(find.byKey(TestIds.dsCoinChip('price.paid')), findsOneWidget);
         expect(find.bySemanticsLabel(RegExp('locked, 80 coins')), findsWidgets);
@@ -149,6 +154,13 @@ void main() {
       await tester.pumpAndSettle();
       expect(find.byKey(TestIds.challengesTab), findsOneWidget);
       expect(find.byKey(TestIds.challengeGoal('daily')), findsOneWidget);
+      expect(find.byKey(TestIds.challengeGoal('streak')), findsOneWidget);
+      // Only learning goals: none of the old block puzzle challenges.
+      expect(
+        find.textContaining(RegExp('combo|lines|points in one game')),
+        findsNothing,
+      );
+      expect(find.textContaining('Place '), findsNothing);
       expect(tester.takeException(), isNull);
       await tester.tap(_tab('shop'));
       await tester.pumpAndSettle();

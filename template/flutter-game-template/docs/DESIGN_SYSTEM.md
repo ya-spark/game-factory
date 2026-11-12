@@ -113,3 +113,4 @@ every mode and level of the app, with switches for large text and reduce motion,
 - All art is original, written by the studio as SVG; no stock or AI-generated images. Hero scenes are 390 x 208 SVG.
 - Prices never appear on children's content cards; wording never pressures children.
 - Every generated file under `assets/` is listed in `assets/LICENSES.md` (tokens, icons, art: original; fonts: SIL OFL 1.1).
+- Game tile art and avatar shapes are original SVGs held in code (`lib/ui/kit/ds_art.dart`, rendered by `DsSvg.string`, the only `flutter_svg` file): simple shapes, `currentColor` for the theme colour, no people. A new game adds its art there; a test checks every registered game and avatar.

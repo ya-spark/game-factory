@@ -8,7 +8,7 @@ import '../kit/ds_bars.dart';
 import '../kit/ds_chips.dart';
 import '../parent_area_screen.dart';
 import '../parent_gate.dart';
-import '../profile_picker_screen.dart' show avatarIcon;
+import '../kit/ds_art.dart';
 import '../shop_screen.dart';
 import '../test_ids.dart';
 import '../theme/app_theme.dart';
@@ -53,7 +53,7 @@ class ShopTab extends StatelessWidget {
             mainAxisSize: MainAxisSize.min,
             children: [
               if (i.kind == ShopKind.avatar)
-                Icon(avatarIcon(i.id), size: t.size('icon_lg'), color: t.text),
+                DsAvatarArt(i.id, size: t.size('icon_lg'), color: t.text),
               Text(i.title, style: t.styles['body']!),
               SizedBox(height: t.sp('xs')),
               if (!owned) DsCoinChip(id: 'shop.${i.id}', coins: i.price),

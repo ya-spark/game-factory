@@ -4,7 +4,6 @@ import '../../core/profile/child_profile.dart';
 import '../../core/services.dart';
 import '../../engine/engine.dart';
 import '../kit/ds_bars.dart';
-import '../kit/ds_buttons.dart';
 import '../test_ids.dart';
 import '../theme/app_theme.dart';
 
@@ -23,7 +22,14 @@ class ChallengesTab extends StatelessWidget {
     final today = s.profile.today;
     final todayPasses = r.todayDay == today ? r.todayPasses : 0;
     final weekPasses = r.weekIndex == weekOfDay(today) ? r.weekPasses : 0;
-    final daily = s.profile.challenges;
+    // Learning goals only: the puzzle challenges (combos, lines, score) are not part of the
+    // learning profile. The streak goal is the next streak milestone the rewards engine pays.
+    final streak = s.profile.displayStreak;
+    final milestones = cfg.streakMilestones.keys.toList()..sort();
+    final nextMilestone = milestones.firstWhere(
+      (m) => m > streak,
+      orElse: () => milestones.isEmpty ? 1 : milestones.last,
+    );
     Widget goal(String id, String title, int done, int target, int coins) {
       final shown = done.clamp(0, target);
       return DsCard(
@@ -75,36 +81,14 @@ class ChallengesTab extends StatelessWidget {
           cfg.weeklyGoalItems,
           cfg.weeklyGoalCoins,
         ),
-        for (final c in daily) ...[
-          SizedBox(height: t.sp('md')),
-          DsCard(
-            id: 'challenge.${c.id}',
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(c.description, style: t.styles['subheading']!),
-                SizedBox(height: t.sp('sm')),
-                DsProgressBar(
-                  id: 'challenge.${c.id}',
-                  value: c.progress / c.target,
-                  thin: true,
-                  semanticLabel: c.description,
-                ),
-                SizedBox(height: t.sp('sm')),
-                KeyedSubtree(
-                  key: TestIds.challengeClaim(c.id),
-                  child: DsButton(
-                    id: 'claim.${c.id}',
-                    label: c.claimed ? 'Done' : 'Claim +${c.reward} coins',
-                    onPressed: c.claimable
-                        ? () => s.profile.claimChallenge(c.id)
-                        : null,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
+        SizedBox(height: t.sp('md')),
+        goal(
+          'streak',
+          'Keep your streak going',
+          streak,
+          nextMilestone,
+          cfg.streakMilestones[nextMilestone] ?? 0,
+        ),
       ],
     );
   }

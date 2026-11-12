@@ -149,6 +149,14 @@ class _StudyTabState extends State<StudyTab> {
 
   // ---- shared helpers -------------------------------------------------------------------
 
+  String _name(_StudyData d, String subject, int year, String topic) =>
+      topicDisplayName(d.packs, subject, year, topic);
+
+  String _keyName(_StudyData d, String key) {
+    final k = splitTopicKey(key);
+    return _name(d, k.subject, k.year, k.topic);
+  }
+
   ChildProgress get _progressData {
     final s = ServicesScope.of(context);
     return s.profile.children
@@ -249,7 +257,7 @@ class _StudyTabState extends State<StudyTab> {
         DsSuggestedCard(
           id: 'learn',
           eyebrow: 'Try next',
-          title: next.topic,
+          title: _name(d, next.subject, next.year, next.topic),
           subtitle: reviseKey != null
               ? 'A few to practise again'
               : 'Pick up where you left off',
@@ -302,7 +310,7 @@ class _StudyTabState extends State<StudyTab> {
     final passed = min(r.passed, total);
     return DsTopicCard(
       id: key,
-      title: tp.topic,
+      title: _name(d, tp.subject, tp.year, tp.topic),
       subject: tp.subject,
       passed: passed,
       total: total,
@@ -367,7 +375,7 @@ class _StudyTabState extends State<StudyTab> {
     return DsCard(
       id: 'progress.$key',
       semanticLabel: [
-        tp.topic,
+        _name(d, tp.subject, tp.year, tp.topic),
         ...lines,
         if (stars && earned) 'star earned',
       ].join(', '),
@@ -375,12 +383,16 @@ class _StudyTabState extends State<StudyTab> {
         key: TestIds.progressTopic(key),
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(tp.topic, style: t.styles['heading']!),
+          Text(
+            _name(d, tp.subject, tp.year, tp.topic),
+            style: t.styles['heading']!,
+          ),
           SizedBox(height: t.sp('sm')),
           DsProgressBar(
             id: 'progress.$key',
             value: total == 0 ? 0 : passed / total,
-            semanticLabel: '${tp.topic} progress',
+            semanticLabel:
+                '${_name(d, tp.subject, tp.year, tp.topic)} progress',
           ),
           SizedBox(height: t.sp('sm')),
           for (final l in lines)
@@ -437,13 +449,12 @@ class _StudyTabState extends State<StudyTab> {
                 pool: e.value,
               );
             },
-            semanticLabel:
-                '${splitTopicKey(e.key).topic}, ${e.value.length} to revise',
+            semanticLabel: '${_keyName(d, e.key)}, ${e.value.length} to revise',
             child: Column(
               key: TestIds.reviseTopic(e.key),
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(splitTopicKey(e.key).topic, style: t.styles['heading']!),
+                Text(_keyName(d, e.key), style: t.styles['heading']!),
                 SizedBox(height: t.sp('xs')),
                 DsLabelChip(label: '${e.value.length} to revise'),
               ],
