@@ -16,6 +16,11 @@ class RewardsConfig {
     this.dailyGoalCoins = 5,
     this.weeklyGoalItems = 25,
     this.weeklyGoalCoins = 15,
+    this.newQuestionsGoal = 3,
+    this.newQuestionsCoins = 5,
+    this.newTopicCoins = 5,
+    this.reviseGoal = 3,
+    this.reviseCoins = 5,
   });
 
   /// Mind hubs set this false: no stars. Coins there come from play, not from this engine.
@@ -34,6 +39,13 @@ class RewardsConfig {
   final int dailyGoalCoins;
   final int weeklyGoalItems;
   final int weeklyGoalCoins;
+
+  /// Daily challenges: pass N new questions, try a new topic, revise N mistakes.
+  final int newQuestionsGoal;
+  final int newQuestionsCoins;
+  final int newTopicCoins;
+  final int reviseGoal;
+  final int reviseCoins;
 }
 
 /// Monday-based week number of a day number (1970-01-01 was a Thursday).
@@ -50,6 +62,8 @@ class RewardState {
     this.todayPasses = 0,
     this.weekIndex = -1,
     this.weekPasses = 0,
+    this.todayNewTopics = 0,
+    this.todayRevised = 0,
   });
 
   final int stars;
@@ -67,6 +81,10 @@ class RewardState {
   final int weekIndex;
   final int weekPasses;
 
+  /// Topics tried for the first time today, and mistakes put right today (reset daily).
+  final int todayNewTopics;
+  final int todayRevised;
+
   int coinsThisWeek(int day) => weekCoins[weekOfDay(day)] ?? 0;
 
   RewardState copyWith({
@@ -78,6 +96,8 @@ class RewardState {
     int? todayPasses,
     int? weekIndex,
     int? weekPasses,
+    int? todayNewTopics,
+    int? todayRevised,
   }) => RewardState(
     stars: stars ?? this.stars,
     paid: paid ?? this.paid,
@@ -87,6 +107,8 @@ class RewardState {
     todayPasses: todayPasses ?? this.todayPasses,
     weekIndex: weekIndex ?? this.weekIndex,
     weekPasses: weekPasses ?? this.weekPasses,
+    todayNewTopics: todayNewTopics ?? this.todayNewTopics,
+    todayRevised: todayRevised ?? this.todayRevised,
   );
 
   Map<String, Object?> toJson() => {
@@ -98,6 +120,8 @@ class RewardState {
     'tp': todayPasses,
     'wi': weekIndex,
     'wp': weekPasses,
+    'tn': todayNewTopics,
+    'tr': todayRevised,
   };
 
   factory RewardState.fromJson(Map<String, Object?>? j) {
@@ -116,6 +140,8 @@ class RewardState {
       todayPasses: (j['tp'] as num?)?.toInt() ?? 0,
       weekIndex: (j['wi'] as num?)?.toInt() ?? -1,
       weekPasses: (j['wp'] as num?)?.toInt() ?? 0,
+      todayNewTopics: (j['tn'] as num?)?.toInt() ?? 0,
+      todayRevised: (j['tr'] as num?)?.toInt() ?? 0,
     );
   }
 }
@@ -164,9 +190,9 @@ abstract final class RewardsEngine {
     final week = weekOfDay(day);
 
     // Counters for the daily and weekly goals.
+    s = _rollDay(s, day);
     s = s.copyWith(
-      todayDay: day,
-      todayPasses: (s.todayDay == day ? s.todayPasses : 0) + 1,
+      todayPasses: s.todayPasses + 1,
       weekIndex: week,
       weekPasses: (s.weekIndex == week ? s.weekPasses : 0) + 1,
     );
@@ -211,6 +237,49 @@ abstract final class RewardsEngine {
       stars: stars,
       coins: coins,
     );
+  }
+
+  /// Zeroes the daily counters when [day] is not the day they were counted on.
+  static RewardState _rollDay(RewardState s, int day) => s.todayDay == day
+      ? s
+      : s.copyWith(
+          todayDay: day,
+          todayPasses: 0,
+          todayNewTopics: 0,
+          todayRevised: 0,
+        );
+
+  /// Progress for the daily challenges "try a new topic" ([newTopic]: the child's first answer
+  /// in a topic) and "revise N mistakes" ([revised]: right now, wrong last time). "Pass N new
+  /// questions" counts first passes (`todayPasses`, paid here too). Each pays once a day,
+  /// within the weekly coin cap. Call after every answer, after [onFirstPass] when it applies.
+  static RewardGrant onAnswer(
+    RewardState before,
+    RewardsConfig cfg, {
+    required int day,
+    required bool newTopic,
+    required bool revised,
+  }) {
+    var s = _rollDay(before, day);
+    var coins = 0;
+    if (newTopic) s = s.copyWith(todayNewTopics: s.todayNewTopics + 1);
+    if (revised) s = s.copyWith(todayRevised: s.todayRevised + 1);
+    void pay(bool reached, String mark, int wanted) {
+      if (!reached || s.dayMarks.contains(mark)) return;
+      s = s.copyWith(dayMarks: {...s.dayMarks, mark});
+      final r = _payCoins(s, wanted, day, cfg);
+      s = r.state;
+      coins += r.coins;
+    }
+
+    pay(
+      s.todayPasses >= cfg.newQuestionsGoal,
+      'cnew:$day',
+      cfg.newQuestionsCoins,
+    );
+    pay(s.todayNewTopics >= 1, 'ctopic:$day', cfg.newTopicCoins);
+    pay(s.todayRevised >= cfg.reviseGoal, 'crev:$day', cfg.reviseCoins);
+    return RewardGrant(s, coins: coins);
   }
 
   /// Clamps coins from another earner (the template's daily reward and challenges, in Craft

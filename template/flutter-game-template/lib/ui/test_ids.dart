@@ -273,6 +273,9 @@ abstract final class TestIds {
   static Key playGame(String id) => Key('play.game.$id');
   static Key challengeClaim(String id) => Key('challenge.claim.$id');
   static Key challengeGoal(String id) => Key('challenge.goal.$id');
+
+  /// Learning challenges on the Challenges tab: `newQuestions`, `newTopic`, `revise`.
+  static Key learnChallenge(String id) => Key('challenge.learn.$id');
   static Key gameChallenge(String kind) => Key('challenge.game.$kind');
   static Key shopAvatar(String id) => Key('shop.avatar.$id');
   static Key shopTheme(String id) => Key('shop.theme.$id');

@@ -38,7 +38,13 @@ List<PoolItem> poolOf(List<LoadedPack> packs) =>
 QuizSession session(
   List<LoadedPack> packs, {
   ChildProgress progress = const ChildProgress(),
-  RewardsConfig cfg = const RewardsConfig(),
+  // The learning challenges (new questions, new topic, revise) are tested in
+  // learning_challenges_test.dart; here they pay nothing so the other coin rules stand alone.
+  RewardsConfig cfg = const RewardsConfig(
+    newQuestionsCoins: 0,
+    newTopicCoins: 0,
+    reviseCoins: 0,
+  ),
   int today = 100,
   int streakDays = 0,
   List<PoolItem>? items,

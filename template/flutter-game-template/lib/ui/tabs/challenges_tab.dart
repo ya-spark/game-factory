@@ -22,6 +22,8 @@ class ChallengesTab extends StatelessWidget {
     final r = child.progress.rewards;
     final today = s.profile.today;
     final todayPasses = r.todayDay == today ? r.todayPasses : 0;
+    final todayNewTopics = r.todayDay == today ? r.todayNewTopics : 0;
+    final todayRevised = r.todayDay == today ? r.todayRevised : 0;
     final weekPasses = r.weekIndex == weekOfDay(today) ? r.weekPasses : 0;
     // Learning goals only: the puzzle challenges (combos, lines, score) are not part of the
     // learning profile. The streak goal is the next streak milestone the rewards engine pays.
@@ -32,20 +34,29 @@ class ChallengesTab extends StatelessWidget {
       (m) => m > streak,
       orElse: () => milestones.isEmpty ? 1 : milestones.last,
     );
-    Widget goal(String id, String title, int done, int target, int coins) {
+    Widget goal(
+      String id,
+      String title,
+      int done,
+      int target,
+      int coins, {
+      String? detail,
+      Key? key,
+    }) {
       final shown = done.clamp(0, target);
       return DsCard(
         id: 'goal.$id',
         child: Column(
-          key: TestIds.challengeGoal(id),
+          key: key ?? TestIds.challengeGoal(id),
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(title, style: t.styles['subheading']!),
             SizedBox(height: t.sp('xs')),
             Text(
-              '$shown of $target done'
-              '${cfg.starsEnabled ? ', a star for each new one' : ''}'
-              ', +$coins coins when you finish',
+              detail ??
+                  '$shown of $target done'
+                      '${cfg.starsEnabled ? ', a star for each new one' : ''}'
+                      ', +$coins coins when you finish',
               style: t.styles['body']!,
             ),
             SizedBox(height: t.sp('sm')),
@@ -83,6 +94,44 @@ class ChallengesTab extends StatelessWidget {
             weekPasses,
             cfg.weeklyGoalItems,
             cfg.weeklyGoalCoins,
+          ),
+          SizedBox(height: t.sp('md')),
+          goal(
+            'newQuestions',
+            'Pass new questions',
+            todayPasses,
+            cfg.newQuestionsGoal,
+            cfg.newQuestionsCoins,
+            key: TestIds.learnChallenge('newQuestions'),
+            detail:
+                '${todayPasses.clamp(0, cfg.newQuestionsGoal)} of '
+                '${cfg.newQuestionsGoal} questions you have not got right '
+                'before, +${cfg.newQuestionsCoins} coins when you finish',
+          ),
+          SizedBox(height: t.sp('md')),
+          goal(
+            'newTopic',
+            'Try a new topic',
+            todayNewTopics,
+            1,
+            cfg.newTopicCoins,
+            key: TestIds.learnChallenge('newTopic'),
+            detail:
+                '${todayNewTopics.clamp(0, 1)} of 1 topic you have not tried '
+                'before, +${cfg.newTopicCoins} coins when you finish',
+          ),
+          SizedBox(height: t.sp('md')),
+          goal(
+            'revise',
+            'Revise your mistakes',
+            todayRevised,
+            cfg.reviseGoal,
+            cfg.reviseCoins,
+            key: TestIds.learnChallenge('revise'),
+            detail:
+                '${todayRevised.clamp(0, cfg.reviseGoal)} of ${cfg.reviseGoal} '
+                'questions you got wrong before and now got right, '
+                '+${cfg.reviseCoins} coins when you finish',
           ),
         ],
         if (s.config.retention.gameChallenges)

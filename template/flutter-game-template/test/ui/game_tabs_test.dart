@@ -155,6 +155,11 @@ void main() {
       expect(find.byKey(TestIds.challengesTab), findsOneWidget);
       expect(find.byKey(TestIds.challengeGoal('daily')), findsOneWidget);
       expect(find.byKey(TestIds.challengeGoal('streak')), findsOneWidget);
+      for (final k in ['newQuestions', 'newTopic', 'revise']) {
+        await tester.ensureVisible(find.byKey(TestIds.learnChallenge(k)));
+        expect(find.byKey(TestIds.learnChallenge(k)), findsOneWidget);
+      }
+      expect(find.textContaining('Try a new topic'), findsOneWidget);
       // Only learning goals: none of the old block puzzle challenges.
       expect(
         find.textContaining(RegExp('combo|lines|points in one game')),

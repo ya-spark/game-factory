@@ -282,6 +282,11 @@ RewardsConfig _parseRewards(YamlMap root) {
     dailyGoalCoins: coins['daily_goal'] as int? ?? d.dailyGoalCoins,
     weeklyGoalItems: coins['weekly_goal_items'] as int? ?? d.weeklyGoalItems,
     weeklyGoalCoins: coins['weekly_goal'] as int? ?? d.weeklyGoalCoins,
+    newQuestionsGoal: coins['new_questions_goal'] as int? ?? d.newQuestionsGoal,
+    newQuestionsCoins: coins['new_questions'] as int? ?? d.newQuestionsCoins,
+    newTopicCoins: coins['new_topic'] as int? ?? d.newTopicCoins,
+    reviseGoal: coins['revise_goal'] as int? ?? d.reviseGoal,
+    reviseCoins: coins['revise'] as int? ?? d.reviseCoins,
   );
 }
 

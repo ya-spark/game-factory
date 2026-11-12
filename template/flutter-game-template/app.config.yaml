@@ -133,6 +133,11 @@ rewards:
     daily_goal: 5
     weekly_goal_items: 25
     weekly_goal: 15
+    new_questions_goal: 3 # pass N new questions today
+    new_questions: 5
+    new_topic: 5 # first session in a topic today
+    revise_goal: 3 # put N earlier mistakes right today
+    revise: 5
 
 # Minigames: price of a coin-locked game (200 in Craft apps, 300 in Mind hubs).
 minigames:

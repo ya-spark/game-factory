@@ -142,6 +142,10 @@ class QuizSession {
     final p = current;
     if (p == null) throw StateError('The round is finished');
     final firstPass = correct && !(progress.items[p.id]?.passed ?? false);
+    final tk0 = topicKey(p.subject, p.year, p.topic);
+    final newTopic = !progress.topics.containsKey(tk0);
+    final earlier = progress.items[p.id];
+    final revised = correct && earlier != null && !earlier.lastCorrect;
     var next = progress.record(p, correct: correct, gameId: gameId);
     var stars = 0;
     var coins = 0;
@@ -162,6 +166,15 @@ class QuizSession {
       stars = g.stars;
       coins = g.coins;
     }
+    final c = RewardsEngine.onAnswer(
+      next.rewards,
+      rewardsConfig,
+      day: today,
+      newTopic: newTopic,
+      revised: revised,
+    );
+    next = next.copyWith(rewards: c.state);
+    coins += c.coins;
     progress = next;
     _index++;
     _answered++;
