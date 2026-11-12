@@ -21,9 +21,26 @@ The standalone app is the source of truth.
 - Rewrites `'lib/...'` path literals in copied tests so source-purity tests look at the copy.
 - Writes `lib/games/<game>/game.lock` (source commit, hash, file list).
 
+## The host adapter (hub-owned, never synced)
+Per game, `lib/games/<game>/host/` holds what the copied screens call "Services" and "ProfileStore",
+mapped onto the hub:
+- `services.dart`: `Services` (hub services, `HostConfig`, `HostAds`, leaderboard no-op, analytics, share) and `ServicesScope`.
+- `profile_store.dart`: keeps only the game's own data (best score, boosts or power-ups, theme, control
+  scheme, ghost, autosave, stats, achievements) in its own save (`game.<game>.save`). **Coins, Remove
+  Ads, sound, volume, ambience, voice, vibration, left-handed mode, tips and the day streak are the
+  hub's**, so one balance and one Remove Ads purchase serve every game. It reports each finished
+  game's score through `onScore` so the Games tab shows stars and the best score.
+- `ad_service.dart` (`HostAds`): rewarded ads only for the Continue (`revive`, adult profile, never
+  with Remove Ads owned); any other placement answers "no ad" (so Blockfall's power-up refill ad
+  and Block Puzzle's boost refill ad give nothing, and with Remove Ads owned the standalone's own rule
+  grants them). No interstitials. No banner during play: the hub's banners show on the menu and results.
+- `routes.dart`: `/shop` resolves to the hub's shop (`lib/host/host_routes.dart`); the games have no shop of their own.
+- `<game>_host.dart`: the widget the Games tab opens.
+- `test/games/<game>/host/fake_services.dart`: the standalone's `Services` test helper over the hub's fakes.
+
 ## Status
-- `block_puzzle` in Mind Ember, stage 1: rules, Flame game, themes, audio, save data, retention
-  engines, three screen widgets and the game's own tests (all passing in the hub).
-- Not yet: the host adapter (coins, Remove Ads, ad pacing, theme) and the copied game screens, the
-  tiles in the hub registry, Blockfall in Ember and Wingy in Presto. `theme_test.dart` (widget test on
-  the standalone's own `Services`) is excluded until the adapter exists.
+- Mind Ember: `block_puzzle` (free with ads) and `blockfall` (coin-locked, 300 coins) are copied,
+  adapted, registered (`lib/ui/game_registry.dart`) and tiled in the Games tab. Rules, game and
+  `theme_test` tests of both run in the hub.
+- Not yet: the standalone widget/e2e tests that need the standalone's own shop and ads (not copied),
+  and Wingy in Presto.
