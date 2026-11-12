@@ -3,18 +3,23 @@
 
 The engine is vendored into every game (see docs/ENGINE.md). It is the files under
 lib/engine, test/engine, test/fixtures and tool/content_cli.dart. The lock is a SHA-256 over
-their relative names and bytes, with `package:<this game>/` normalised to
+their relative names and bytes (minus any paths a game lists in engine.exclude, see below), with `package:<this game>/` normalised to
 `package:flutter_game_template/` so the same engine hashes the same in every game.
 
   python3 scripts/engine_lock.py hash     print the hash of this repo's engine files
   python3 scripts/engine_lock.py write    write it to engine.lock (done by scripts/sync_engine.py)
   python3 scripts/engine_lock.py check    exit 1 if the engine files differ from engine.lock
 
+engine.exclude (optional, in the game repo root): one glob per line, `#` comments. Matching engine
+paths are game-only code: not hashed, not compared, never overwritten or deleted by a sync. A
+pattern also matches everything under a directory of that name. Default: no exclusions.
+
 Run from anywhere; the repo root is the parent of this script's folder. Standard library only.
 """
 
 from __future__ import annotations
 
+import fnmatch
 import hashlib
 import re
 import sys
@@ -24,6 +29,7 @@ ROOT = Path(__file__).resolve().parent.parent
 LOCK_FILE = "engine.lock"
 TEMPLATE_PKG = "flutter_game_template"
 ENGINE_PATHS = ("lib/engine", "test/engine", "test/fixtures", "tool/content_cli.dart")
+EXCLUDE_FILE = "engine.exclude"
 
 
 def package_name(root: Path) -> str:
@@ -33,7 +39,27 @@ def package_name(root: Path) -> str:
     return m.group(1)
 
 
+def read_excludes(root: Path) -> list[str]:
+    """Glob patterns from the game's engine.exclude (one per line, # comments). Default: none."""
+    f = root / EXCLUDE_FILE
+    if not f.is_file():
+        return []
+    lines = (ln.strip() for ln in f.read_text("utf-8").splitlines())
+    return [ln for ln in lines if ln and not ln.startswith("#")]
+
+
+def is_excluded(rel: str, patterns: list[str]) -> bool:
+    """True if the repo-relative posix path matches a pattern (fnmatch, `*` crosses `/`) or lies
+    under a directory named by a pattern."""
+    for pat in patterns:
+        pat = pat.rstrip("/")
+        if fnmatch.fnmatchcase(rel, pat) or rel.startswith(pat + "/"):
+            return True
+    return False
+
+
 def engine_files(root: Path) -> list[Path]:
+    """Engine files of a repo, minus those matched by its engine.exclude (not hashed, not synced)."""
     files: list[Path] = []
     for rel in ENGINE_PATHS:
         p = root / rel
@@ -41,6 +67,9 @@ def engine_files(root: Path) -> list[Path]:
             files += [f for f in p.rglob("*") if f.is_file()]
         elif p.is_file():
             files.append(p)
+    patterns = read_excludes(root)
+    if patterns:
+        files = [f for f in files if not is_excluded(f.relative_to(root).as_posix(), patterns)]
     return sorted(files, key=lambda f: f.relative_to(root).as_posix())
 
 

@@ -8,7 +8,8 @@ Usage:
 A sync copies lib/engine, test/engine, test/fixtures and tool/content_cli.dart from the template,
 rewrites `package:flutter_game_template/` to the game's own package, deletes engine files the
 template no longer has, copies scripts/engine_lock.py and writes engine.lock. Nothing outside the
-engine paths is touched. --check exits 1 when any game is behind the template or its engine files
+engine paths is touched. Paths matched by the game's engine.exclude (globs) are left alone, not
+hashed and not compared (docs/GAME_SYNC.md). --check exits 1 when any game is behind the template or its engine files
 were edited locally; it changes nothing.
 
 Python 3 standard library only.
@@ -49,7 +50,12 @@ def _game_pkg(lock, game: Path) -> str:
 def sync_game(game: Path, template: Path = TEMPLATE_DIR) -> None:
     lock = _load_lock(template)
     pkg = _game_pkg(lock, game)
-    template_files = {f.relative_to(template).as_posix(): f for f in lock.engine_files(template)}
+    excludes = lock.read_excludes(game)  # game-only paths: never copied over, never deleted
+    template_files = {
+        f.relative_to(template).as_posix(): f
+        for f in lock.engine_files(template)
+        if not lock.is_excluded(f.relative_to(template).as_posix(), excludes)
+    }
     # stale: engine files in the game that the template no longer has
     for f in lock.engine_files(game):
         rel = f.relative_to(game).as_posix()

@@ -21,6 +21,21 @@ The standalone app is the source of truth.
 - Rewrites `'lib/...'` path literals in copied tests so source-purity tests look at the copy.
 - Writes `lib/games/<game>/game.lock` (source commit, hash, file list).
 
+## Engine sync exclusions (`engine.exclude`)
+A hub holds game code under `lib/engine` and `test/engine` that the template engine does not have
+(mahjong, merge, sudoku, ...). To keep `sync_engine.py` from deleting it and `--check` from calling
+the hub "edited locally", list it in `engine.exclude` at the game repo root: one glob per line,
+`#` comments. A glob is matched on the repo-relative path (`*` also crosses `/`); a pattern naming a
+directory covers everything under it.
+```
+# hub-only games (not template engine)
+lib/engine/mahjong
+test/engine/mahjong_*_test.dart
+```
+Excluded paths are not hashed into `engine.lock`, not compared, never overwritten and never deleted
+by a sync. Shared engine files stay locked. Craft apps and generated games have no `engine.exclude`.
+Logic: `engine_lock.py` (`read_excludes`, `is_excluded`), tests in `scripts/tests/test_sync_engine.py`.
+
 ## The host adapter (hub-owned, never synced)
 Per game, `lib/games/<game>/host/` holds what the copied screens call "Services" and "ProfileStore",
 mapped onto the hub:

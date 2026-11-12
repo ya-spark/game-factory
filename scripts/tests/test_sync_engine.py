@@ -83,6 +83,50 @@ class SyncEngineTest(unittest.TestCase):
         with contextlib.redirect_stdout(out):
             self.assertEqual(sync_engine.main(["--check", str(self.game)]), 1)
 
+    def _hub_file(self, rel="lib/engine/hubonly/game.dart", text="// hub only\n"):
+        f = self.game / rel
+        f.parent.mkdir(parents=True, exist_ok=True)
+        f.write_text(text)
+        return f
+
+    def test_no_exclusions_by_default(self):
+        self._hub_file()
+        self.assertIn("edited locally", self.check())
+
+    def test_excluded_files_are_not_hashed_and_survive_sync(self):
+        (self.game / "engine.exclude").write_text("# hub games\nlib/engine/hubonly\ntest/engine/hub_*_test.dart\n")
+        a = self._hub_file()
+        b = self._hub_file("test/engine/hub_x_test.dart", "// t\n")
+        self.assertIsNone(self.check())
+        e = self.template / "lib/engine/engine.dart"
+        e.write_text(e.read_text() + "// new\n")
+        self.assertIn("behind", self.check())
+        sync_engine.sync_game(self.game, self.template)
+        self.assertTrue(a.exists() and b.exists())
+        self.assertIsNone(self.check())
+
+    def test_non_excluded_extra_file_is_still_deleted(self):
+        (self.game / "engine.exclude").write_text("lib/engine/hubonly/*\n")
+        keep = self._hub_file()
+        gone = self._hub_file("lib/engine/other/x.dart")
+        sync_engine.sync_game(self.game, self.template)
+        self.assertTrue(keep.exists())
+        self.assertFalse(gone.exists())
+
+    def test_excluded_path_is_not_overwritten_from_template(self):
+        (self.game / "engine.exclude").write_text("lib/engine/engine.dart\n")
+        f = self.game / "lib/engine/engine.dart"
+        f.write_text("// mine\n")
+        sync_engine.sync_game(self.game, self.template)
+        self.assertEqual(f.read_text(), "// mine\n")
+
+    def test_is_excluded_patterns(self):
+        lock = sync_engine._load_lock(self.template)
+        self.assertTrue(lock.is_excluded("lib/engine/a/b.dart", ["lib/engine/a/"]))
+        self.assertTrue(lock.is_excluded("lib/engine/a/b.dart", ["lib/engine/a/*.dart"]))
+        self.assertFalse(lock.is_excluded("lib/engine/ab/b.dart", ["lib/engine/a"]))
+        self.assertFalse(lock.is_excluded("lib/engine/a.dart", []))
+
 
 if __name__ == "__main__":
     unittest.main()
