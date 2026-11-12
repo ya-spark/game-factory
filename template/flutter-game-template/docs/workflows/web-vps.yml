@@ -54,9 +54,9 @@ jobs:
           CONTENT_BASE_URL: ${{ inputs.content_base_url }}
         run: |
           if [ -n "$CONTENT_BASE_URL" ]; then
-            flutter build web --release --base-href "/$VPS_APP_FOLDER/" --dart-define=CONTENT_BASE_URL="$CONTENT_BASE_URL"
+            flutter build web --release --no-web-resources-cdn --base-href "/$VPS_APP_FOLDER/" --dart-define=CONTENT_BASE_URL="$CONTENT_BASE_URL"
           else
-            flutter build web --release --base-href "/$VPS_APP_FOLDER/"
+            flutter build web --release --no-web-resources-cdn --base-href "/$VPS_APP_FOLDER/"
           fi
 
       - name: Upload over SSH
