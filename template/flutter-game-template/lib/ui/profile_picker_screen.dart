@@ -103,6 +103,15 @@ class _NewChildScreenState extends State<_NewChildScreen> {
   final _name = TextEditingController();
   String _avatar = avatarIds.first;
   int? _year;
+  Future<List<int>>? _years;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _years ??=
+        ServicesScope.of(context).learning?.contentYears() ??
+        Future.value(const <int>[]);
+  }
 
   @override
   void dispose() {
@@ -170,17 +179,27 @@ class _NewChildScreenState extends State<_NewChildScreen> {
           ],
           const SizedBox(height: 16),
           const Text('Year level'),
-          Wrap(
-            spacing: 8,
-            children: [
-              for (var y = 0; y <= 10; y++)
-                ChoiceChip(
-                  key: TestIds.pickerYear(y),
-                  label: Text(y == 0 ? 'Foundation' : 'Year $y'),
-                  selected: _year == y,
-                  onSelected: (_) => setState(() => _year = y),
-                ),
-            ],
+          FutureBuilder<List<int>>(
+            future: _years,
+            builder: (context, snap) {
+              // The years the app's content covers; Foundation to Year 10 when unknown.
+              final data = snap.data;
+              final years = data == null || data.isEmpty
+                  ? [for (var y = 0; y <= 10; y++) y]
+                  : data;
+              return Wrap(
+                spacing: 8,
+                children: [
+                  for (final y in years)
+                    ChoiceChip(
+                      key: TestIds.pickerYear(y),
+                      label: Text(y == 0 ? 'Foundation' : 'Year $y'),
+                      selected: _year == y,
+                      onSelected: (_) => setState(() => _year = y),
+                    ),
+                ],
+              );
+            },
           ),
           const SizedBox(height: 16),
           FilledButton(

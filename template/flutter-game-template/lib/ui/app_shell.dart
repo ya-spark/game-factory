@@ -51,6 +51,9 @@ class _AppShellState extends State<AppShell> with WidgetsBindingObserver {
   int _tab = 0;
   LearnMode? _lastMode;
 
+  /// Day number of the last release refresh per "player/year".
+  final Map<String, int> _released = {};
+
   @override
   void initState() {
     super.initState();
@@ -65,9 +68,25 @@ class _AppShellState extends State<AppShell> with WidgetsBindingObserver {
     final profile = ServicesScope.of(context).profile;
     if (state == AppLifecycleState.resumed) {
       profile.resumePlay();
+      if (mounted) setState(() {}); // a new day opens the day's items
     } else {
       profile.pausePlay();
     }
+  }
+
+  /// Opens today's items once per player, year and day (the daily release of built-in
+  /// content). Without it a new player would see no topics and no games.
+  void _ensureRelease(ChildProfile child) {
+    final learning = ServicesScope.of(context).learning;
+    final year = child.year;
+    if (learning == null || year == null) return;
+    final key = '${child.id}/$year';
+    final day = learning.today;
+    if (_released[key] == day) return;
+    _released[key] = day;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) learning.refreshRelease(child.id).ignore();
+    });
   }
 
   @override
@@ -86,6 +105,7 @@ class _AppShellState extends State<AppShell> with WidgetsBindingObserver {
       builder: (context, _) {
         final child = s.profile.activeChild;
         if (child == null) return const SizedBox.shrink();
+        _ensureRelease(child);
         final mode = child.effectiveMode;
         if (_lastMode != mode) {
           _tab = 0; // a new mode starts on its first tab

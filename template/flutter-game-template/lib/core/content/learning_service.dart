@@ -67,6 +67,17 @@ class LearningService {
     return profile.children.firstWhere((c) => c.id == childId);
   }
 
+  /// Year levels the built-in content covers (0 = Foundation), lowest first. The year picker
+  /// offers these, so each app lists only its own years. Empty when the content cannot be read.
+  Future<List<int>> contentYears() async {
+    try {
+      final packs = await repository.builtIn.listPacks();
+      return ({for (final p in packs) p.year}.toList()..sort());
+    } on Object {
+      return const [];
+    }
+  }
+
   /// Every pack ready to play (a round needs them for the topic bonus).
   Future<List<LoadedPack>> loadedPacks() => _loaded();
 
