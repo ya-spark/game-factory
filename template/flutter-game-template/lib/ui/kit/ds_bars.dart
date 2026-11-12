@@ -122,6 +122,7 @@ class DsTopBar extends StatelessWidget {
     this.leading,
     this.modeToggle,
     this.coins,
+    this.onSettings,
     this.transparent = false,
   });
   final String id;
@@ -129,6 +130,9 @@ class DsTopBar extends StatelessWidget {
   final Widget? leading;
   final Widget? modeToggle;
   final int? coins;
+
+  /// Shows a Settings button at the end of the bar when set.
+  final VoidCallback? onSettings;
   final bool transparent;
 
   @override
@@ -174,6 +178,18 @@ class DsTopBar extends StatelessWidget {
                   ],
                 ),
               ),
+            ),
+          if (onSettings != null)
+            IconButton(
+              key: TestIds.shellSettings,
+              tooltip: 'Settings',
+              icon: const Icon(Icons.settings),
+              color: t.text,
+              constraints: BoxConstraints(
+                minWidth: t.minTouch,
+                minHeight: t.minTouch,
+              ),
+              onPressed: onSettings,
             ),
         ],
       ),

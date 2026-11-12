@@ -101,6 +101,8 @@ void main() {
     await settle(tester);
     final item = find.byKey(TestIds.settingsShareApp, skipOffstage: false);
     await tester.scrollUntilVisible(item, 100);
+    await tester.ensureVisible(item);
+    await tester.pumpAndSettle();
     await tester.tap(item);
     await tester.pump();
     expect(share.sent.single.text, endsWith('\nhttps://example.com/test'));
@@ -321,7 +323,10 @@ void main() {
 
     await tester.tap(find.byKey(TestIds.homeSettings));
     await settle(tester);
-    final sw = find.byKey(TestIds.settingsTips);
+    final sw = find.byKey(TestIds.settingsTips, skipOffstage: false);
+    await tester.scrollUntilVisible(sw, 100);
+    await tester.ensureVisible(sw);
+    await tester.pumpAndSettle();
     expect(tester.widget<SwitchListTile>(sw).value, isFalse);
     await tester.tap(sw);
     await tester.pump();

@@ -4,6 +4,7 @@ import '../core/content/learning_service.dart';
 import '../core/profile/child_profile.dart';
 import '../core/services.dart';
 import '../engine/engine.dart';
+import 'child_report.dart';
 import 'test_ids.dart';
 
 /// Grown-ups only: reached through the "Ask a grown-up" gate. Per child: year level, mode lock,
@@ -117,12 +118,52 @@ class _ParentAreaScreenState extends State<ParentAreaScreen> {
       const SizedBox(height: 12),
       _Report(key: TestIds.parentReport, child: child),
       TextButton.icon(
+        key: TestIds.parentReset,
+        icon: const Icon(Icons.restart_alt),
+        label: Text('Reset progress for ${child.nickname}'),
+        onPressed: () => _confirmReset(context, s, child),
+      ),
+      TextButton.icon(
         key: TestIds.parentDelete,
         icon: const Icon(Icons.delete_outline),
         label: Text('Delete ${child.nickname} and their progress'),
         onPressed: () => _confirmDelete(context, s, child),
       ),
     ];
+  }
+
+  Future<void> _confirmReset(
+    BuildContext context,
+    Services s,
+    ChildProfile child,
+  ) async {
+    final yes = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text('Reset progress for ${child.nickname}?'),
+        content: const Text(
+          'This clears their answers, topics and time played. The player, coins and '
+          'purchases stay. It cannot be undone.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const Text('Keep'),
+          ),
+          FilledButton(
+            key: TestIds.parentResetConfirm,
+            onPressed: () => Navigator.pop(ctx, true),
+            child: const Text('Reset'),
+          ),
+        ],
+      ),
+    );
+    if (yes == true) {
+      await s.profile.resetChildProgress(child.id);
+      if (mounted) {
+        setState(() => _message = 'Progress reset for ${child.nickname}.');
+      }
+    }
   }
 
   Future<void> _confirmDelete(
@@ -176,6 +217,17 @@ class _ParentAreaScreenState extends State<ParentAreaScreen> {
       ),
       const SizedBox(height: 8),
       Text('Purchases', style: Theme.of(context).textTheme.titleMedium),
+      ListTile(
+        title: const Text('Remove Ads'),
+        subtitle: const Text('One purchase. No ads, now and in later updates.'),
+        trailing: d.adsRemoved
+            ? const Text('Owned')
+            : FilledButton(
+                key: TestIds.parentRemoveAds,
+                onPressed: () => s.purchases.buy('remove_ads_all'),
+                child: Text(s.purchases.priceOf('remove_ads_all') ?? 'Buy'),
+              ),
+      ),
       ListTile(
         title: const Text('Full Unlock'),
         subtitle: const Text('Opens all built-in content, including updates.'),
@@ -332,7 +384,7 @@ class _ParentAreaScreenState extends State<ParentAreaScreen> {
   }
 }
 
-/// Topics passed and items still to pass for one child, and the next release.
+/// The weekly report for one child, then the daily release status (items open, still to pass).
 class _Report extends StatelessWidget {
   const _Report({super.key, required this.child});
   final ChildProfile child;
@@ -352,17 +404,17 @@ class _Report extends StatelessWidget {
         ),
       );
     }
-    for (final e in p.topics.entries) {
-      rows.add(
-        Text('${e.key}: ${e.value.passed} of ${e.value.attempted} passed'),
-      );
-    }
-    if (rows.isEmpty) rows.add(const Text('No progress yet.'));
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text('Progress', style: Theme.of(context).textTheme.titleMedium),
-        ...rows,
+        Text('Progress', style: Theme.of(context).textTheme.titleLarge),
+        const SizedBox(height: 8),
+        ChildReport(child: child),
+        if (rows.isNotEmpty) ...[
+          const SizedBox(height: 12),
+          Text('Daily release', style: Theme.of(context).textTheme.titleMedium),
+          ...rows,
+        ],
       ],
     );
   }

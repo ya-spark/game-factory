@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'core/config/app_config.dart';
 import 'core/services.dart';
 import 'core/profile/child_profile.dart';
+import 'engine/engine.dart';
 import 'ui/app_shell.dart';
 import 'ui/home_screen.dart';
 import 'ui/profile_picker_screen.dart';
@@ -70,14 +71,30 @@ class GameApp extends StatelessWidget {
                     surface: cfg.themeDark ? const Color(0xFF0F2430) : null,
                   ),
             ),
-      builder: design == null
-          ? null
-          : (context, child) => DesignScope(
-              design: design!,
-              mode: mode!,
-              level: level,
-              child: child!,
+      builder: (context, child) {
+        // Settings: the player's text size multiplies the system one; Reduce motion turns on the
+        // platform "disable animations" flag, which the design kit and minigames already honour.
+        final data = services.profile.data;
+        final mq = MediaQuery.of(context);
+        final scaled = MediaQuery(
+          data: mq.copyWith(
+            textScaler: _MultipliedScaler(
+              mq.textScaler,
+              TextSizeChoice.parse(data.textSize).scale,
             ),
+            disableAnimations: mq.disableAnimations || data.reduceMotion,
+          ),
+          child: child!,
+        );
+        return design == null
+            ? scaled
+            : DesignScope(
+                design: design!,
+                mode: mode!,
+                level: level,
+                child: scaled,
+              );
+      },
       home: !cfg.content.enabled && design != null
           ? FutureBuilder<ChildProfile>(
               // No learning content: no picker, one built-in local player.
@@ -95,4 +112,26 @@ class GameApp extends StatelessWidget {
           : const HomeScreen(),
     );
   }
+}
+
+/// The system text scaler times the player's own text size choice.
+class _MultipliedScaler extends TextScaler {
+  const _MultipliedScaler(this.base, this.factor);
+  final TextScaler base;
+  final double factor;
+
+  @override
+  double scale(double fontSize) => base.scale(fontSize) * factor;
+
+  @override
+  double get textScaleFactor => scale(1);
+
+  @override
+  bool operator ==(Object other) =>
+      other is _MultipliedScaler &&
+      other.base == base &&
+      other.factor == factor;
+
+  @override
+  int get hashCode => Object.hash(base, factor);
 }

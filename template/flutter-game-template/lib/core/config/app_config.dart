@@ -308,7 +308,11 @@ class AppConfig {
     this.aiEnabled = false,
     this.audience = Audience.adult,
     this.speech = const SpeechConfig(),
+    this.privacyUrl = '',
   });
+
+  /// `app.privacy_url`: the published privacy policy (https). Empty hides the Settings link.
+  final String privacyUrl;
 
   final Audience audience;
   final SpeechConfig speech;
@@ -418,6 +422,7 @@ class AppConfig {
       appId: app['id'] as String,
       displayName: app['display_name'] as String,
       packageName: app['package_name'] as String,
+      privacyUrl: app['privacy_url'] as String? ?? '',
       themeSeedColor: _parseColor(theme['seed_color'] as String? ?? '#2EC4B6'),
       themeDark: theme['dark'] as bool? ?? true,
       designId: theme['design'] as String?,

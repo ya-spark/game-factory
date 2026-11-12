@@ -314,6 +314,16 @@ class ProfileStore extends ChangeNotifier {
   Future<void> setLeftHanded(bool v) => _commit(_data.copyWith(leftHanded: v));
   Future<void> setVibration(bool v) => _commit(_data.copyWith(vibrationOn: v));
   Future<void> setReminders(bool v) => _commit(_data.copyWith(remindersOn: v));
+  Future<void> setReminderTime(int hour, int minute) => _commit(
+    _data.copyWith(
+      reminderHour: hour.clamp(0, 23),
+      reminderMinute: minute.clamp(0, 59),
+    ),
+  );
+  Future<void> setTextSize(TextSizeChoice v) =>
+      _commit(_data.copyWith(textSize: v.name));
+  Future<void> setReduceMotion(bool v) =>
+      _commit(_data.copyWith(reduceMotion: v));
 
   // ---- tips ---------------------------------------------------------------
 
@@ -391,23 +401,66 @@ class ProfileStore extends ChangeNotifier {
   void selectChild(String id) {
     if (_data.profiles.any((p) => p.id == id)) {
       _activeId = id;
+      _playStart = _clock();
       notifyListeners();
     }
   }
+
+  // ---- play time ------------------------------------------------------------
+
+  DateTime? _playStart;
+
+  /// The app came to the front with a child selected: start counting.
+  void resumePlay() {
+    if (_activeId != null) _playStart ??= _clock();
+  }
+
+  /// The app went to the background, or the child left: add the time since [resumePlay] to the
+  /// child's weekly total. A device clock moved back adds nothing.
+  Future<void> pausePlay() async {
+    final start = _playStart;
+    final id = _activeId;
+    _playStart = null;
+    if (start == null || id == null) return;
+    final seconds = _clock().difference(start).inSeconds;
+    if (seconds <= 0) return;
+    final day = today;
+    await _updateChild(
+      id,
+      (p) => p.copyWith(playTime: p.playTime.add(day, seconds)),
+    );
+  }
+
+  /// Clears one child's progress and play time. The player, coins, purchases and shop items stay.
+  Future<void> resetChildProgress(String id) => _updateChild(
+    id,
+    (p) => ChildProfile(
+      id: p.id,
+      nickname: p.nickname,
+      avatar: p.avatar,
+      year: p.year,
+      colorTheme: p.colorTheme,
+      mode: p.mode,
+      lockedMode: p.lockedMode,
+    ),
+  );
 
   /// Hubs without learning content have no picker: one built-in local player, selected at once.
   Future<ChildProfile> ensureLocalPlayer() async {
     var p = _data.profiles.isEmpty ? null : _data.profiles.first;
     p ??= await addChild('Player');
     _activeId = p!.id;
+    _playStart = _clock();
     notifyListeners();
     return p;
   }
 
   /// Back to the picker.
-  void leaveChild() {
+  Future<void> leaveChild() {
+    final saved = pausePlay(); // reads the active child before it is cleared
     _activeId = null;
     notifyListeners();
+    return saved;
   }
 
   /// Adds a child (a made-up nickname and a built-in avatar). Null when the limit is reached
@@ -469,7 +522,10 @@ class ProfileStore extends ChangeNotifier {
 
   /// Deletes one child and their progress. Coins, purchases and other children stay.
   Future<void> deleteChild(String id) async {
-    if (_activeId == id) _activeId = null;
+    if (_activeId == id) {
+      _activeId = null;
+      _playStart = null;
+    }
     await _commit(
       _data.copyWith(
         profiles: [

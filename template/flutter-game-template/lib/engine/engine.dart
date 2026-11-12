@@ -19,6 +19,11 @@ export 'content/repository.dart';
 export 'content/spelling.dart';
 export 'content/validator.dart';
 
+// Settings and the grown-ups' progress view (pure Dart).
+export 'family/play_time.dart';
+export 'family/progress_report.dart';
+export 'family/text_size.dart';
+
 // Issue 1C1: minigames, rewards, AI tutor hook.
 export 'ai/ai_tutor.dart';
 export 'minigames/balloon_pop/rules/balloon_pop_rules.dart';

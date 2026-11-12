@@ -6,6 +6,7 @@ import '../engine/engine.dart';
 import 'game_registry.dart';
 import 'kit/ds_bars.dart';
 import 'mode_toggle.dart';
+import 'settings_screen.dart';
 import 'tabs/challenges_tab.dart';
 import 'tabs/play_tab.dart';
 import 'tabs/shop_tab.dart';
@@ -46,9 +47,34 @@ class AppShell extends StatefulWidget {
   State<AppShell> createState() => _AppShellState();
 }
 
-class _AppShellState extends State<AppShell> {
+class _AppShellState extends State<AppShell> with WidgetsBindingObserver {
   int _tab = 0;
   LearnMode? _lastMode;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+  }
+
+  /// Time played for the grown-ups' weekly total: the store starts counting when a player is
+  /// selected; here it stops when the app goes to the background and restarts on return (no
+  /// timers, only start and stop stamps).
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    final profile = ServicesScope.of(context).profile;
+    if (state == AppLifecycleState.resumed) {
+      profile.resumePlay();
+    } else {
+      profile.pausePlay();
+    }
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -95,6 +121,11 @@ class _AppShellState extends State<AppShell> {
               children: [
                 DsTopBar(
                   coins: s.profile.data.coins,
+                  onSettings: () => Navigator.of(context).push(
+                    MaterialPageRoute<void>(
+                      builder: (_) => const SettingsScreen(),
+                    ),
+                  ),
                   modeToggle: hasModes ? ModeToggle(child: child) : null,
                 ),
                 Expanded(child: page),

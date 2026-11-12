@@ -19,6 +19,10 @@ class SaveData {
     this.tipHomeDay = -1,
     this.vibrationOn = true,
     this.remindersOn = false,
+    this.reminderHour = 19,
+    this.reminderMinute = 0,
+    this.textSize = 'normal',
+    this.reduceMotion = false,
     this.lastSeenMs = 0,
     this.savedAtMs = 0,
     this.dailyReward = const DailyRewardState(),
@@ -36,7 +40,7 @@ class SaveData {
   });
 
   /// Bump when the JSON shape changes and add a step to [SaveMigrator].
-  static const int currentVersion = 3;
+  static const int currentVersion = 4;
 
   final int coins;
   final int bestScore;
@@ -58,6 +62,16 @@ class SaveData {
   final int tipHomeDay;
   final bool vibrationOn;
   final bool remindersOn;
+
+  /// Local time of the daily reminder.
+  final int reminderHour;
+  final int reminderMinute;
+
+  /// `small`, `normal` or `large` ([TextSizeChoice]); multiplies the system text size.
+  final String textSize;
+
+  /// Fewer and shorter animations.
+  final bool reduceMotion;
 
   /// Latest time ever seen (UTC ms), for the backwards-clock guard.
   final int lastSeenMs;
@@ -105,6 +119,10 @@ class SaveData {
     int? tipHomeDay,
     bool? vibrationOn,
     bool? remindersOn,
+    int? reminderHour,
+    int? reminderMinute,
+    String? textSize,
+    bool? reduceMotion,
     int? lastSeenMs,
     int? savedAtMs,
     DailyRewardState? dailyReward,
@@ -138,6 +156,10 @@ class SaveData {
     tipHomeDay: tipHomeDay ?? this.tipHomeDay,
     vibrationOn: vibrationOn ?? this.vibrationOn,
     remindersOn: remindersOn ?? this.remindersOn,
+    reminderHour: reminderHour ?? this.reminderHour,
+    reminderMinute: reminderMinute ?? this.reminderMinute,
+    textSize: textSize ?? this.textSize,
+    reduceMotion: reduceMotion ?? this.reduceMotion,
     lastSeenMs: lastSeenMs ?? this.lastSeenMs,
     savedAtMs: savedAtMs ?? this.savedAtMs,
     dailyReward: dailyReward ?? this.dailyReward,
@@ -162,6 +184,10 @@ class SaveData {
     'tipHomeDay': tipHomeDay,
     'vibrationOn': vibrationOn,
     'remindersOn': remindersOn,
+    'reminderHour': reminderHour,
+    'reminderMinute': reminderMinute,
+    'textSize': textSize,
+    'reduceMotion': reduceMotion,
     'lastSeenMs': lastSeenMs,
     'savedAtMs': savedAtMs,
     'dailyReward': dailyReward.toJson(),
@@ -195,6 +221,10 @@ class SaveData {
     tipHomeDay: (j['tipHomeDay'] as num?)?.toInt() ?? -1,
     vibrationOn: j['vibrationOn'] as bool? ?? true,
     remindersOn: j['remindersOn'] as bool? ?? false,
+    reminderHour: ((j['reminderHour'] as num?)?.toInt() ?? 19).clamp(0, 23),
+    reminderMinute: ((j['reminderMinute'] as num?)?.toInt() ?? 0).clamp(0, 59),
+    textSize: j['textSize'] as String? ?? 'normal',
+    reduceMotion: j['reduceMotion'] as bool? ?? false,
     lastSeenMs: (j['lastSeenMs'] as num?)?.toInt() ?? 0,
     savedAtMs: (j['savedAtMs'] as num?)?.toInt() ?? 0,
     dailyReward: DailyRewardState.fromJson(_map(j['dailyReward'])),
@@ -237,6 +267,7 @@ abstract final class SaveMigrator {
         0 => _v0ToV1(j),
         1 => _v1ToV2(j),
         2 => _v2ToV3(j),
+        3 => _v3ToV4(j),
         _ => throw StateError('No migration from $v'),
       };
       v = (j['version'] as num).toInt();
@@ -250,6 +281,17 @@ abstract final class SaveMigrator {
     'version': 1,
     'bestScore': j['bestScore'] ?? j['highScore'] ?? 0,
     'coins': j['coins'] ?? j['coinBalance'] ?? 0,
+  };
+
+  /// v4 added the text size, reduce motion and the reminder time (all have defaults), and the
+  /// per-child play time (read as empty when missing).
+  static Map<String, Object?> _v3ToV4(Map<String, Object?> j) => {
+    ...j,
+    'version': 4,
+    'reminderHour': j['reminderHour'] ?? 19,
+    'reminderMinute': j['reminderMinute'] ?? 0,
+    'textSize': j['textSize'] ?? 'normal',
+    'reduceMotion': j['reduceMotion'] ?? false,
   };
 
   /// v3 added child profiles. The existing single-player save becomes the first profile

@@ -285,4 +285,23 @@ abstract final class TestIds {
   static Key galleryMode(String mode) => Key('gallery.mode.$mode');
   static const galleryLargeText = Key('gallery.largeText');
   static const galleryReduceMotion = Key('gallery.reduceMotion');
+  // Settings (sound, music, reduce motion, text size, reminders, switch player, policy, version)
+  static const shellSettings = Key('shell.settings');
+  static const settingsReduceMotion = Key('settings.reduceMotion');
+  static Key settingsTextSize(String name) => Key('settings.textSize.$name');
+  static const settingsReminderTime = Key('settings.reminderTime');
+  static const settingsSwitchPlayer = Key('settings.switchPlayer');
+  static const settingsPrivacyPolicy = Key('settings.privacyPolicy');
+  static const settingsVersion = Key('settings.version');
+  static const settingsGrownUps = Key('settings.grownUps');
+  static const settingsProgress = Key('settings.progress');
+
+  // Progress and the grown-ups' area
+  static const progressScreen = Key('progress.screen');
+  static const reportPlayTime = Key('report.playTime');
+  static const reportTopicsCount = Key('report.topicsCount');
+  static Key reportTopic(String key) => Key('report.topic.$key');
+  static const parentReset = Key('parent.reset');
+  static const parentResetConfirm = Key('parent.reset.confirm');
+  static const parentRemoveAds = Key('parent.removeAds');
 }
