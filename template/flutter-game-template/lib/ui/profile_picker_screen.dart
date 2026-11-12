@@ -7,6 +7,7 @@ import '../core/services.dart';
 import 'parent_area_screen.dart';
 import 'parent_gate.dart';
 import 'test_ids.dart';
+import 'year_choices.dart';
 
 /// Shown on every launch of a learning game: who is playing? Up to four children, each a
 /// made-up nickname and a built-in avatar. The parent area is behind the gate.
@@ -183,10 +184,7 @@ class _NewChildScreenState extends State<_NewChildScreen> {
             future: _years,
             builder: (context, snap) {
               // The years the app's content covers; Foundation to Year 10 when unknown.
-              final data = snap.data;
-              final years = data == null || data.isEmpty
-                  ? [for (var y = 0; y <= 10; y++) y]
-                  : data;
+              final years = yearChoices(snap.data);
               return Wrap(
                 spacing: 8,
                 children: [

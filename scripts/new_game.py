@@ -401,6 +401,30 @@ def apply_profile_config(out: Path, profile: str, audience: str) -> None:
         cfg.write_text(new, encoding="utf-8")
 
 
+def apply_content_packs(out: Path) -> None:
+    """Craft apps bundle packs from assets/content/packs/: list the folder in pubspec.yaml (Flutter
+    does not look into sub-folders) and create it so the build works before the first pack."""
+    pubspec = out / "pubspec.yaml"
+    text = pubspec.read_text(encoding="utf-8")
+    marker = "    - assets/content/\n"
+    line = "    - assets/content/packs/\n"
+    if marker not in text:
+        raise GenError("generator bug: assets/content/ entry not found in pubspec.yaml")
+    if line not in text:
+        pubspec.write_text(text.replace(marker, marker + line, 1), encoding="utf-8")
+    packs = out / "assets" / "content" / "packs"
+    packs.mkdir(parents=True, exist_ok=True)
+    keep = packs / ".gitkeep"
+    if not any(packs.iterdir()):
+        keep.write_text("", encoding="utf-8")
+        lic = out / "assets" / "LICENSES.md"
+        row = ("| assets/content/packs/.gitkeep | Written by the studio | original "
+               "| empty placeholder so the packs folder exists before the first pack |\n")
+        text = lic.read_text(encoding="utf-8")
+        if row not in text:
+            lic.write_text(text.rstrip("\n") + "\n" + row, encoding="utf-8")
+
+
 def apply_ci_guard(out: Path, ci: str) -> None:
     """With --ci off the generated ci.yml only runs when the CI_ENABLED variable is 'true'."""
     if ci == "on":
@@ -602,6 +626,8 @@ def generate(
     if profile != "puzzle":
         strip_puzzle(out)
     apply_profile_config(out, profile, audience)
+    if profile == "craft":
+        apply_content_packs(out)
     # Design: explicit --design, else the game id when it names one of the five apps (craft and
     # mind profiles only). The plain puzzle profile keeps today's look unless --design is given.
     if design is None and profile != "puzzle":

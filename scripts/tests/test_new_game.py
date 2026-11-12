@@ -1,5 +1,6 @@
 import contextlib
 import io
+import shutil
 import sys
 import tempfile
 import unittest
@@ -204,6 +205,22 @@ class ProfileTest(unittest.TestCase):
     def test_mind_hub_has_no_learning_content(self):
         cfg = (self.gen(profile="mind", audience="adult") / "app.config.yaml").read_text()
         self.assertIn("  enabled: false # learning games", cfg)
+
+    def test_craft_bundles_the_packs_folder(self):
+        for audience in ("child", "teen"):
+            out = self.gen(name=f"c-{audience}", profile="craft", audience=audience)
+            pubspec = (out / "pubspec.yaml").read_text()
+            self.assertEqual(pubspec.count("    - assets/content/packs/\n"), 1)
+            self.assertIn("    - assets/content/\n", pubspec)
+            self.assertIn("assets/content/packs/.gitkeep", (out / "assets/LICENSES.md").read_text())
+            self.assertTrue((out / "assets/content/packs").is_dir())
+
+    def test_hubs_and_puzzle_do_not_list_the_packs_folder(self):
+        for kw in (dict(profile="mind", audience="adult"), dict()):
+            out = self.gen(name="h", **kw)
+            self.assertNotIn("assets/content/packs/", (out / "pubspec.yaml").read_text())
+            self.assertFalse((out / "assets/content/packs").exists())
+            shutil.rmtree(out)
 
     def test_craft_teen(self):
         cfg = (self.gen(profile="craft", audience="teen") / "app.config.yaml").read_text()

@@ -6,6 +6,7 @@ import '../core/services.dart';
 import '../engine/engine.dart';
 import 'child_report.dart';
 import 'test_ids.dart';
+import 'year_choices.dart';
 
 /// Grown-ups only: reached through the "Ask a grown-up" gate. Per child: year level, mode lock,
 /// progress report, delete. For the device: extra packs, purchases, download settings.
@@ -21,6 +22,15 @@ class _ParentAreaScreenState extends State<ParentAreaScreen> {
   String? _childId;
   bool _allYears = false;
   String? _message;
+  Future<List<int>>? _years;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _years ??=
+        ServicesScope.of(context).learning?.contentYears() ??
+        Future.value(const <int>[]);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -73,20 +83,26 @@ class _ParentAreaScreenState extends State<ParentAreaScreen> {
   ) {
     return [
       const SizedBox(height: 12),
-      DropdownButton<int>(
-        key: TestIds.parentYear,
-        value: child.year,
-        hint: const Text('Year level'),
-        items: [
-          for (var y = 0; y <= 10; y++)
-            DropdownMenuItem(
-              key: TestIds.parentYearOption(y),
-              value: y,
-              child: Text(y == 0 ? 'Foundation' : 'Year $y'),
-            ),
-        ],
-        onChanged: (y) {
-          if (y != null) s.profile.setChildYear(child.id, y);
+      FutureBuilder<List<int>>(
+        future: _years,
+        builder: (context, snap) {
+          final years = yearChoices(snap.data, current: child.year);
+          return DropdownButton<int>(
+            key: TestIds.parentYear,
+            value: child.year,
+            hint: const Text('Year level'),
+            items: [
+              for (final y in years)
+                DropdownMenuItem(
+                  key: TestIds.parentYearOption(y),
+                  value: y,
+                  child: Text(y == 0 ? 'Foundation' : 'Year $y'),
+                ),
+            ],
+            onChanged: (y) {
+              if (y != null) s.profile.setChildYear(child.id, y);
+            },
+          );
         },
       ),
       const Text('Mode'),
