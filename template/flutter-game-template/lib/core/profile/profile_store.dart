@@ -7,6 +7,7 @@ import '../config/app_config.dart';
 import '../config/products.dart';
 import '../purchase/purchase_service.dart';
 import '../retention/achievements.dart';
+import '../../game/rules/game_challenges.dart';
 import '../retention/daily_challenges.dart';
 import '../retention/daily_reward.dart';
 import '../retention/streaks.dart';
@@ -87,7 +88,13 @@ class ProfileStore extends ChangeNotifier {
     }
     if (retention.dailyChallenges) {
       d = d.copyWith(
-        challenges: DailyChallengeEngine.ensureToday(d.challenges, day),
+        challenges: retention.gameChallenges
+            ? GameChallengeEngine.ensureToday(
+                d.challenges,
+                day,
+                StreakEngine.displayStreak(d.streak, day),
+              )
+            : DailyChallengeEngine.ensureToday(d.challenges, day),
       );
     }
     d = _unlockAchievements(d).data;
@@ -175,6 +182,17 @@ class ProfileStore extends ChangeNotifier {
   }
 
   // ---- gameplay -----------------------------------------------------------
+
+  /// A hub game reported a score (`retention.game_challenges`): feeds the game-based challenges.
+  Future<void> recordGamePlayed(String gameId, int score) async {
+    if (!retention.dailyChallenges || !retention.gameChallenges) return;
+    final c = GameChallengeEngine.recordPlay(
+      GameChallengeEngine.ensureToday(_data.challenges, today, displayStreak),
+      gameId,
+      score,
+    );
+    await _commit(_data.copyWith(challenges: c));
+  }
 
   /// Records a finished game. Returns achievements unlocked by it.
   Future<List<AchievementDef>> recordGameFinished(GameSummary g) async {

@@ -127,12 +127,17 @@ class RetentionConfig {
     this.streaks = true,
     this.dailyChallenges = true,
     this.achievements = true,
+    this.gameChallenges = false,
   });
 
   final bool dailyReward;
   final bool streaks;
   final bool dailyChallenges;
   final bool achievements;
+
+  /// Hubs: the daily challenges are game-based (score in any game, play N different games, a
+  /// streak goal) instead of the puzzle ones.
+  final bool gameChallenges;
 }
 
 enum ShareLinkMode {
@@ -446,6 +451,7 @@ class AppConfig {
         streaks: ret['streaks'] as bool? ?? true,
         dailyChallenges: ret['daily_challenges'] as bool? ?? true,
         achievements: ret['achievements'] as bool? ?? true,
+        gameChallenges: ret['game_challenges'] as bool? ?? false,
       ),
       playGames: PlayGamesConfig(
         enabled: policy.signInAllowed && (pg['enabled'] as bool? ?? false),

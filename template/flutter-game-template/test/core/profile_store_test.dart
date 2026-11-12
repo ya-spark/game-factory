@@ -2,6 +2,7 @@ import 'package:flutter_game_template/core/config/app_config.dart';
 import 'package:flutter_game_template/core/config/products.dart';
 import 'package:flutter_game_template/core/profile/profile_store.dart';
 import 'package:flutter_game_template/core/purchase/purchase_service.dart';
+import 'package:flutter_game_template/core/retention/daily_challenges.dart';
 import 'package:flutter_game_template/core/save/save_data.dart';
 import 'package:flutter_game_template/core/save/save_service.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -196,5 +197,35 @@ void main() {
     await p.init();
     await p.addCoins(5);
     expect(saves.data.coins, 5);
+  });
+
+  test('game challenges: plays across games count, claim pays coins', () async {
+    final p = make(retention: const RetentionConfig(gameChallenges: true));
+    await p.init();
+    expect(p.challenges.map((c) => c.kind), [
+      ChallengeKind.scorePoints,
+      ChallengeKind.playDifferentGames,
+      ChallengeKind.streakDays,
+    ]);
+    await p.recordGamePlayed('sudoku', 5000);
+    await p.recordGamePlayed('merge', 10);
+    await p.recordGamePlayed('snake', 10);
+    await p.recordGamePlayed('stack', 10);
+    final score = p.challenges.first;
+    expect(score.claimable, isTrue);
+    expect(p.challenges[1].claimable, isTrue);
+    final before = p.data.coins;
+    expect(await p.claimChallenge(score.id), score.reward);
+    expect(p.data.coins, before + score.reward);
+  });
+
+  test('game challenges are off unless the flag is set', () async {
+    final p = make();
+    await p.init();
+    await p.recordGamePlayed('sudoku', 5000);
+    expect(
+      p.challenges.any((c) => c.kind == ChallengeKind.streakDays),
+      isFalse,
+    );
   });
 }

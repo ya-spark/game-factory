@@ -85,6 +85,64 @@ final Map<String, String> gameArt = {
     '<path d="M5 26h16l-2 16H7z"/><path d="M27 26h16l-2 16H29z" opacity=".5"/>'
     '<circle cx="13" cy="14" r="5"/><circle cx="35" cy="14" r="5" opacity=".5"/>',
   ),
+  // Hub games (Mind Ember, Mind Presto).
+  'block_puzzle': _svg(
+    '<rect x="5" y="5" width="12" height="12" rx="2"/><rect x="19" y="5" width="12" height="12" rx="2"/>'
+    '<rect x="5" y="19" width="12" height="12" rx="2"/><rect x="33" y="19" width="10" height="12" rx="2" opacity=".4"/>'
+    '<rect x="19" y="33" width="24" height="10" rx="2" opacity=".6"/>',
+  ),
+  'blockfall': _svg(
+    '<rect x="17" y="3" width="10" height="10" rx="2"/><rect x="17" y="15" width="10" height="10" rx="2" opacity=".5"/>'
+    '<rect x="27" y="15" width="10" height="10" rx="2" opacity=".5"/>'
+    '<rect x="5" y="31" width="10" height="12" rx="2"/><rect x="17" y="31" width="10" height="12" rx="2"/>'
+    '<rect x="29" y="31" width="14" height="12" rx="2" opacity=".7"/>',
+  ),
+  'sudoku': _svg(
+    '<rect x="5" y="5" width="38" height="38" rx="4" fill="none" stroke="currentColor" stroke-width="3"/>'
+    '<path d="M18 5v38M30 5v38M5 18h38M5 30h38" stroke="currentColor" stroke-width="2" opacity=".6"/>'
+    '<circle cx="12" cy="12" r="3"/><circle cx="24" cy="24" r="3"/><circle cx="36" cy="36" r="3"/>',
+  ),
+  'solitaire': _svg(
+    '<rect x="6" y="8" width="22" height="30" rx="4" opacity=".4" transform="rotate(-10 17 23)"/>'
+    '<rect x="16" y="8" width="22" height="30" rx="4"/>'
+    '<path d="M27 16l5 7-5 8-5-8z" fill="#fff"/>',
+  ),
+  'ball_sort': _svg(
+    '<path d="M6 8v30a4 4 0 0 0 4 4h6a4 4 0 0 0 4-4V8" fill="none" stroke="currentColor" stroke-width="3"/>'
+    '<path d="M28 8v30a4 4 0 0 0 4 4h6a4 4 0 0 0 4-4V8" fill="none" stroke="currentColor" stroke-width="3" opacity=".6"/>'
+    '<circle cx="13" cy="34" r="4"/><circle cx="13" cy="25" r="4" opacity=".5"/>'
+    '<circle cx="35" cy="34" r="4" opacity=".5"/>',
+  ),
+  'mahjong': _svg(
+    '<rect x="4" y="12" width="20" height="28" rx="4" opacity=".45"/>'
+    '<rect x="14" y="6" width="20" height="28" rx="4"/>'
+    '<circle cx="24" cy="20" r="6" fill="none" stroke="#fff" stroke-width="3"/>'
+    '<rect x="30" y="16" width="14" height="26" rx="4" opacity=".7"/>',
+  ),
+  'merge': _svg(
+    '<rect x="4" y="4" width="18" height="18" rx="4" opacity=".4"/><rect x="26" y="4" width="18" height="18" rx="4" opacity=".4"/>'
+    '<rect x="4" y="26" width="40" height="18" rx="4"/>'
+    '<path d="M13 22v-6M35 22v-6" stroke="currentColor" stroke-width="3" stroke-linecap="round"/>',
+  ),
+  'wingy': _svg(
+    '<rect x="2" y="2" width="9" height="18" rx="2" opacity=".5"/><rect x="2" y="30" width="9" height="16" rx="2" opacity=".5"/>'
+    '<path d="M15 26c4-10 14-14 26-12-4 4-6 8-6 10 4 0 6 2 8 4-12 2-20 2-28-2z"/>'
+    '<circle cx="34" cy="19" r="2" fill="#fff"/>',
+  ),
+  'snake': _svg(
+    '<path d="M8 38h20a8 8 0 0 0 0-16H20a4 4 0 0 1 0-8h16" fill="none" stroke="currentColor" stroke-width="6" stroke-linecap="round"/>'
+    '<circle cx="40" cy="14" r="4"/>',
+  ),
+  'bricks': _svg(
+    '<rect x="4" y="5" width="12" height="7" rx="2"/><rect x="18" y="5" width="12" height="7" rx="2" opacity=".5"/>'
+    '<rect x="32" y="5" width="12" height="7" rx="2"/><rect x="11" y="14" width="12" height="7" rx="2" opacity=".5"/>'
+    '<rect x="25" y="14" width="12" height="7" rx="2"/>'
+    '<circle cx="28" cy="31" r="3"/><rect x="14" y="40" width="20" height="4" rx="2"/>',
+  ),
+  'stack': _svg(
+    '<rect x="10" y="34" width="28" height="8" rx="2"/><rect x="13" y="25" width="24" height="8" rx="2" opacity=".75"/>'
+    '<rect x="14" y="16" width="20" height="8" rx="2" opacity=".55"/><rect x="21" y="7" width="20" height="8" rx="2" opacity=".35"/>',
+  ),
 };
 
 /// Avatar id to a friendly shape (no people, no faces).

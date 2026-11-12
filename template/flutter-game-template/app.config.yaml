@@ -71,6 +71,7 @@ retention:
   streaks: true
   daily_challenges: true
   achievements: true
+  game_challenges: false # hubs set true: daily challenges are game-based (score, different games, streak)
 
 # Google Play Games Services: sign-in, leaderboard, cloud save. Off = local only.
 # Setup steps: game-factory docs/PLAY_GAMES_SETUP.md. IDs are public, not secrets.

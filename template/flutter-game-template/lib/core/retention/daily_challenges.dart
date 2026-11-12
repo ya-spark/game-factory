@@ -7,6 +7,10 @@ enum ChallengeKind {
   placePieces,
   playGames,
   makeCombo,
+
+  /// Game-based challenges (hubs, `retention.game_challenges`): see `lib/game/rules/game_challenges.dart`.
+  playDifferentGames,
+  streakDays,
 }
 
 class ChallengeTemplate {
@@ -40,6 +44,7 @@ class Challenge {
     required this.reward,
     this.progress = 0,
     this.claimed = false,
+    this.seen = const [],
   });
 
   final String id;
@@ -50,18 +55,23 @@ class Challenge {
   final int progress;
   final bool claimed;
 
+  /// Game ids counted so far by a "different games" challenge (empty for the other kinds).
+  final List<String> seen;
+
   bool get completed => progress >= target;
   bool get claimable => completed && !claimed;
 
-  Challenge copyWith({int? progress, bool? claimed}) => Challenge(
-    id: id,
-    kind: kind,
-    description: description,
-    target: target,
-    reward: reward,
-    progress: progress ?? this.progress,
-    claimed: claimed ?? this.claimed,
-  );
+  Challenge copyWith({int? progress, bool? claimed, List<String>? seen}) =>
+      Challenge(
+        id: id,
+        kind: kind,
+        description: description,
+        target: target,
+        reward: reward,
+        progress: progress ?? this.progress,
+        claimed: claimed ?? this.claimed,
+        seen: seen ?? this.seen,
+      );
 
   Map<String, Object?> toJson() => {
     'id': id,
@@ -71,6 +81,7 @@ class Challenge {
     'reward': reward,
     'progress': progress,
     'claimed': claimed,
+    if (seen.isNotEmpty) 'seen': seen,
   };
 
   factory Challenge.fromJson(Map<String, Object?> j) => Challenge(
@@ -81,6 +92,7 @@ class Challenge {
     reward: (j['reward'] as num).toInt(),
     progress: (j['progress'] as num?)?.toInt() ?? 0,
     claimed: j['claimed'] as bool? ?? false,
+    seen: [for (final x in (j['seen'] as List? ?? const [])) x as String],
   );
 }
 
