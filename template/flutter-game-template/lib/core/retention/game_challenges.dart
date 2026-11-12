@@ -1,6 +1,6 @@
 import 'dart:math';
 
-import '../../core/retention/daily_challenges.dart';
+import 'daily_challenges.dart';
 
 /// Game-based daily challenges for the hubs (`retention.game_challenges: true`). They work on any
 /// game of the hub: one score goal, one "play N different games" goal and one streak goal.

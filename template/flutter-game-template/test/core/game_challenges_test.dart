@@ -1,5 +1,5 @@
 import 'package:flutter_game_template/core/retention/daily_challenges.dart';
-import 'package:flutter_game_template/game/rules/game_challenges.dart';
+import 'package:flutter_game_template/core/retention/game_challenges.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 Challenge _of(DailyChallengesState s, ChallengeKind k) =>

@@ -8,7 +8,7 @@ enum ChallengeKind {
   playGames,
   makeCombo,
 
-  /// Game-based challenges (hubs, `retention.game_challenges`): see `lib/game/rules/game_challenges.dart`.
+  /// Game-based challenges (hubs, `retention.game_challenges`): see `game_challenges.dart`.
   playDifferentGames,
   streakDays,
 }

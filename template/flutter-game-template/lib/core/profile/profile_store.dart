@@ -7,7 +7,7 @@ import '../config/app_config.dart';
 import '../config/products.dart';
 import '../purchase/purchase_service.dart';
 import '../retention/achievements.dart';
-import '../../game/rules/game_challenges.dart';
+import '../retention/game_challenges.dart';
 import '../retention/daily_challenges.dart';
 import '../retention/daily_reward.dart';
 import '../retention/streaks.dart';
