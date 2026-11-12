@@ -304,4 +304,10 @@ abstract final class TestIds {
   static const parentReset = Key('parent.reset');
   static const parentResetConfirm = Key('parent.reset.confirm');
   static const parentRemoveAds = Key('parent.removeAds');
+
+  // Image loader
+  static const appImage = Key('appImage');
+  static const appImageImage = Key('appImage.image');
+  static const appImagePlaceholder = Key('appImage.placeholder');
+  static const appImageFallback = Key('appImage.fallback');
 }
