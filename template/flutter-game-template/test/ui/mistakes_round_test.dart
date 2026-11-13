@@ -11,7 +11,7 @@ import 'package:flutter_game_template/ui/theme/design_scope.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import '../helpers/fake_services.dart';
-import 'kit/kit_test.dart' show FileDesignBundle, loadDesign;
+import 'kit/kit_test.dart' show FileDesignBundle, appIds, loadDesign;
 
 PoolItem _item(String id, int year) => PoolItem(
   item: ContentItem({
@@ -96,7 +96,7 @@ Future<ServicesFake> _pump(
 typedef ServicesFake = Services;
 
 void main() {
-  for (final id in ['craft_lowteen', 'craft_preteen', 'craft_highteen']) {
+  for (final id in appIds) {
     final design = loadDesign(id);
     if (design.app.modes.length < 2) continue;
     final flash = design.app.practisesWithFlashCards;
