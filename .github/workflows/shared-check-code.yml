@@ -1,33 +1,19 @@
-# Copy this file into each game repo (.github/workflows/ci.yml). Paths assume the repo root
-# is the Flutter project (the template's contents are the repo root).
-name: ci
+# SHARED pipeline: analyze, format, tests and the safety scripts for one game repo.
+# Called by each game repo's .github/workflows/check-code.yml (the repo decides when it runs and
+# whether CI_ENABLED switches it on). Fix a check here once; every game picks it up on its next run.
+# The game repo's root is the Flutter project, and the scripts/ it runs live in the game repo.
+name: shared-check-code
 
 on:
-  # Docs-only changes (markdown at the root, docs/, store/) skip CI and are pushed straight to main.
-  # Any change to code, tests, assets, scripts, Android files, pubspec or workflows runs every step.
-  pull_request:
-    paths-ignore:
-      - '*.md'
-      - 'docs/**'
-      - 'store/**'
-  push:
-    branches: [main]
-    paths-ignore:
-      - '*.md'
-      - 'docs/**'
-      - 'store/**'
-  workflow_dispatch:
+  workflow_call:
+    inputs:
+      emulator_test:
+        description: Also run the optional Android emulator integration test (needs KVM, often fails on GitHub runners)
+        type: boolean
+        default: false
 
 permissions:
   contents: read
-
-concurrency:
-  group: ci-${{ github.ref }}
-  cancel-in-progress: true
-
-env:
-  # Pinned. Keep in sync with release.yml and the factory repo's .flutter-version.
-  FLUTTER_VERSION: "3.47.8"
 
 jobs:
   check:
@@ -35,9 +21,16 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - name: Read the Flutter pin (game-factory/.flutter-version)
+        id: flutter
+        shell: bash
+        run: |
+          version=$(curl -fsSL https://raw.githubusercontent.com/ya-spark/game-factory/main/.flutter-version | tr -d '[:space:]')
+          [ -n "$version" ] || { echo "::error::could not read the Flutter pin"; exit 1; }
+          echo "version=$version" >> "$GITHUB_OUTPUT"
       - uses: subosito/flutter-action@v2
         with:
-          flutter-version: ${{ env.FLUTTER_VERSION }}
+          flutter-version: ${{ steps.flutter.outputs.version }}
           channel: stable
           cache: true
       - run: flutter pub get
@@ -64,13 +57,13 @@ jobs:
       - name: Play status script tests
         run: python3 scripts/test_play_status.py
 
-  # OPTIONAL, manual only (Actions tab -> ci -> Run workflow). The Android emulator needs
+  # OPTIONAL, manual only (Actions tab -> check-code -> Run workflow, tick emulator_test). The Android emulator needs
   # hardware acceleration (KVM). On GitHub-hosted runners it did not boot in our first run
   # ("Timeout waiting for emulator to boot"), so it no longer runs on every PR. Run the
   # integration test on a real device or a local emulator, or use a runner with KVM.
   emulator-integration-test:
     name: emulator integration test (optional)
-    if: github.event_name == 'workflow_dispatch'
+    if: ${{ inputs.emulator_test }}
     runs-on: ubuntu-latest
     continue-on-error: true
     timeout-minutes: 40
@@ -80,9 +73,16 @@ jobs:
         with:
           distribution: temurin
           java-version: "17"
+      - name: Read the Flutter pin (game-factory/.flutter-version)
+        id: flutter
+        shell: bash
+        run: |
+          version=$(curl -fsSL https://raw.githubusercontent.com/ya-spark/game-factory/main/.flutter-version | tr -d '[:space:]')
+          [ -n "$version" ] || { echo "::error::could not read the Flutter pin"; exit 1; }
+          echo "version=$version" >> "$GITHUB_OUTPUT"
       - uses: subosito/flutter-action@v2
         with:
-          flutter-version: ${{ env.FLUTTER_VERSION }}
+          flutter-version: ${{ steps.flutter.outputs.version }}
           channel: stable
           cache: true
       - run: flutter pub get

@@ -1,0 +1,19 @@
+# READ-ONLY report of what is on each Google Play track, compared with pubspec.yaml and the latest
+# release run. The steps live in game-factory (.github/workflows/shared-check-play-status.yml).
+name: check-play-status
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "0 6 * * 1" # weekly: goes red if the Play release name drifts from pubspec.yaml
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  status:
+    uses: ya-spark/game-factory/.github/workflows/shared-check-play-status.yml@main
+    with:
+      release_workflow: release-to-closed-testing.yml
+    secrets: inherit

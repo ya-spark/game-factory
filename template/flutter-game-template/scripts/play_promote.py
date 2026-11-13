@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Promote a release that is already on one Google Play track to another track (no rebuild).
 
-Used by .github/workflows/promote-production.yml so production gets exactly the binary (version
+Used by .github/workflows/promote-to-production.yml so production gets exactly the binary (version
 code) that testers ran on the internal track. Reads the service account JSON from the
 PLAY_SERVICE_ACCOUNT_JSON environment variable; never prints it.
 """

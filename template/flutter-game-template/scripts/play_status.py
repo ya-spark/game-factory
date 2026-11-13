@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Read-only report of what is on each Google Play track for this game.
 
-Used by .github/workflows/play-status.yml. It opens a Play "edit", lists the tracks and deletes
+Used by .github/workflows/check-play-status.yml. It opens a Play "edit", lists the tracks and deletes
 the edit again without committing, so nothing on Play changes. It compares the result with
 pubspec.yaml and the latest release workflow run, and writes a Markdown report to the job summary.
 Reads the service account JSON from PLAY_SERVICE_ACCOUNT_JSON; never prints it. Only version

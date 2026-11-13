@@ -51,8 +51,8 @@ python3 scripts/new_game.py --id my_game --name "My Game" \
   `max_ad_content_rating` (G child, PG teen and adult) and `rewarded_enabled: false` for child and
   teen; `craft` and `mind` set `content.enabled: true`, mind also `rewards.stars.enabled: false`
   and `minigames.coin_price: 300`. `--ci on|off` (default `off`): off adds
-  `if: ${{ vars.CI_ENABLED == 'true' }}` to the `check` job and the same condition to the manual
-  emulator job in the generated `ci.yml` (the template file is untouched). `--repo owner/name`
+  `if: ${{ vars.CI_ENABLED == 'true' }}` to the `check` job in the generated `check-code.yml`
+  (the template file is untouched). `--repo owner/name`
   overrides the registry repo of `--register`.
 - Writes `engine.lock` (see `template/flutter-game-template/scripts/engine_lock.py`).
 

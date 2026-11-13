@@ -12,7 +12,7 @@ lib/ui/          menus, shop, settings, daily reward, challenges; test IDs in te
 app.config.yaml  package name, display name, theme, platforms, AdMob IDs (placeholders), pacing
 products.yaml    in-app products (remove ads, coin pack)
 store/google-play/  listing, privacy policy, data safety drafts
-.github/workflows/  ci.yml, release.yml (copy into each game repo)
+.github/workflows/  check-code, release-to-closed-testing, check-play-status, promote-to-production (thin callers of the shared workflows in game-factory)
 ```
 
 ## Commands

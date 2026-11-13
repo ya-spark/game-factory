@@ -1,0 +1,38 @@
+# Runs the shared checks (analyze, format, tests, safety scripts). The steps live in game-factory
+# (.github/workflows/shared-check-code.yml); this file only says when to run. The scripts it calls are in this repo's scripts/.
+name: check-code
+
+on:
+  # Docs-only changes (markdown at the root, docs/, store/) skip CI and are pushed straight to main.
+  # Any change to code, tests, assets, scripts, Android files, pubspec or workflows runs every step.
+  pull_request:
+    paths-ignore:
+      - '*.md'
+      - 'docs/**'
+      - 'store/**'
+  push:
+    branches: [main]
+    paths-ignore:
+      - '*.md'
+      - 'docs/**'
+      - 'store/**'
+  workflow_dispatch:
+    inputs:
+      emulator_test:
+        description: Also run the optional Android emulator integration test (needs KVM; often fails on GitHub runners)
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+concurrency:
+  group: check-code-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  check:
+    name: analyze, format, tests, safety checks
+    uses: ya-spark/game-factory/.github/workflows/shared-check-code.yml@main
+    with:
+      emulator_test: ${{ inputs.emulator_test || false }}

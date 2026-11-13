@@ -32,7 +32,7 @@ STAGES = [
     ("coder", "coder-agent", "feature PRs merged, CI green"),
     ("asset", "asset-agent", "assets/LICENSES.md lists every asset, license check green"),
     ("test", "test-agent", "unit, widget and bot tests green"),
-    ("build", "build-agent", "signed .aab built by release.yml (needs secrets)"),
+    ("build", "build-agent", "signed .aab built by release-to-closed-testing (needs secrets)"),
     ("listing", "listing-agent", "store/ drafts complete, policy check passed"),
     ("publish", "publish-agent", "user approved the release"),
     ("monitor", "monitor-agent", "ongoing"),

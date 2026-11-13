@@ -80,8 +80,8 @@ class GenerateTest(unittest.TestCase):
         self.assertTrue(kt.is_file())
         self.assertIn("package com.yaspark.mygame", kt.read_text())
         self.assertFalse((out / "android/app/src/main/kotlin/com/example").exists())
-        self.assertTrue((out / ".github/workflows/ci.yml").is_file())
-        self.assertTrue((out / ".github/workflows/release.yml").is_file())
+        self.assertTrue((out / ".github/workflows/check-code.yml").is_file())
+        self.assertTrue((out / ".github/workflows/release-to-closed-testing.yml").is_file())
         dart = "".join(
             f.read_text()
             for d in [out / "lib", out / "test", out / "integration_test"]
@@ -182,7 +182,7 @@ class ProfileTest(unittest.TestCase):
         self.assertTrue((out / "lib/game/rules").is_dir())
         self.assertTrue((out / "lib/ui/game_screen.dart").is_file())
         self.assertIn("audience: adult", (out / "app.config.yaml").read_text())
-        self.assertIn(new_game.CI_GUARD, (out / ".github/workflows/ci.yml").read_text())
+        self.assertIn(new_game.CI_GUARD, (out / ".github/workflows/check-code.yml").read_text())
 
     def test_craft_child_strips_puzzle_and_sets_config(self):
         out = self.gen(profile="craft", audience="child")
@@ -330,14 +330,21 @@ class ProfileTest(unittest.TestCase):
             self.assertFalse((self.tmp / "g").exists())
 
     def test_ci_guard_default_and_on(self):
-        guarded = (self.gen("a") / ".github/workflows/ci.yml").read_text()
+        guarded = (self.gen("a") / ".github/workflows/check-code.yml").read_text()
         self.assertIn("  check:\n    name: analyze, format, tests, safety checks\n    if: "
                       "${{ vars.CI_ENABLED == 'true' }}\n", guarded)
-        self.assertIn("if: ${{ vars.CI_ENABLED == 'true' && github.event_name == 'workflow_dispatch' }}",
-                      guarded)
-        plain = (self.gen("b", ci="on") / ".github/workflows/ci.yml").read_text()
+        plain = (self.gen("b", ci="on") / ".github/workflows/check-code.yml").read_text()
         self.assertNotIn("CI_ENABLED", plain)
-        self.assertEqual(plain, (new_game.TEMPLATE_DIR / ".github/workflows/ci.yml").read_text())
+        self.assertEqual(plain, (new_game.TEMPLATE_DIR / ".github/workflows/check-code.yml").read_text())
+
+    def test_template_callers_point_at_existing_shared_workflows(self):
+        import re
+        callers = sorted((new_game.TEMPLATE_DIR / ".github/workflows").glob("*.yml"))
+        self.assertEqual(4, len(callers))
+        for f in callers:
+            uses = re.findall(r"uses: ya-spark/game-factory/\.github/workflows/(\S+)@main", f.read_text())
+            self.assertEqual(1, len(uses), f.name)
+            self.assertTrue((new_game.REPO_ROOT / ".github/workflows" / uses[0]).is_file(), uses[0])
 
     def test_ci_yaml_is_valid(self):
         try:
@@ -345,14 +352,14 @@ class ProfileTest(unittest.TestCase):
         except ImportError:
             self.skipTest("PyYAML not installed")
         for ci in ("on", "off"):
-            wf = yaml.safe_load((self.gen(ci, ci=ci) / ".github/workflows/ci.yml").read_text())
+            wf = yaml.safe_load((self.gen(ci, ci=ci) / ".github/workflows/check-code.yml").read_text())
             self.assertIn("check", wf["jobs"])
             self.assertEqual("if" in wf["jobs"]["check"], ci == "off")
 
     def test_template_ci_is_unchanged_by_generation(self):
-        before = (new_game.TEMPLATE_DIR / ".github/workflows/ci.yml").read_text()
+        before = (new_game.TEMPLATE_DIR / ".github/workflows/check-code.yml").read_text()
         self.gen()
-        self.assertEqual(before, (new_game.TEMPLATE_DIR / ".github/workflows/ci.yml").read_text())
+        self.assertEqual(before, (new_game.TEMPLATE_DIR / ".github/workflows/check-code.yml").read_text())
 
     def test_repo_override_in_registry(self):
         self.gen("a", register=True, repo="someone/custom-name") if False else None

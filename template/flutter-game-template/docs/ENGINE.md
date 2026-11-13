@@ -130,7 +130,7 @@ labels).
 (the Block Puzzle game). `craft` and `mind` generate without the puzzle game: Home shows a hub
 placeholder (`home.hub`), `content.enabled` is true, and `audience:` and the ad switches follow
 `--audience` (craft: `child` or `teen`; mind: `adult`). Mind also sets `rewards.stars.enabled: false`
-and `minigames.coin_price: 300`. A new repo's `ci.yml` only runs when the repository variable
+and `minigames.coin_price: 300`. A new repo's `check-code.yml` only runs when the repository variable
 `CI_ENABLED` is `true` (`--ci on` leaves it unguarded); the owner turns it on after the first
 working build.
 

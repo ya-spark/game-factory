@@ -6,7 +6,7 @@ Usage: python3 scripts/port_web.py <app_dir> --folder <scout|ranger|champion|emb
 Why a script: the apps own copies of lib/core and lib/ui (only lib/engine is synced by
 sync_engine.py), so the web changes must be carried over by hand. This does it safely:
 
-* New files (lib/core/platform/, web/, scripts/web_smoke.sh, docs/workflows/web-vps.yml, the web
+* New files (lib/core/platform/, web/, scripts/web_smoke.sh, the web
   stub test, ...) are copied when missing; a file that already exists with other content is refused.
 * Files the commit modified are replaced by the new template version only when the app's copy is
   byte-identical to the template's version before the commit. A copy that already equals the new
@@ -14,8 +14,7 @@ sync_engine.py), so the web changes must be carried over by hand. This does it s
   exact-match edits below (buy call sites, the Play Games row); if an edit does not match, the
   script stops with an error and changes NOTHING in the app.
 * Idempotent: a second run reports "up to date".
-* Puts the app's display name into web/index.html and web/manifest.json, the folder into
-  docs/workflows/web-vps.yml, and adds the "Web build on the Hostinger VPS" note to docs/SPEC.md.
+* Puts the app's display name into web/index.html and web/manifest.json and adds the "Web build on the Hostinger VPS" note to docs/SPEC.md.
 """
 from __future__ import annotations
 
@@ -33,9 +32,9 @@ SPEC_HEADING = "## Web build on the Hostinger VPS"
 SPEC_NOTE = """
 ## Web build on the Hostinger VPS
 
-The product stays Android-only. A web copy of the game is built on demand by the `web-vps` workflow
-(`docs/workflows/web-vps.yml`, started by hand) and hosted on the owner's Hostinger VPS at
-`web.activemindcraft.com/{folder}/`, behind Caddy, which does the access control (the app has no login).
+The product stays Android-only. A web copy of the game is built from `main` and deployed by the studio workflow
+`deploy-to-vps-as-web` (in `game-studio`, started by hand) to the owner's Hostinger VPS at
+`https://activemindcraft.com/appgames/<repo name without game->/`, behind Caddy, which does the access control (the app has no login).
 `platforms.web.enabled` stays `false` in `app.config.yaml`.
 
 - Ads, purchases, notifications and Play Games sign-in are not available in the browser. They are
@@ -142,8 +141,6 @@ def personalise(rel: str, data: bytes, name: str, folder: str, pkg: str) -> byte
         else:
             t = t.replace("Block Puzzle", name)
         return t.encode()
-    if rel == "docs/workflows/web-vps.yml":
-        return data.decode().replace('VPS_APP_FOLDER: "CHANGE_ME"', f'VPS_APP_FOLDER: "{folder}"').encode()
     return data
 
 
@@ -170,6 +167,8 @@ def main() -> int:
     try:
         for status, path in changed_files(a.rev):
             rel = path[len(PREFIX):]
+            if rel == "docs/workflows/web-vps.yml":
+                continue  # superseded by the studio-level deploy-to-vps-as-web workflow
             dst = app / rel
             new = git_show(a.rev, path)
             if new is None:

@@ -1,13 +1,17 @@
-# READ-ONLY report of what is on each Google Play track (version name, version codes, status),
-# compared with pubspec.yaml and the latest `release` workflow run. Written to the job summary.
+# SHARED, READ-ONLY report of what is on each Google Play track (version name, version codes, status),
+# compared with pubspec.yaml and the latest release run. Written to the job summary.
+# Called by each game repo's .github/workflows/check-play-status.yml (weekly, or Run workflow).
 # Nothing on Play is changed: scripts/play_status.py opens an edit, lists the tracks and deletes
 # the edit without committing. Needs the PLAY_SERVICE_ACCOUNT_JSON secret (never printed).
-name: play-status
+name: shared-check-play-status
 
 on:
-  workflow_dispatch:
-  schedule:
-    - cron: "0 6 * * 1" # weekly: goes red if the Play release name drifts from pubspec.yaml
+  workflow_call:
+    inputs:
+      release_workflow:
+        description: File name of the game repo's release workflow, to find its latest runs
+        type: string
+        default: release-to-closed-testing.yml
 
 permissions:
   contents: read
@@ -16,10 +20,11 @@ permissions:
 jobs:
   status:
     runs-on: ubuntu-latest
-    environment: internal # same environment as release: no reviewers, holds the Play secret
+    environment: internal # same environment as the release: no reviewers, holds the Play secret
     env:
       PLAY_SERVICE_ACCOUNT_JSON: ${{ secrets.PLAY_SERVICE_ACCOUNT_JSON }}
       GH_TOKEN: ${{ github.token }}
+      RELEASE_WORKFLOW: ${{ inputs.release_workflow }}
     steps:
       - uses: actions/checkout@v4
 
@@ -42,8 +47,8 @@ jobs:
         run: |
           fields=number,headSha,conclusion,status,url,createdAt
           {
-            echo "LATEST_RUN_JSON=$(gh run list --workflow release.yml --limit 1 --json $fields)"
-            echo "LATEST_SUCCESS_JSON=$(gh run list --workflow release.yml --status success --limit 1 --json $fields)"
+            echo "LATEST_RUN_JSON=$(gh run list --workflow "$RELEASE_WORKFLOW" --limit 1 --json $fields)"
+            echo "LATEST_SUCCESS_JSON=$(gh run list --workflow "$RELEASE_WORKFLOW" --status success --limit 1 --json $fields)"
           } >> "$GITHUB_ENV"
 
       - uses: actions/setup-python@v5

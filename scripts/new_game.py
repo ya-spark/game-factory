@@ -265,7 +265,6 @@ PUZZLE_ONLY_TEST_IDS = (
     "game.over.panel", "game.over.view", "game.over.share", "game.over.revive", "game.rush",
 )
 CI_GUARD = "${{ vars.CI_ENABLED == 'true' }}"
-CI_GUARD_DISPATCH = "${{ vars.CI_ENABLED == 'true' && github.event_name == 'workflow_dispatch' }}"
 
 # What every generated game must carry from the template's features.
 REQUIRED_FILES = (
@@ -313,9 +312,13 @@ def check_features(out: Path, profile: str = "puzzle") -> None:
     manifest = (out / "android/app/src/main/AndroidManifest.xml").read_text(encoding="utf-8")
     if 'permission.AD_ID" tools:node="remove"' not in manifest:
         missing.append("AndroidManifest AD_ID removal")
-    release = (out / ".github/workflows/release.yml").read_text(encoding="utf-8")
-    if "Report whether the bundle asks for the advertising ID" not in release:
-        missing.append("release.yml AD_ID report step")
+    # The release steps live in one shared workflow in this repo; the copy only holds a thin caller.
+    caller = (out / ".github/workflows/release-to-closed-testing.yml").read_text(encoding="utf-8")
+    if "shared-release-to-closed-testing.yml" not in caller:
+        missing.append("release-to-closed-testing.yml must call the shared release workflow")
+    shared = (REPO_ROOT / ".github/workflows/shared-release-to-closed-testing.yml").read_text(encoding="utf-8")
+    if "Report whether the bundle asks for the advertising ID" not in shared:
+        missing.append("shared release workflow AD_ID report step")
     if missing:
         raise GenError(f"generator bug: template feature missing in the copy: {missing}")
 
@@ -426,24 +429,17 @@ def apply_content_packs(out: Path) -> None:
 
 
 def apply_ci_guard(out: Path, ci: str) -> None:
-    """With --ci off the generated ci.yml only runs when the CI_ENABLED variable is 'true'."""
+    """With --ci off the generated check-code.yml only runs when the CI_ENABLED variable is 'true'."""
     if ci == "on":
         return
-    wf = out / ".github" / "workflows" / "ci.yml"
+    wf = out / ".github" / "workflows" / "check-code.yml"
     text = wf.read_text(encoding="utf-8")
     text, n = re.subn(
         r"^(  check:\n    name: [^\n]*\n)", lambda m: m.group(1) + f"    if: {CI_GUARD}\n", text, count=1, flags=re.M
     )
     if n == 0:
-        raise GenError("generator bug: ci.yml check job not found")
+        raise GenError("generator bug: check-code.yml check job not found")
     wf.write_text(text, encoding="utf-8")
-    _sub_file(
-        wf,
-        r"^    if: github\.event_name == 'workflow_dispatch'$",
-        "    if: " + CI_GUARD_DISPATCH,
-        1,
-        re.M,
-    )
 
 
 def write_engine_lock(out: Path) -> None:
@@ -663,7 +659,7 @@ def main(argv: list[str] | None = None) -> int:
     p.add_argument("--audience", choices=AUDIENCES,
                    help="compliance profile; craft: child or teen, mind: adult")
     p.add_argument("--ci", default="off", choices=("on", "off"),
-                   help="off (default): ci.yml runs only when repo variable CI_ENABLED is 'true'")
+                   help="off (default): check-code.yml runs only when repo variable CI_ENABLED is 'true'")
     p.add_argument("--design", help="design app_id (craft_lowteen, mind_1, ...); default: the game id "
                    "when it names one of the five apps (craft and mind profiles)")
     p.add_argument("--repo", help="owner/name for the registry (default ya-spark/game-<kebab-id>)")

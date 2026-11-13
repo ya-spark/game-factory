@@ -13,6 +13,7 @@ The factory is changed only through `game-studio`.
 | `docs/PLAY_SETUP.md` | Manual (human-only) Google Play / AdMob setup checklist. |
 | `scripts/` | `new_game.py` (generator) and `pipeline.py` (per-game stage tracking). |
 | `.github/workflows/template-ci.yml` | Verifies the template itself on every push and PR. |
+| `.github/workflows/shared-*.yml` | The one real copy of each game pipeline: `shared-check-code`, `shared-release-to-closed-testing`, `shared-check-play-status`, `shared-promote-to-production`. Each game repo has a thin caller of the same name without `shared-`; fix a pipeline here once. |
 
 Agents: work from the `game-studio` root and read its `CLAUDE.md` first.
 

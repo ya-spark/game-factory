@@ -1,0 +1,41 @@
+# Promotes the build that is ALREADY on a test track (default: alpha, closed testing) to production.
+# Run it by hand once that build has been tested. The steps live in game-factory
+# (.github/workflows/shared-promote-to-production.yml). The "production" environment and the
+# PLAY_SERVICE_ACCOUNT_JSON secret stay in THIS repo: add required reviewers to the environment
+# (Settings > Environments > production) so every run waits for an explicit approval.
+name: promote-to-production
+
+on:
+  workflow_dispatch:
+    inputs:
+      version_code:
+        description: Version code to promote (empty = the newest rolled-out release on the source track)
+        type: string
+        default: ""
+      from_track:
+        description: Track to promote from
+        type: choice
+        options: [alpha, internal, beta]
+        default: alpha
+      status:
+        description: "draft = review and click Roll out in Play Console; inProgress = staged rollout; completed = release to everyone now"
+        type: choice
+        options: [draft, inProgress, completed]
+        default: draft
+      user_fraction:
+        description: Staged rollout fraction, only used when status is inProgress (for example 0.1 = 10%)
+        type: string
+        default: "0.1"
+
+permissions:
+  contents: read
+
+jobs:
+  promote:
+    uses: ya-spark/game-factory/.github/workflows/shared-promote-to-production.yml@main
+    with:
+      version_code: ${{ inputs.version_code }}
+      from_track: ${{ inputs.from_track }}
+      status: ${{ inputs.status }}
+      user_fraction: ${{ inputs.user_fraction }}
+    secrets: inherit

@@ -1,0 +1,39 @@
+# Builds a signed Android App Bundle and uploads it to the CLOSED testing (alpha) Play track by default.
+#   - Push a version tag (v1.0.1, matching pubspec.yaml) to build and upload automatically.
+#   - Or run it by hand (Actions > release-to-closed-testing > Run workflow).
+# The steps live in game-factory (.github/workflows/shared-release-to-closed-testing.yml). The secrets
+# (keystore, Play service account) and the "internal" environment stay in THIS repo.
+# Internal is never used unless chosen explicitly (owner, 2026-11-09). Production is not reachable from here:
+# use promote-to-production.
+name: release-to-closed-testing
+
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch:
+    inputs:
+      track:
+        description: Play track (production is only reachable through promote-to-production)
+        type: choice
+        options: [alpha, beta, internal]
+        default: alpha
+      upload:
+        description: Upload to Google Play (otherwise only build the AAB)
+        type: boolean
+        default: false
+      test_apks:
+        description: Also build an installable release APK for on-device testing
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+jobs:
+  release:
+    uses: ya-spark/game-factory/.github/workflows/shared-release-to-closed-testing.yml@main
+    with:
+      track: ${{ inputs.track || 'alpha' }}
+      upload: ${{ inputs.upload || false }}
+      test_apks: ${{ inputs.test_apks || false }}
+    secrets: inherit

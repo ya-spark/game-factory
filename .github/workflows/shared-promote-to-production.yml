@@ -1,29 +1,27 @@
-# Promotes the build that is ALREADY on a test track (default: internal) to production.
-# Run it by hand once the internal build has been tested. Nothing is rebuilt: the same version
-# code the testers ran is moved, so production gets exactly the tested binary.
+# SHARED pipeline: promotes the build that is ALREADY on a test track (default: internal) to production.
+# Called by each game repo's .github/workflows/promote-to-production.yml (Run workflow, owner only).
+# Nothing is rebuilt: the same version code the testers ran is moved, so production gets exactly the tested binary.
 #
-# Safety: the job uses the "production" environment. Add required reviewers there
+# Safety: the job uses the "production" environment in the game repo. Add required reviewers there
 # (Settings > Environments > production) so every run waits for an explicit approval. The default
 # status is "draft": the release then waits for you to click Roll out in Play Console.
 # Needs the PLAY_SERVICE_ACCOUNT_JSON secret. The package name is read from app.config.yaml.
-name: promote-production
+name: shared-promote-to-production
 
 on:
-  workflow_dispatch:
+  workflow_call:
     inputs:
       version_code:
         description: Version code to promote (empty = the newest rolled-out release on the source track)
         type: string
         default: ""
       from_track:
-        description: Track to promote from
-        type: choice
-        options: [internal, alpha, beta]
-        default: internal
+        description: Track to promote from (internal, alpha or beta)
+        type: string
+        default: alpha
       status:
         description: "draft = review and click Roll out in Play Console; inProgress = staged rollout; completed = release to everyone now"
-        type: choice
-        options: [draft, inProgress, completed]
+        type: string
         default: draft
       user_fraction:
         description: Staged rollout fraction, only used when status is inProgress (for example 0.1 = 10%)

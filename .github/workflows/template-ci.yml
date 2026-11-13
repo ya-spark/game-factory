@@ -69,10 +69,13 @@ jobs:
         run: bash scripts/check_asset_licenses.sh
       - name: Release workflow stops on missing secrets
         run: |
-          grep -q 'Missing secret' .github/workflows/release.yml
+          # The release steps live in the shared workflow at the repo root; the template only has a caller.
+          shared=../../.github/workflows/shared-release-to-closed-testing.yml
+          grep -q 'Missing secret' "$shared"
           for s in PLAY_SERVICE_ACCOUNT_JSON ANDROID_KEYSTORE_BASE64 ANDROID_KEYSTORE_PASSWORD ANDROID_KEY_ALIAS ANDROID_KEY_PASSWORD; do
-            grep -q "$s" .github/workflows/release.yml
+            grep -q "$s" "$shared"
           done
+          grep -q 'shared-release-to-closed-testing.yml' .github/workflows/release-to-closed-testing.yml
       - name: Debug APK builds
         run: flutter build apk --debug
 

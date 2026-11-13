@@ -35,7 +35,7 @@ fun configValue(vararg path: String): String {
 }
 
 // Release signing: read from android/key.properties, which exists only on CI runners
-// (written by release.yml from GitHub secrets). Never commit it.
+// (written by the release-to-closed-testing workflow from GitHub secrets). Never commit it.
 val keystoreProperties = Properties()
 val keystorePropertiesFile = rootProject.file("key.properties")
 if (keystorePropertiesFile.exists()) {
