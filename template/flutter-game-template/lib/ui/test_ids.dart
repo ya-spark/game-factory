@@ -267,6 +267,10 @@ abstract final class TestIds {
   static const learnGoal = Key('learn.goal');
   static Key progressTopic(String key) => Key('progress.topic.$key');
   static Key reviseTopic(String key) => Key('revise.topic.$key');
+  // Practise my mistakes (Home entry in both modes, the round, the empty state)
+  static const mistakesEntry = Key('mistakes.entry');
+  static const mistakesRound = Key('mistakes.round');
+  static const mistakesEmpty = Key('mistakes.empty');
   static const playTryNext = Key('play.tryNext');
   static const playDaily = Key('play.daily');
   static const playHero = Key('play.hero');

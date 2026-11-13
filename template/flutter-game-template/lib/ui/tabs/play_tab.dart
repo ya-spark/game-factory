@@ -8,6 +8,7 @@ import '../../engine/engine.dart';
 import '../kit/ds_art.dart';
 import '../kit/ds_cards.dart';
 import '../kit/ds_chips.dart';
+import '../mistakes_round.dart';
 import '../test_ids.dart';
 import '../theme/app_theme.dart';
 import '../theme/design_scope.dart';
@@ -274,6 +275,25 @@ class _PlayTabState extends State<PlayTab> {
                           orElse: () => playable.first,
                         );
                         _play(e, topic: tryNext?.topic);
+                      },
+                    ),
+                  if (!mind)
+                    MistakesEntry(
+                      count: [
+                        for (final id in child.progress.mistakeIds)
+                          if (open.any((p) => p.id == id)) id,
+                      ].length,
+                      onStart: () async {
+                        final packs = await _loaders.packs();
+                        if (!context.mounted) return;
+                        await startMistakesRound(
+                          context,
+                          childId: child.id,
+                          open: open,
+                          packs: packs,
+                          mode: MiniGameMode.game,
+                        );
+                        if (mounted) _reload();
                       },
                     ),
                   if (entries.isEmpty)

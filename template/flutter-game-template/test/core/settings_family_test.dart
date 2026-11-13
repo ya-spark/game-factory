@@ -23,7 +23,7 @@ void main() {
     expect(d.textSize, 'normal');
     expect(d.reduceMotion, isFalse);
     expect(d.profiles.single.playTime.secondsByDay, isEmpty);
-    expect(SaveData.currentVersion, 4);
+    expect(SaveData.currentVersion, 5);
   });
 
   test('settings and play time survive a save round trip', () {

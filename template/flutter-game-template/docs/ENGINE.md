@@ -162,6 +162,14 @@ engine differs from its lock.
 - `lib/ui/game_registry.dart` (`appGames`) is the app's minigame list: add each game there.
 - Card data: `TopicResult.accuracy`, `ChildProgress.games` (passed and best score per game),
   `masteryOf` (rule from `design/tokens.json`), `ChildProgress.topicToRevise` (for "try next").
+- Mistakes notebook (C1): `ItemResult` also stores `streak` (`cs`, correct answers in a row) and
+  `lastSeenDay` (`ls`, day index of the last answer, null in old saves; for spaced repetition later).
+  An item is in `ChildProgress.mistakeIds` when it was answered wrongly and has not yet been
+  answered right `mistakeClearStreak` (2) times in a row; a wrong answer resets the streak.
+  `ChildProgress.mistakeRound(open)` picks up to `mistakeRoundSize` (10) open items, oldest
+  `lastSeenDay` first, ties by id. Save version 5 migrates old items (`ok` true = cleared).
+  UI: `lib/ui/mistakes_round.dart` ("Practise my mistakes" entry on Play and on Learn/Revise, hidden
+  at 0; a Quick quiz round, or Flash review cards in Scout).
 - Shop: `shopItems` (avatars and colour themes, coins), `ProfileStore.buyItem` / `equipItem`.
   The chosen colour theme is stored per child; applying it to the theme comes with 2B2.
 

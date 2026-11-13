@@ -61,28 +61,57 @@ class ReleaseState {
   );
 }
 
+/// Correct answers in a row that clear an item from the mistakes notebook.
+const int mistakeClearStreak = 2;
+
+/// Items in one "Practise my mistakes" round.
+const int mistakeRoundSize = 10;
+
 /// Result of one item for one child.
 class ItemResult {
   const ItemResult({
     this.attempts = 0,
     this.passes = 0,
     this.lastCorrect = false,
+    this.streak = 0,
+    this.lastSeenDay,
   });
   final int attempts;
   final int passes;
   final bool lastCorrect;
+
+  /// Correct answers in a row (reset to 0 by a wrong answer). Saved as `cs`.
+  final int streak;
+
+  /// Day number (the daily-release clock) of the last answer; null in old saves. Saved as `ls`.
+  final int? lastSeenDay;
   bool get passed => passes > 0;
+
+  /// True while the item sits in the mistakes notebook: it was answered wrongly at some point
+  /// and has not yet been answered right [mistakeClearStreak] times in a row since.
+  bool get isMistake =>
+      !lastCorrect || (attempts > passes && streak < mistakeClearStreak);
 
   Map<String, Object?> toJson() => {
     'a': attempts,
     'p': passes,
     'ok': lastCorrect,
+    'cs': streak,
+    if (lastSeenDay != null) 'ls': lastSeenDay,
   };
-  factory ItemResult.fromJson(Map<String, Object?> j) => ItemResult(
-    attempts: (j['a'] as num?)?.toInt() ?? 0,
-    passes: (j['p'] as num?)?.toInt() ?? 0,
-    lastCorrect: j['ok'] as bool? ?? false,
-  );
+
+  /// Old saves have no `cs`: an item last answered right counts as cleared (streak at the
+  /// clear level), one last answered wrong starts at 0.
+  factory ItemResult.fromJson(Map<String, Object?> j) {
+    final ok = j['ok'] as bool? ?? false;
+    return ItemResult(
+      attempts: (j['a'] as num?)?.toInt() ?? 0,
+      passes: (j['p'] as num?)?.toInt() ?? 0,
+      lastCorrect: ok,
+      streak: (j['cs'] as num?)?.toInt() ?? (ok ? mistakeClearStreak : 0),
+      lastSeenDay: (j['ls'] as num?)?.toInt(),
+    );
+  }
 }
 
 /// Items attempted and passed (distinct items) in one topic.
@@ -184,10 +213,11 @@ class ChildProgress {
       if (e.value.passed) e.key,
   };
 
-  /// Items last answered wrongly: the "revise mistakes" list (Study mode).
+  /// The mistakes notebook (Study mode revise list, Practise my mistakes): items answered wrongly
+  /// and not yet cleared by two correct answers in a row.
   List<String> get mistakeIds => [
     for (final e in items.entries)
-      if (!e.value.lastCorrect) e.key,
+      if (e.value.isMistake) e.key,
   ]..sort();
 
   ChildProgress copyWith({
@@ -207,12 +237,19 @@ class ChildProgress {
   );
 
   /// Records one answer.
-  ChildProgress record(PoolItem p, {required bool correct, String? gameId}) {
+  ChildProgress record(
+    PoolItem p, {
+    required bool correct,
+    String? gameId,
+    int? day,
+  }) {
     final before = items[p.id];
     final now = ItemResult(
       attempts: (before?.attempts ?? 0) + 1,
       passes: (before?.passes ?? 0) + (correct ? 1 : 0),
       lastCorrect: correct,
+      streak: correct ? (before?.streak ?? 0) + 1 : 0,
+      lastSeenDay: day ?? before?.lastSeenDay,
     );
     final tk = topicKey(p.subject, p.year, p.topic);
     final t = topics[tk] ?? const TopicResult();
@@ -273,6 +310,26 @@ class ChildProgress {
       if (best == null || count[k]! > count[best]!) best = k;
     }
     return best;
+  }
+
+  /// Items for one "Practise my mistakes" round: open items still in the notebook, oldest
+  /// `lastSeenDay` first (never-dated first), ties by id, at most [limit].
+  List<PoolItem> mistakeRound(
+    Iterable<PoolItem> open, {
+    int limit = mistakeRoundSize,
+  }) {
+    final byId = {for (final p in open) p.id: p};
+    final ids = [
+      for (final id in mistakeIds)
+        if (byId.containsKey(id)) id,
+    ];
+    ids.sort((a, b) {
+      final c = (items[a]!.lastSeenDay ?? -1 << 30).compareTo(
+        items[b]!.lastSeenDay ?? -1 << 30,
+      );
+      return c != 0 ? c : a.compareTo(b);
+    });
+    return [for (final id in ids.take(limit)) byId[id]!];
   }
 
   Map<String, Object?> toJson() => {

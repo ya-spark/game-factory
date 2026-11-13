@@ -8,6 +8,7 @@ import '../../engine/engine.dart';
 import '../kit/ds_bars.dart';
 import '../kit/ds_cards.dart';
 import '../kit/ds_chips.dart';
+import '../mistakes_round.dart';
 import '../quick_quiz_screen.dart';
 import '../test_ids.dart';
 import '../theme/app_theme.dart';
@@ -108,6 +109,34 @@ class _StudyTabState extends State<StudyTab> {
       ),
     );
     if (mounted) _reload();
+  }
+
+  /// Open items still in the mistakes notebook (the same set the round draws from).
+  int _mistakeCount(_StudyData d) {
+    final open = d.open.map((p) => p.id).toSet();
+    return _progressData.mistakeIds.where(open.contains).length;
+  }
+
+  Widget _mistakesEntry(_StudyData d) {
+    final t = ThemeTokens.of(context);
+    final count = _mistakeCount(d);
+    if (count == 0) return const SizedBox.shrink();
+    return Padding(
+      padding: EdgeInsets.only(bottom: t.sp('md')),
+      child: MistakesEntry(
+        count: count,
+        onStart: () async {
+          await startMistakesRound(
+            context,
+            childId: widget.child.id,
+            open: d.open,
+            packs: d.packs,
+            mode: MiniGameMode.study,
+          );
+          if (mounted) _reload();
+        },
+      ),
+    );
   }
 
   @override
@@ -229,6 +258,7 @@ class _StudyTabState extends State<StudyTab> {
     ];
     int? lastYear;
     return [
+      _mistakesEntry(d),
       DsCard(
         id: 'goal.learn',
         child: Column(
@@ -430,10 +460,11 @@ class _StudyTabState extends State<StudyTab> {
             .add(p);
       }
     }
-    if (byTopic.isEmpty) return [_empty('Nothing to revise. Great work!')];
+    if (byTopic.isEmpty) return const [MistakesEmpty()];
     final entries = byTopic.entries.toList()
       ..sort((a, b) => a.key.compareTo(b.key));
     return [
+      _mistakesEntry(d),
       for (final e in entries)
         Padding(
           padding: EdgeInsets.only(bottom: t.sp('md')),

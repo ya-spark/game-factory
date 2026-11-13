@@ -184,6 +184,10 @@ class AppTokens {
   /// Accuracy shows in every app except Scout, which uses stars and bars.
   bool get showsAccuracy => appId != 'craft_lowteen';
 
+  /// Scout (the youngest level) practises mistakes with Flash review cards: flip, then "I knew
+  /// it" or "Not yet". Everyone else gets a Quick quiz round.
+  bool get practisesWithFlashCards => appId == 'craft_lowteen';
+
   /// True for Nunito, which ships as one variable file.
   bool get variableFont => fontFiles.length == 1;
 

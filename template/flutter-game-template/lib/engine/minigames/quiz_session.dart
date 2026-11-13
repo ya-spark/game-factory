@@ -146,7 +146,7 @@ class QuizSession {
     final newTopic = !progress.topics.containsKey(tk0);
     final earlier = progress.items[p.id];
     final revised = correct && earlier != null && !earlier.lastCorrect;
-    var next = progress.record(p, correct: correct, gameId: gameId);
+    var next = progress.record(p, correct: correct, gameId: gameId, day: today);
     var stars = 0;
     var coins = 0;
     var topicDone = false;

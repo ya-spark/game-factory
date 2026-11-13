@@ -97,7 +97,10 @@ every mode and level of the app, with switches for large text and reduce motion,
     topics by year as `DsTopicCard`s (progress, mastery chip, "to revise" chip, accuracy), and the extra packs the
     parent has downloaded as `DsPackCard`s (no price; the price only shows behind the parent gate).
   - *Progress*: per topic items passed, still to pass, next release, and the star earned for the topic.
-  - *Revise*: the "revise mistakes" list, grouped by topic; a tap practises just those items.
+  - *Revise*: the "revise mistakes" list, grouped by topic; a tap practises just those items. A "Practise my
+    mistakes" card (count, never a price) starts one round of up to 10 items across topics; it also shows on Play
+    and Learn, only while something needs revising. Empty state: "Nothing to practise. Great work!". Scout uses
+    Flash review cards, the other apps the Quick quiz.
 - **Mastery** (rule in `design/tokens.json`, `mastery`, code `masteryOf`): Mastered at 90% passed and 80% correct,
   Learning below 40% passed, else Getting there. Shown as a coloured dot and a word.
 - **Accuracy** ("74% correct") shows for Ranger and Champion only (`AppTokens.showsAccuracy`); Scout shows stars, bars

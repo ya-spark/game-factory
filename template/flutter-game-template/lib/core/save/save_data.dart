@@ -1,3 +1,4 @@
+import '../../engine/content/progress.dart' show mistakeClearStreak;
 import '../profile/child_profile.dart';
 import '../retention/achievements.dart';
 import '../retention/daily_challenges.dart';
@@ -40,7 +41,7 @@ class SaveData {
   });
 
   /// Bump when the JSON shape changes and add a step to [SaveMigrator].
-  static const int currentVersion = 4;
+  static const int currentVersion = 5;
 
   final int coins;
   final int bestScore;
@@ -268,6 +269,7 @@ abstract final class SaveMigrator {
         1 => _v1ToV2(j),
         2 => _v2ToV3(j),
         3 => _v3ToV4(j),
+        4 => _v4ToV5(j),
         _ => throw StateError('No migration from $v'),
       };
       v = (j['version'] as num).toInt();
@@ -282,6 +284,49 @@ abstract final class SaveMigrator {
     'bestScore': j['bestScore'] ?? j['highScore'] ?? 0,
     'coins': j['coins'] ?? j['coinBalance'] ?? 0,
   };
+
+  /// v5 added the correct-in-a-row streak (`cs`) and the last-seen day (`ls`) to every item
+  /// result. An item last answered right counts as cleared (`cs` 2) so nothing reappears in the
+  /// mistakes notebook because of the migration; one last answered wrong starts at 0; `ls` stays
+  /// unset.
+  static Map<String, Object?> _v4ToV5(Map<String, Object?> j) {
+    final profiles = j['profiles'];
+    return {
+      ...j,
+      'version': 5,
+      if (profiles is List)
+        'profiles': [
+          for (final p in profiles)
+            if (p is Map) _profileV5(p.cast<String, Object?>()) else p,
+        ],
+    };
+  }
+
+  static Map<String, Object?> _profileV5(Map<String, Object?> p) {
+    final progress = p['progress'];
+    if (progress is! Map) return p;
+    final items = progress['items'];
+    if (items is! Map) return p;
+    return {
+      ...p,
+      'progress': {
+        ...progress.cast<String, Object?>(),
+        'items': {
+          for (final e in items.entries)
+            e.key: e.value is Map
+                ? {
+                    ...(e.value as Map).cast<String, Object?>(),
+                    'cs':
+                        (e.value as Map)['cs'] ??
+                        (((e.value as Map)['ok'] as bool? ?? false)
+                            ? mistakeClearStreak
+                            : 0),
+                  }
+                : e.value,
+        },
+      },
+    };
+  }
 
   /// v4 added the text size, reduce motion and the reminder time (all have defaults), and the
   /// per-child play time (read as empty when missing).
