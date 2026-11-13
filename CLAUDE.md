@@ -24,13 +24,14 @@ game template (`template/flutter-game-template/`). Games are generated from the 
 6. **Test ad IDs only** in debug and in the template. `scripts/ad_safety_check.sh` enforces it.
 7. **Assets** must be listed in `assets/LICENSES.md` (source, license). CI checks this.
 8. **Pin Flutter** to `.flutter-version`; do not use floating `stable` in workflows.
-9. **Versioning.** `pubspec.yaml` holds only the version name (`x.y.z`, no `+N`) and is the one place it is edited. The Play version code is the `release` workflow run number, and the Play release name is always `<version name> (<version code>)`, set by the workflow. Never hand-edit a label in Play Console; `play-status` goes red if they drift.
+9. **Versioning.** `pubspec.yaml` holds only the version name (`x.y.z`, no `+N`) and is the one place it is edited. The Play version code is the `release-to-closed-testing` workflow run number, and the Play release name is always `<version name> (<version code>)`, set by the workflow. Never hand-edit a label in Play Console; `check-play-status` goes red if they drift.
 
 ## Workflow
 
 - Branch/PR workflow is suspended for now: changes may be committed and pushed directly to `main`.
+- Game pipelines live once in `.github/workflows/shared-*.yml` here (`shared-check-code`, `shared-release-to-closed-testing`, `shared-check-play-status`, `shared-promote-to-production`). Each game repo has a thin caller with the same name minus `shared-`; change a pipeline here, never in a game repo. Secrets, environments and the `CI_ENABLED` switch stay in the game repo.
 - After changing `main`, update the `game-factory` pin in the master repo `game-studio`. See its `CLAUDE.md`.
-- CI runs every step only when code changes. Docs-only commits (root `*.md`, `docs/**`, `store/**`) skip CI via `paths-ignore` and are pushed straight to `main`. Anything else (code, tests, assets including `assets/LICENSES.md`, scripts, Android files, `pubspec.yaml`, workflows) runs the full CI. Release, play-status and promote workflows are unaffected.
+- CI runs every step only when code changes. Docs-only commits (root `*.md`, `docs/**`, `store/**`) skip CI via `paths-ignore` and are pushed straight to `main`. Anything else (code, tests, assets including `assets/LICENSES.md`, scripts, Android files, `pubspec.yaml`, workflows) runs the full CI. The release, check-play-status and promote-to-production workflows are unaffected.
 - Before pushing the template: `flutter analyze`, `dart format --set-exit-if-changed .`,
   `flutter test`, `bash scripts/ad_safety_check.sh`.
 - Keep Android-first, but keep logic in pure Dart and platform specifics behind interfaces and
