@@ -1,0 +1,39 @@
+# SHARED: uploads store/google-play/graphics/screenshots/phone-*.png to the Play store listing (replaces all phone
+# screenshots of the chosen locale). Manual only. Dry run by default: tick "upload" to really change the listing.
+# Called by a game repo's .github/workflows/make-store-screenshots.yml. Needs scripts/play_store_screenshots.py in the
+# game repo and the PLAY_SERVICE_ACCOUNT_JSON secret in its "internal" environment.
+name: shared-make-store-screenshots
+
+on:
+  workflow_call:
+    inputs:
+      locale:
+        description: Store listing language
+        type: string
+        default: en-US
+      upload:
+        description: Really upload (otherwise a dry run that only lists the files)
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+jobs:
+  screenshots:
+    runs-on: ubuntu-latest
+    environment: internal
+    env:
+      PLAY_SERVICE_ACCOUNT_JSON: ${{ secrets.PLAY_SERVICE_ACCOUNT_JSON }}
+      IN_LOCALE: ${{ inputs.locale }}
+      IN_UPLOAD: ${{ inputs.upload }}
+    steps:
+      - uses: actions/checkout@v4
+      - run: pip install --quiet google-auth requests
+      - name: Upload the screenshots
+        run: |
+          if [ "$IN_UPLOAD" = "true" ]; then
+            python3 scripts/play_store_screenshots.py --locale "$IN_LOCALE" --upload
+          else
+            python3 scripts/play_store_screenshots.py --locale "$IN_LOCALE"
+          fi

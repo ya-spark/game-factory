@@ -2,6 +2,8 @@
 # Called by each game repo's .github/workflows/check-code.yml (the repo decides when it runs and
 # whether CI_ENABLED switches it on). Fix a check here once; every game picks it up on its next run.
 # The game repo's root is the Flutter project, and the scripts/ it runs live in the game repo.
+# A check that needs a script (engine lock, profile, network, naming) runs only when the game has that script,
+# so the same workflow serves every game, old and new.
 name: shared-check-code
 
 on:
@@ -39,15 +41,22 @@ jobs:
       - run: flutter analyze
       - run: flutter test
       - name: Engine lock (the engine files match engine.lock; change them in game-factory)
+        if: ${{ hashFiles('scripts/engine_lock.py') != '' }}
         run: python3 scripts/engine_lock.py check
       - name: Ad safety (no real ad IDs in debug, no test IDs in release)
         run: bash scripts/ad_safety_check.sh
       - name: Profile check (audience rules)
+        if: ${{ hashFiles('scripts/profile_check.sh') != '' }}
         run: bash scripts/profile_check.sh
       - name: Profile check self-test (script must fail on violations)
+        if: ${{ hashFiles('scripts/test_profile_check.sh') != '' }}
         run: bash scripts/test_profile_check.sh
       - name: Network rules (INTERNET, no cleartext, https host; warns while signing is off)
+        if: ${{ hashFiles('scripts/network_safety_check.sh') != '' }}
         run: bash scripts/network_safety_check.sh
+      - name: Naming rule (no trademarked names)
+        if: ${{ hashFiles('scripts/naming_check.sh') != '' }}
+        run: bash scripts/naming_check.sh
       - name: Assets license check
         run: bash scripts/check_asset_licenses.sh
       - name: No secrets committed
