@@ -205,11 +205,11 @@ class _ChildReportState extends State<ChildReport> {
               },
             ),
             const SizedBox(height: 12),
-            Text('All time', style: style.titleMedium),
+            Text('Topics practised (all time)', style: style.titleMedium),
             Text(
               topics.isEmpty
-                  ? 'No topics practised yet.'
-                  : '${topics.length} ${topics.length == 1 ? 'topic' : 'topics'} practised',
+                  ? 'None yet.'
+                  : '${topics.length} ${topics.length == 1 ? 'topic' : 'topics'}',
               key: TestIds.reportTopicsCount,
             ),
             const SizedBox(height: 12),
