@@ -29,7 +29,7 @@ Future<Services> buildFakeServices({
       false, // true: a learning game (child profiles, the app shell)
   ParentGateGuard? parentGate,
   SaveService? profileSaves,
-  bool familyMode = false,
+  bool? familyMode, // null: as in app.config.yaml
   bool webShell =
       false, // the web build: no real-money items, browser-only save note
   String webPlayStoreUrl = '', // web.play_store_url
@@ -48,10 +48,10 @@ Future<Services> buildFakeServices({
       'content:\n  enabled: true',
     );
   }
-  if (familyMode) {
+  if (familyMode != null) {
     yaml = yaml.replaceFirst(
-      RegExp(r'family_mode:\n  enabled: false'),
-      'family_mode:\n  enabled: true',
+      RegExp(r'family_mode:\n  enabled: (true|false)'),
+      'family_mode:\n  enabled: $familyMode',
     );
   }
   if (webPlayStoreUrl.isNotEmpty) {
