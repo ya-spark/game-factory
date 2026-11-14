@@ -163,6 +163,12 @@ class GoalsRemindersConfig {
   final bool settingsRow;
 }
 
+/// `exam_practice:` in app.config.yaml (C7). On for Champion (teen Craft); off elsewhere.
+class ExamPracticeConfig {
+  const ExamPracticeConfig({this.enabled = false});
+  final bool enabled;
+}
+
 enum ShareLinkMode {
   internalTest,
   store,
@@ -356,6 +362,7 @@ class AppConfig {
     required this.retention,
     this.shop = const ShopConfig(),
     this.goalsReminders = const GoalsRemindersConfig(),
+    this.examPractice = const ExamPracticeConfig(),
     required this.playGames,
     this.share = const ShareConfig(),
     this.moreGames = const [],
@@ -403,6 +410,7 @@ class AppConfig {
   final RetentionConfig retention;
   final ShopConfig shop;
   final GoalsRemindersConfig goalsReminders;
+  final ExamPracticeConfig examPractice;
   final PlayGamesConfig playGames;
   final ShareConfig share;
 
@@ -450,6 +458,7 @@ class AppConfig {
     final ret = (root['retention'] as YamlMap?) ?? YamlMap();
     final shop = (root['shop'] as YamlMap?) ?? YamlMap();
     final gr = (root['goals_reminders'] as YamlMap?) ?? YamlMap();
+    final ep = (root['exam_practice'] as YamlMap?) ?? YamlMap();
     final pg = (root['play_games'] as YamlMap?) ?? YamlMap();
     final share = (root['share'] as YamlMap?) ?? YamlMap();
     final more = (root['more_games'] as YamlList?) ?? YamlList();
@@ -539,6 +548,9 @@ class AppConfig {
       goalsReminders: GoalsRemindersConfig(
         parentArea: gr['parent_area'] as bool? ?? false,
         settingsRow: gr['settings_row'] as bool? ?? true,
+      ),
+      examPractice: ExamPracticeConfig(
+        enabled: ep['enabled'] as bool? ?? false,
       ),
       playGames: PlayGamesConfig(
         enabled: policy.signInAllowed && (pg['enabled'] as bool? ?? false),

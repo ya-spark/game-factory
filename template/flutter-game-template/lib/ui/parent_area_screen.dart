@@ -108,6 +108,7 @@ class _ParentAreaScreenState extends State<ParentAreaScreen> {
         },
       ),
       if (s.config.goalsReminders.parentArea) ..._goals(s, child),
+      if (s.config.examPractice.enabled) ..._extraTime(s, child),
       const Text('Mode'),
       Wrap(
         spacing: 8,
@@ -236,6 +237,25 @@ class _ParentAreaScreenState extends State<ParentAreaScreen> {
       '${child.goalPreset.dailyItems} items a day, '
       '${child.goalPreset.weeklyItems} a week. Coins stay the same.',
       key: TestIds.parentGoalSummary,
+    ),
+    const SizedBox(height: 8),
+  ];
+
+  /// Extra time on the exam practice countdown (C7): none, +25 percent or +50 percent.
+  List<Widget> _extraTime(Services s, ChildProfile child) => [
+    const SizedBox(height: 8),
+    const Text('Exam practice: extra time', key: TestIds.parentExtraTime),
+    Wrap(
+      spacing: 8,
+      children: [
+        for (final e in ExtraTime.values)
+          ChoiceChip(
+            key: TestIds.parentExtraTimeOption(e.name),
+            label: Text(e.label),
+            selected: child.extraTime == e,
+            onSelected: (_) => s.profile.setExtraTime(child.id, e),
+          ),
+      ],
     ),
     const SizedBox(height: 8),
   ];

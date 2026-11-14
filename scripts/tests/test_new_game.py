@@ -248,6 +248,12 @@ class ProfileTest(unittest.TestCase):
         self.assertIn("  child_directed: true", cfg)
         self.assertIn("  max_ad_content_rating: PG", cfg)
         self.assertIn("  rewarded_enabled: false", cfg)
+        self.assertIn("exam_practice:\n  enabled: true", cfg)
+
+    def test_exam_practice_flag(self):
+        for n, kw in enumerate((dict(profile="craft", audience="child"), dict(profile="puzzle"), dict(profile="mind", audience="adult"))):
+            cfg = (self.gen(name=f"x{n}", **kw) / "app.config.yaml").read_text()
+            self.assertIn("exam_practice:\n  enabled: false", cfg)
 
     def check_design(self, out, design_id, family, font_files, other_font, has_art):
         """Only this game's design files are copied; every file is licensed; pubspec lists them."""

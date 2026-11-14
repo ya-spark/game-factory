@@ -18,7 +18,7 @@ void main() {
         ],
       }),
     );
-    expect(SaveData.currentVersion, 8);
+    expect(SaveData.currentVersion, 9);
     expect(d.remindersOn, isTrue);
     expect(d.reminderHour, 8);
     expect(d.reminderMinute, 30);

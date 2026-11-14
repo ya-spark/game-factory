@@ -323,6 +323,27 @@ class ProfileStore extends ChangeNotifier {
   Future<void> setVibration(bool v) => _commit(_data.copyWith(vibrationOn: v));
   Future<void> setReminderDays(Set<int> days) =>
       _commit(_data.copyWith(reminderDays: {...days}));
+  Future<void> setExtraTime(String childId, ExtraTime extra) =>
+      _updateChild(childId, (p) => p.copyWith(extraTime: extra));
+
+  /// Saves a submitted exam: the recorded progress (answered questions only) and the history
+  /// entry (the last 10 are kept). No coins or stars.
+  Future<void> recordExam(
+    String childId,
+    ChildProgress progress,
+    ExamRecord record,
+  ) {
+    final day = today;
+    return _updateChild(
+      childId,
+      (p) => p.copyWith(
+        progress: progress,
+        activity: p.activity.recordChange(day, p.progress, progress),
+        exams: p.exams.add(record),
+      ),
+    );
+  }
+
   Future<void> setGoalPreset(String childId, GoalPreset preset) =>
       _updateChild(childId, (p) => p.copyWith(goalPreset: preset));
   Future<void> setReminders(bool v) => _commit(_data.copyWith(remindersOn: v));

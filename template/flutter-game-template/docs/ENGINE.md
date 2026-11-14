@@ -80,6 +80,20 @@ Per child, stored in `ChildProgress.rewards`.
   neutral messages rotate (no streak wording, coins, nickname or counts). Switch with
   `goals_reminders.parent_area` (section in the Parent area) and `goals_reminders.settings_row` (the Settings
   switch); both default to the pre-C4 behaviour. The web build schedules nothing.
+- **Exam practice (C7, save version 9).** Study mode only, behind `exam_practice.enabled` (on for Champion, off for
+  Scout, Ranger and the Mind hubs; `new_game.py` sets it for the teen craft profile). `lib/engine/family/exam_session.dart`
+  (pure Dart, injected clock and random): `ExamSession.start` builds a set of 10, 20 or 30 questions (capped by what is
+  open; null with fewer than 10) from the open pool, multiple choice and numeric items only, a mixed set spread over
+  topics. The countdown is one overall limit (10, 20 or 30 minutes, or none) times the parent's `ExtraTime` (none, +25
+  percent, +50 percent); `pause()` and `resume()` stop it while the app is in the background (in-app time only) and
+  `submit()` also runs on `timeUp`. No feedback while answering. `submit()` scores (an unanswered question is not
+  correct) and returns an `ExamResult` (per-topic scores, up to 3 weakest topics, a review of every question).
+  `applyTo` records only the answered questions with `ChildProgress.record` (accuracy, passes, mistakes, `box`; the
+  activity log follows through `ProfileStore.recordExam`), never unanswered ones, and never touches rewards: no coins,
+  no stars. `ExamHistory` keeps the last 10 `ExamRecord`s per child (`exams`; day, subject, question count, correct,
+  seconds); `ChildProfile.extraTime` holds the parent's choice. Save version 9 adds both; a version 8 save starts with
+  no exams and no extra time. UI: `lib/ui/exam_practice.dart` (setup, exam with question grid, flag and submit
+  confirmation, results and review, history card on Progress); the Extra time row is in the Parent area.
 
 ## Access (`minigames:` in `app.config.yaml`)
 

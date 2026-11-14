@@ -38,6 +38,7 @@ Future<Services> buildFakeServices({
   NotificationService? notifications,
   bool goalsParentArea = false, // goals_reminders.parent_area (the Craft apps)
   bool settingsReminderRow = true, // goals_reminders.settings_row
+  bool examPractice = false, // exam_practice.enabled (Champion)
   String?
   audience, // child | teen | adult: overrides `audience:` of app.config.yaml
 }) async {
@@ -72,6 +73,10 @@ Future<Services> buildFakeServices({
       'goals_reminders:\n  parent_area: $goalsParentArea\n  settings_row: $settingsReminderRow',
     );
   }
+  yaml = yaml.replaceFirst(
+    'exam_practice:\n  enabled: false',
+    'exam_practice:\n  enabled: $examPractice',
+  );
   if (webPlayStoreUrl.isNotEmpty) {
     yaml = yaml.replaceFirst(
       'play_store_url: ""',

@@ -37,6 +37,8 @@ class ChildProfile {
     this.year,
     this.colorTheme = 'default',
     this.goalPreset = GoalPreset.steady,
+    this.extraTime = ExtraTime.none,
+    this.exams = const ExamHistory(),
     this.mode = LearnMode.game,
     this.lockedMode,
     this.progress = const ChildProgress(),
@@ -56,6 +58,12 @@ class ChildProfile {
 
   /// The parent's goal size for this child (item counts only; coins do not change).
   final GoalPreset goalPreset;
+
+  /// Extra time on the exam practice countdown (set by a parent).
+  final ExtraTime extraTime;
+
+  /// The last 10 exams on this device (exam practice, C7).
+  final ExamHistory exams;
 
   /// The mode the child last used (Game on first launch). A lock overrides it.
   final LearnMode mode;
@@ -80,6 +88,8 @@ class ChildProfile {
     int? year,
     String? colorTheme,
     GoalPreset? goalPreset,
+    ExtraTime? extraTime,
+    ExamHistory? exams,
     LearnMode? mode,
     LearnMode? lockedMode,
     bool clearLock = false,
@@ -93,6 +103,8 @@ class ChildProfile {
     year: year ?? this.year,
     colorTheme: colorTheme ?? this.colorTheme,
     goalPreset: goalPreset ?? this.goalPreset,
+    extraTime: extraTime ?? this.extraTime,
+    exams: exams ?? this.exams,
     mode: mode ?? this.mode,
     lockedMode: clearLock ? null : (lockedMode ?? this.lockedMode),
     progress: progress ?? this.progress,
@@ -107,6 +119,8 @@ class ChildProfile {
     'year': year,
     'colorTheme': colorTheme,
     'goalPreset': goalPreset.name,
+    'extraTime': extraTime.name,
+    'exams': exams.toJson(),
     'mode': mode.name,
     'lockedMode': lockedMode?.name,
     'progress': progress.toJson(),
@@ -121,6 +135,8 @@ class ChildProfile {
     year: (j['year'] as num?)?.toInt(),
     colorTheme: j['colorTheme'] as String? ?? 'default',
     goalPreset: GoalPreset.parse(j['goalPreset']),
+    extraTime: ExtraTime.parse(j['extraTime']),
+    exams: ExamHistory.fromJson(j['exams']),
     mode: LearnMode.parse(j['mode']) ?? LearnMode.game,
     lockedMode: LearnMode.parse(j['lockedMode']),
     progress: ChildProgress.fromJson(

@@ -44,7 +44,7 @@ class SaveData {
   });
 
   /// Bump when the JSON shape changes and add a step to [SaveMigrator].
-  static const int currentVersion = 8;
+  static const int currentVersion = 9;
 
   final int coins;
   final int bestScore;
@@ -305,6 +305,7 @@ abstract final class SaveMigrator {
         5 => _v5ToV6(j),
         6 => _v6ToV7(j),
         7 => _v7ToV8(j),
+        8 => _v8ToV9(j),
         _ => throw StateError('No migration from $v'),
       };
       v = (j['version'] as num).toInt();
@@ -362,6 +363,13 @@ abstract final class SaveMigrator {
       },
     };
   }
+
+  /// v9 added the per-child exam history (`exams`, the last 10) and the parent's extra-time
+  /// choice (`extraTime`, default none). Old saves start with no exams; nothing else changes.
+  static Map<String, Object?> _v8ToV9(Map<String, Object?> j) => {
+    ...j,
+    'version': 9,
+  };
 
   /// v8 added the per-child goal preset (`goalPreset`, default Steady), the reminder weekdays
   /// (default every day) and the last-opened day. Old saves keep their reminder switch and time.

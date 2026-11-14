@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import '../../core/profile/child_profile.dart';
 import '../../core/services.dart';
 import '../../engine/engine.dart';
+import '../exam_practice.dart';
 import '../kit/ds_bars.dart';
 import '../kit/ds_cards.dart';
 import '../kit/ds_buttons.dart';
@@ -216,6 +217,9 @@ class _StudyTabState extends State<StudyTab> {
     return _name(d, k.subject, k.year, k.topic);
   }
 
+  ChildProfile get _child => ServicesScope.of(context).profile.children
+      .firstWhere((c) => c.id == widget.child.id, orElse: () => widget.child);
+
   ChildProgress get _progressData {
     final s = ServicesScope.of(context);
     return s.profile.children
@@ -324,6 +328,43 @@ class _StudyTabState extends State<StudyTab> {
           ),
         ),
       ),
+      if (s.config.examPractice.enabled)
+        Padding(
+          padding: EdgeInsets.only(bottom: t.sp('md')),
+          child: DsCard(
+            id: 'learn.exam',
+            semanticLabel: 'Exam practice, a timed set with a review',
+            onTap: () async {
+              final nav = Navigator.of(context);
+              await nav.push(
+                MaterialPageRoute<void>(
+                  builder: (_) => ExamSetupScreen(
+                    child: widget.child,
+                    open: d.open,
+                    packs: d.packs,
+                    onPractise: (subject, year, topic) => _practice(
+                      d,
+                      subject: subject,
+                      year: year,
+                      topic: topic,
+                    ),
+                  ),
+                ),
+              );
+              if (mounted) _reload();
+            },
+            child: Row(
+              key: TestIds.examEntry,
+              children: [
+                const DsIcon('chevron_right'),
+                SizedBox(width: t.sp('sm')),
+                Expanded(
+                  child: Text('Exam practice', style: t.styles['subheading']!),
+                ),
+              ],
+            ),
+          ),
+        ),
       DsCard(
         id: 'goal.learn',
         child: Column(
@@ -547,6 +588,10 @@ class _StudyTabState extends State<StudyTab> {
             ),
           ],
         ),
+      if (s.config.examPractice.enabled && _child.exams.records.isNotEmpty) ...[
+        ExamHistoryCard(history: _child.exams),
+        SizedBox(height: t.sp('md')),
+      ],
       if (topics.isEmpty) _empty('Your progress will show here.'),
       for (final tp in topics) ...[
         SizedBox(height: t.sp('md')),

@@ -386,4 +386,51 @@ abstract final class TestIds {
   static const appImageImage = Key('appImage.image');
   static const appImagePlaceholder = Key('appImage.placeholder');
   static const appImageFallback = Key('appImage.fallback');
+
+  /// Exam practice (C7).
+  static const examEntry = Key('exam.entry');
+  static const examSetupScreen = Key('exam.setup');
+  static Key examSubject(String subject) => Key('exam.setup.subject.$subject');
+  static const examTopic = Key('exam.setup.topic');
+  static Key examTopicOption(String? topic) =>
+      Key('exam.setup.topic.${topic ?? 'mixed'}');
+  static Key examCount(int n) => Key('exam.setup.count.$n');
+  static Key examMinutes(int? minutes) =>
+      Key('exam.setup.minutes.${minutes ?? 'none'}');
+  static const examStart = Key('exam.setup.start');
+  static const examNotEnough = Key('exam.setup.notEnough');
+  static const examPractiseLink = Key('exam.setup.practiseLink');
+  static const examScreen = Key('exam.screen');
+  static const examTimer = Key('exam.timer');
+  static const examProgress = Key('exam.progress');
+  static const examPrompt = Key('exam.prompt');
+  static Key examOption(int i) => Key('exam.option.$i');
+  static const examNumericField = Key('exam.numeric');
+  static const examPrev = Key('exam.prev');
+  static const examNext = Key('exam.next');
+  static const examFlag = Key('exam.flag');
+  static const examSubmit = Key('exam.submit');
+  static const examSubmitConfirm = Key('exam.submit.confirm');
+  static const examSubmitKeep = Key('exam.submit.keep');
+  static const examSubmitUnanswered = Key('exam.submit.unanswered');
+  static const examExit = Key('exam.exit');
+  static const examExitConfirm = Key('exam.exit.confirm');
+  static Key examGridCell(int i) => Key('exam.grid.$i');
+  static const examResults = Key('exam.results');
+  static const examScore = Key('exam.results.score');
+  static const examTime = Key('exam.results.time');
+  static const examTimedOut = Key('exam.results.timedOut');
+  static Key examTopicRow(String key) => Key('exam.results.topic.$key');
+  static Key examReviewItem(int i) => Key('exam.review.$i');
+  static Key examReviewYours(int i) => Key('exam.review.$i.yours');
+  static Key examReviewCorrect(int i) => Key('exam.review.$i.correct');
+  static Key examReviewExplanation(int i) => Key('exam.review.$i.explanation');
+  static Key examPractiseTopic(String key) => Key('exam.results.practise.$key');
+  static const examDone = Key('exam.results.done');
+  static const examHistory = Key('exam.history');
+  static const examHistoryTrend = Key('exam.history.trend');
+  static Key examHistoryRow(int i) => Key('exam.history.$i');
+  static const parentExtraTime = Key('parent.extraTime.section');
+  static Key parentExtraTimeOption(String name) =>
+      Key('parent.extraTime.$name');
 }

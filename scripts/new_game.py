@@ -398,6 +398,8 @@ def apply_profile_config(out: Path, profile: str, audience: str) -> None:
         # reminder row in Settings, Champion (teen) keeps one.
         _set_key(cfg, "goals_reminders", "parent_area", "true")
         _set_key(cfg, "goals_reminders", "settings_row", "false" if audience == "child" else "true")
+        # C7: exam practice in Study mode only for the teen app (Champion).
+        _set_key(cfg, "exam_practice", "enabled", "true" if audience == "teen" else "false")
     if profile == "mind":
         _set_key(cfg, "minigames", "coin_price", "300")
         text = cfg.read_text(encoding="utf-8")
