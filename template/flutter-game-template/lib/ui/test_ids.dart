@@ -147,6 +147,21 @@ abstract final class TestIds {
   static Key mgFlip(String g) => Key('$g.flip');
   static Key mgKnew(String g) => Key('$g.knew');
   static Key mgNotYet(String g) => Key('$g.not_yet');
+  // Family Tug of war (two players, pass the device).
+  static const familyStart = Key('family.start');
+  static const familySetup = Key('family.setup');
+  static Key familyPartner(String childId) => Key('family.partner.$childId');
+  static Key familySubject(String subject) => Key('family.subject.$subject');
+  static const familyBegin = Key('family.begin');
+  static const familyPass = Key('family.pass');
+  static const familyReady = Key('family.ready');
+  static const familyTurn = Key('family.turn');
+  static const familyFeedback = Key('family.feedback');
+  static const familyNext = Key('family.next');
+  static const familyResult = Key('family.result');
+  static const familyDone = Key('family.done');
+  static const familyExit = Key('family.exit');
+  static Key familyChoice(int i) => Key('family.choice.$i');
 
   // Equation builder, Cloze fix, Word grid (M4b)
   static Key mgTile(String g, int i) => Key('$g.tile.$i');

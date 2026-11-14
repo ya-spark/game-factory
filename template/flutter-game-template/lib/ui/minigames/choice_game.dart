@@ -95,7 +95,11 @@ class ChoiceGameScreen extends StatefulWidget {
     this.autoRead,
     this.recordedClip,
     this.promptOf,
+    this.introExtra,
   });
+
+  /// Shown under the Start button on the start screen (Tug of war: "Play with a sibling").
+  final Widget? introExtra;
 
   /// The text shown (and read aloud) for an item; null: the item's `prompt`.
   final String Function(PoolItem item)? promptOf;
@@ -353,6 +357,10 @@ class _ChoiceGameScreenState extends State<ChoiceGameScreen>
                     onPressed: _start,
                     child: const Text('Start'),
                   ),
+                  if (widget.introExtra != null) ...[
+                    const SizedBox(height: 12),
+                    widget.introExtra!,
+                  ],
                 ],
               ),
             ),

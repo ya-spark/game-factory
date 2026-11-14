@@ -251,6 +251,12 @@ class ContentConfig {
       );
 }
 
+/// `family_mode: in `app.config.yaml`: two players take turns in Tug of war on one device.
+class FamilyModeConfig {
+  const FamilyModeConfig({this.enabled = false});
+  final bool enabled;
+}
+
 /// `minigames:` in `app.config.yaml`: the price of a coin-locked minigame.
 class MiniGamesConfig {
   const MiniGamesConfig({this.coinPrice = 200});
@@ -310,6 +316,7 @@ class AppConfig {
     this.content = const ContentConfig(),
     this.rewards = const RewardsConfig(),
     this.minigames = const MiniGamesConfig(),
+    this.familyMode = const FamilyModeConfig(),
     this.aiEnabled = false,
     this.audience = Audience.adult,
     this.speech = const SpeechConfig(),
@@ -326,6 +333,7 @@ class AppConfig {
   final ContentConfig content;
   final RewardsConfig rewards;
   final MiniGamesConfig minigames;
+  final FamilyModeConfig familyMode;
 
   /// `ai.enabled`. No AI feature ships, so this stays false.
   final bool aiEnabled;
@@ -409,6 +417,7 @@ class AppConfig {
       ),
       rewards: _parseRewards(root),
       minigames: MiniGamesConfig(coinPrice: mg['coin_price'] as int? ?? 200),
+      familyMode: FamilyModeConfig(enabled: enabled(root['family_mode'])),
       aiEnabled: ai['enabled'] as bool? ?? false,
       content: ContentConfig(
         enabled: content['enabled'] as bool? ?? false,

@@ -28,6 +28,7 @@ Future<Services> buildFakeServices({
       false, // true: a learning game (child profiles, the app shell)
   ParentGateGuard? parentGate,
   SaveService? profileSaves,
+  bool familyMode = false,
   String?
   audience, // child | teen | adult: overrides `audience:` of app.config.yaml
 }) async {
@@ -41,6 +42,12 @@ Future<Services> buildFakeServices({
     yaml = yaml.replaceFirst(
       RegExp(r'content:\n  enabled: false'),
       'content:\n  enabled: true',
+    );
+  }
+  if (familyMode) {
+    yaml = yaml.replaceFirst(
+      RegExp(r'family_mode:\n  enabled: false'),
+      'family_mode:\n  enabled: true',
     );
   }
   final config = AppConfig.fromYamlString(yaml);

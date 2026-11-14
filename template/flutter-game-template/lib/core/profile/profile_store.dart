@@ -415,7 +415,32 @@ class ProfileStore extends ChangeNotifier {
 
   /// The app came to the front with a child selected: start counting.
   void resumePlay() {
-    if (_activeId != null) _playStart ??= _clock();
+    if (_activeId != null && !_playHeld) _playStart ??= _clock();
+  }
+
+  bool _playHeld = false;
+
+  /// Family mode: the active child's own counting stops (their turns are credited with
+  /// [creditPlay]) until [releasePlay].
+  Future<void> holdPlay() async {
+    await pausePlay();
+    _playHeld = true;
+  }
+
+  void releasePlay() {
+    _playHeld = false;
+    resumePlay();
+  }
+
+  /// Adds [seconds] of play to the named child's weekly total (family mode: the child whose
+  /// turn it was, not necessarily the active one). Non-positive amounts add nothing.
+  Future<void> creditPlay(String childId, int seconds) async {
+    if (seconds <= 0 || !_data.profiles.any((p) => p.id == childId)) return;
+    final day = today;
+    await _updateChild(
+      childId,
+      (p) => p.copyWith(playTime: p.playTime.add(day, seconds)),
+    );
   }
 
   /// The app went to the background, or the child left: add the time since [resumePlay] to the

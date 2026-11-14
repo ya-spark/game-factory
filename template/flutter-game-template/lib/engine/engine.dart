@@ -39,6 +39,7 @@ export 'minigames/quiz_session.dart';
 export 'minigames/series_builder/rules/series_builder_rules.dart';
 export 'minigames/sort_bins/rules/sort_bins_rules.dart';
 export 'minigames/true_false/rules/true_false_rules.dart';
+export 'minigames/tug_of_war/rules/family_tug_rules.dart';
 export 'minigames/tug_of_war/rules/tug_of_war_rules.dart';
 export 'minigames/word_builder/rules/word_builder_rules.dart';
 export 'minigames/word_grid/rules/word_grid_rules.dart';

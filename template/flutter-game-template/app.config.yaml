@@ -143,6 +143,11 @@ rewards:
 minigames:
   coin_price: 200
 
+# Family mode: two siblings take turns in Tug of war on one device ("Play with a sibling").
+# On in the Craft apps; off elsewhere.
+family_mode:
+  enabled: false
+
 # AI tutor hook. No AI feature ships; keep false.
 ai:
   enabled: false

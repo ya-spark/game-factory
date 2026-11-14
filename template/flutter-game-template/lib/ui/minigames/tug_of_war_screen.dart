@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import '../../engine/engine.dart';
 import '../test_ids.dart';
 import 'choice_game.dart';
+import 'family_tug_screen.dart';
 
 /// Tug-of-war quiz: coin-locked (200 coins) in the Craft apps, Game mode only, plays `mcq`
 /// items. [harder] is for Champion.
@@ -22,6 +23,7 @@ MiniGame tugOfWarGameFor({bool harder = false}) => MiniGame(
     onAnswered: ctx.onAnswered,
     onScore: ctx.onScore,
     level: levelForSession(ctx.session, harder: harder),
+    harder: harder,
   ),
 );
 
@@ -36,6 +38,7 @@ class TugOfWarScreen extends StatefulWidget {
     this.onAnswered,
     this.onScore,
     this.random,
+    this.harder = false,
   });
   final QuizSession session;
   final VoidCallback onExit;
@@ -43,6 +46,9 @@ class TugOfWarScreen extends StatefulWidget {
   final void Function(AnswerResult, QuizSession)? onAnswered;
   final void Function(int)? onScore;
   final Random? random;
+
+  /// Champion: the harder setting (also used for family games).
+  final bool harder;
 
   @override
   State<TugOfWarScreen> createState() => _TugOfWarScreenState();
@@ -83,6 +89,7 @@ class _TugOfWarScreenState extends State<TugOfWarScreen> {
             : [for (final x in o) ChoiceOption(x.label, x.correct)];
       },
       fieldBuilder: (context, f) => _TugField(field: f, run: _run),
+      introExtra: familyTugButton(context, harder: widget.harder),
     );
   }
 }
@@ -122,7 +129,7 @@ class _TugField extends StatelessWidget {
                 height: 64,
                 width: double.infinity,
                 child: CustomPaint(
-                  painter: _RopePainter(
+                  painter: TugRopePainter(
                     position: run.position,
                     reach: run.settings.reach,
                     me: pal.primary,
@@ -213,8 +220,8 @@ class _TugField extends StatelessWidget {
 }
 
 /// Two shapes at the ends, a rope between them and a marker on it. Shapes only, no figures.
-class _RopePainter extends CustomPainter {
-  _RopePainter({
+class TugRopePainter extends CustomPainter {
+  TugRopePainter({
     required this.position,
     required this.reach,
     required this.me,
@@ -283,7 +290,7 @@ class _RopePainter extends CustomPainter {
   }
 
   @override
-  bool shouldRepaint(_RopePainter o) =>
+  bool shouldRepaint(TugRopePainter o) =>
       o.position != position ||
       o.reach != reach ||
       o.me != me ||

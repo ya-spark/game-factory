@@ -92,13 +92,14 @@ class TugOfWarRun {
 
   /// Moves the rope for one answer and says whether it ended a round. [correct] is false for a
   /// wrong or a slow answer.
-  TugRoundEnd answer({required bool correct}) {
+  TugRoundEnd answer({required bool correct}) =>
+      step(correct ? 1 : (settings.pullsBack ? -1 : 0));
+
+  /// Moves the rope [delta] steps (positive toward the child's end) and says whether it ended
+  /// a round. Family mode uses this to pull toward either player.
+  TugRoundEnd step(int delta) {
     lastEnd = TugRoundEnd.none;
-    if (correct) {
-      position++;
-    } else if (settings.pullsBack) {
-      position--;
-    }
+    position += delta;
     if (position >= settings.reach) {
       roundsWon++;
       position = 0;
