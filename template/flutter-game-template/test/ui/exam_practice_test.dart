@@ -14,7 +14,7 @@ import 'package:flutter_game_template/ui/theme/design_scope.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import '../helpers/fake_services.dart';
-import 'kit/kit_test.dart' show FileDesignBundle, loadDesign;
+import 'kit/kit_test.dart' show FileDesignBundle, appIds, loadDesign;
 
 PoolItem _mcq(int i, String topic) => PoolItem(
   item: ContentItem({
@@ -185,7 +185,8 @@ void main() {
     expect(find.text('Question 1 of 10'), findsOneWidget);
   });
 
-  for (final id in ['craft_lowteen', 'craft_preteen']) {
+  // Every craft design present (all three in the template): flag off, no card.
+  for (final id in appIds.where((i) => i.startsWith('craft_'))) {
     testWidgets('$id: the card is absent with the flag off', (tester) async {
       await _shell(tester, id, _items(14), exam: false);
       expect(find.byKey(TestIds.learnTab), findsOneWidget);

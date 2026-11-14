@@ -74,7 +74,7 @@ Future<Services> buildFakeServices({
     );
   }
   yaml = yaml.replaceFirst(
-    'exam_practice:\n  enabled: false',
+    RegExp(r'exam_practice:\n  enabled: (true|false)'),
     'exam_practice:\n  enabled: $examPractice',
   );
   if (webPlayStoreUrl.isNotEmpty) {
