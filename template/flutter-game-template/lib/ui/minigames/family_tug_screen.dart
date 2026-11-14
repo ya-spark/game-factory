@@ -143,7 +143,7 @@ class _FamilyTugSetupState extends State<FamilyTugSetupScreen> {
         open: open[i],
         progress: cur.progress,
         packs: packs,
-        rewardsConfig: services.config.rewards,
+        rewardsConfig: services.rewardsFor(cur),
         subject: subject,
         year: cur.year ?? 0,
         today: services.profile.today,

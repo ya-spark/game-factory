@@ -151,6 +151,18 @@ class ShopConfig {
   final bool soundPacks;
 }
 
+/// `goals_reminders:` in app.config.yaml (C4). The Craft apps turn [parentArea] on: goal presets
+/// and reminders are set in the Parent area. [settingsRow] keeps the reminder switch in Settings
+/// (Scout and Ranger turn it off; Champion keeps it). Default (off) leaves the Mind hubs as they were.
+class GoalsRemindersConfig {
+  const GoalsRemindersConfig({
+    this.parentArea = false,
+    this.settingsRow = true,
+  });
+  final bool parentArea;
+  final bool settingsRow;
+}
+
 enum ShareLinkMode {
   internalTest,
   store,
@@ -343,6 +355,7 @@ class AppConfig {
     required this.adPacing,
     required this.retention,
     this.shop = const ShopConfig(),
+    this.goalsReminders = const GoalsRemindersConfig(),
     required this.playGames,
     this.share = const ShareConfig(),
     this.moreGames = const [],
@@ -389,6 +402,7 @@ class AppConfig {
   final AdPacingConfig adPacing;
   final RetentionConfig retention;
   final ShopConfig shop;
+  final GoalsRemindersConfig goalsReminders;
   final PlayGamesConfig playGames;
   final ShareConfig share;
 
@@ -435,6 +449,7 @@ class AppConfig {
     final ads = (root['ads'] as YamlMap?) ?? YamlMap();
     final ret = (root['retention'] as YamlMap?) ?? YamlMap();
     final shop = (root['shop'] as YamlMap?) ?? YamlMap();
+    final gr = (root['goals_reminders'] as YamlMap?) ?? YamlMap();
     final pg = (root['play_games'] as YamlMap?) ?? YamlMap();
     final share = (root['share'] as YamlMap?) ?? YamlMap();
     final more = (root['more_games'] as YamlList?) ?? YamlList();
@@ -520,6 +535,10 @@ class AppConfig {
       shop: ShopConfig(
         extraThemes: shop['extra_themes'] as bool? ?? false,
         soundPacks: shop['sound_packs'] as bool? ?? false,
+      ),
+      goalsReminders: GoalsRemindersConfig(
+        parentArea: gr['parent_area'] as bool? ?? false,
+        settingsRow: gr['settings_row'] as bool? ?? true,
       ),
       playGames: PlayGamesConfig(
         enabled: policy.signInAllowed && (pg['enabled'] as bool? ?? false),

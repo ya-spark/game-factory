@@ -76,7 +76,7 @@ class _ChildReportState extends State<ChildReport> {
       open: open,
       progress: child.progress,
       packs: packs,
-      rewardsConfig: s.config.rewards,
+      rewardsConfig: s.rewardsFor(child),
       subject: t.subject,
       year: t.year,
       today: s.profile.today,

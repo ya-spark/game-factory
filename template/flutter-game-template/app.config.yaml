@@ -86,6 +86,12 @@ shop:
   extra_themes: false # four more colour themes (Midnight, Lavender, Sand, Slate)
   sound_packs: false  # ambience packs (Rain, Waves, Forest wind, Fireplace), shown as "Sounds"
 
+# Goals and reminders set by a parent (Craft apps turn parent_area on; Scout and Ranger turn
+# settings_row off so the reminder switch lives only in the Parent area).
+goals_reminders:
+  parent_area: false
+  settings_row: true
+
 # Google Play Games Services: sign-in, leaderboard, cloud save. Off = local only.
 # Setup steps: game-factory docs/PLAY_GAMES_SETUP.md. IDs are public, not secrets.
 play_games:

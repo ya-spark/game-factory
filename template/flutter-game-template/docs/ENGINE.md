@@ -66,6 +66,20 @@ Per child, stored in `ChildProgress.rewards`.
   and is not retried later. `RewardsEngine.grantCapped` cuts coins from any other earner to the same cap. In Craft apps
   (`content.enabled` and stars on) `ProfileStore` routes the daily reward and the daily challenges
   through it, against the active child's cap (issue 2B1); Mind hubs keep them as uncapped coin earners. Learning content is never bought with coins.
+- **Goals and reminders (C4, save version 8).** Per child, a parent picks a `GoalPreset`
+  (`lib/engine/rewards/goal_preset.dart`): Light 3 a day / 15 a week, Steady 5 / 25 (the default, equal to
+  `daily_goal_items` and `weekly_goal_items`), Big 8 / 40. `RewardsConfig.withPreset` changes only those two item
+  counts; coin payouts and the weekly cap do not change. `Services.rewardsFor(child)` gives the config a screen
+  or round uses. Reminders (`lib/engine/family/reminder_plan.dart`, pure Dart, injected clock): `ReminderPlan.build`
+  returns one-off slots for today and the next 6 days, on the parent's weekdays (`reminderDays`), at the chosen
+  time (07:00 to 20:00), never today when the goal is met (`goal:<day>` mark) or the time has passed, and never
+  after `lastOpenedDay + 3` (silent stop; the next open restores them). A `lastOpenedDay` in the future (clock
+  moved back) counts as today. Ids are 100 + day % 7; id 1 (the old repeating reminder) is cancelled on every
+  sync. `ReminderScheduler` (`lib/core/notifications/`) calls `NotificationService.scheduleAt` / `cancelById` on
+  app start, on resume, when going to the background and when the settings or the goal state change. Four
+  neutral messages rotate (no streak wording, coins, nickname or counts). Switch with
+  `goals_reminders.parent_area` (section in the Parent area) and `goals_reminders.settings_row` (the Settings
+  switch); both default to the pre-C4 behaviour. The web build schedules nothing.
 
 ## Access (`minigames:` in `app.config.yaml`)
 

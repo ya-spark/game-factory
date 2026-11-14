@@ -394,6 +394,10 @@ def apply_profile_config(out: Path, profile: str, audience: str) -> None:
     # Only the learning (craft) profile has child profiles and a picker; hubs go straight to the shell.
     if profile == "craft":
         _set_key(cfg, "content", "enabled", "true")
+        # C4: goals and reminders are set in the Parent area; Scout and Ranger (child) have no
+        # reminder row in Settings, Champion (teen) keeps one.
+        _set_key(cfg, "goals_reminders", "parent_area", "true")
+        _set_key(cfg, "goals_reminders", "settings_row", "false" if audience == "child" else "true")
     if profile == "mind":
         _set_key(cfg, "minigames", "coin_price", "300")
         text = cfg.read_text(encoding="utf-8")

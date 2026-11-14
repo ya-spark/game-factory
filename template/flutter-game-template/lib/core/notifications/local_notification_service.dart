@@ -77,6 +77,45 @@ class LocalNotificationService implements NotificationService {
   }
 
   @override
+  Future<void> scheduleAt({
+    required int id,
+    required DateTime when,
+    required String title,
+    required String body,
+  }) async {
+    if (!_ready) return;
+    final at = tz.TZDateTime(
+      tz.local,
+      when.year,
+      when.month,
+      when.day,
+      when.hour,
+      when.minute,
+    );
+    if (!at.isAfter(tz.TZDateTime.now(tz.local))) return;
+    await _plugin.zonedSchedule(
+      id: id,
+      title: title,
+      body: body,
+      scheduledDate: at,
+      notificationDetails: const NotificationDetails(
+        android: AndroidNotificationDetails(
+          'daily_reminder',
+          'Daily reminder',
+          channelDescription: 'A gentle reminder to practise',
+        ),
+      ),
+      // Inexact: no SCHEDULE_EXACT_ALARM permission needed.
+      androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle,
+    );
+  }
+
+  @override
+  Future<void> cancelById(int id) async {
+    if (_ready) await _plugin.cancel(id: id);
+  }
+
+  @override
   Future<void> cancelAll() async {
     if (_ready) await _plugin.cancelAll();
   }

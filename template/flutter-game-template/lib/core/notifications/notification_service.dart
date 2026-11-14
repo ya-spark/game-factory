@@ -13,6 +13,18 @@ abstract interface class NotificationService {
     required String body,
   });
 
+  /// Schedules a one-off, inexact notification at [when] (local time) with the given [id]
+  /// (no exact-alarm permission). Scheduling an id again replaces it. No-op when [when] is past.
+  Future<void> scheduleAt({
+    required int id,
+    required DateTime when,
+    required String title,
+    required String body,
+  });
+
+  /// Cancels one scheduled notification.
+  Future<void> cancelById(int id);
+
   Future<void> cancelAll();
 }
 
@@ -29,6 +41,15 @@ class NoopNotificationService implements NotificationService {
     required String title,
     required String body,
   }) async {}
+  @override
+  Future<void> scheduleAt({
+    required int id,
+    required DateTime when,
+    required String title,
+    required String body,
+  }) async {}
+  @override
+  Future<void> cancelById(int id) async {}
   @override
   Future<void> cancelAll() async {}
 }

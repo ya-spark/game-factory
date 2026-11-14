@@ -125,7 +125,7 @@ class _PlayTabState extends State<PlayTab> {
       open: open,
       progress: child.progress,
       packs: packs,
-      rewardsConfig: s.config.rewards,
+      rewardsConfig: s.rewardsFor(child),
       subject: e.subject,
       year: child.year ?? 0,
       today: s.profile.today,

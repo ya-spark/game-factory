@@ -76,7 +76,10 @@ class ProfileStore extends ChangeNotifier {
     clockTampered = _guard.isTampered(raw, _data.lastSeenMs);
     final now = _guard.trusted(raw, _data.lastSeenMs);
     final day = dayIndexOf(now);
-    var d = _data.copyWith(lastSeenMs: now.millisecondsSinceEpoch);
+    var d = _data.copyWith(
+      lastSeenMs: now.millisecondsSinceEpoch,
+      lastOpenedDay: day,
+    );
     if (retention.streaks) {
       final u = StreakEngine.recordActivity(d.streak, day);
       d = d.copyWith(
@@ -318,6 +321,10 @@ class ProfileStore extends ChangeNotifier {
   Future<void> setVoice(bool v) => _commit(_data.copyWith(voiceOn: v));
   Future<void> setLeftHanded(bool v) => _commit(_data.copyWith(leftHanded: v));
   Future<void> setVibration(bool v) => _commit(_data.copyWith(vibrationOn: v));
+  Future<void> setReminderDays(Set<int> days) =>
+      _commit(_data.copyWith(reminderDays: {...days}));
+  Future<void> setGoalPreset(String childId, GoalPreset preset) =>
+      _updateChild(childId, (p) => p.copyWith(goalPreset: preset));
   Future<void> setReminders(bool v) => _commit(_data.copyWith(remindersOn: v));
   Future<void> setReminderTime(int hour, int minute) => _commit(
     _data.copyWith(

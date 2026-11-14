@@ -36,6 +36,7 @@ class ChildProfile {
     this.avatar = 'fox',
     this.year,
     this.colorTheme = 'default',
+    this.goalPreset = GoalPreset.steady,
     this.mode = LearnMode.game,
     this.lockedMode,
     this.progress = const ChildProgress(),
@@ -52,6 +53,9 @@ class ChildProfile {
 
   /// The colour theme the child picked in the shop ('default' until then).
   final String colorTheme;
+
+  /// The parent's goal size for this child (item counts only; coins do not change).
+  final GoalPreset goalPreset;
 
   /// The mode the child last used (Game on first launch). A lock overrides it.
   final LearnMode mode;
@@ -75,6 +79,7 @@ class ChildProfile {
     String? avatar,
     int? year,
     String? colorTheme,
+    GoalPreset? goalPreset,
     LearnMode? mode,
     LearnMode? lockedMode,
     bool clearLock = false,
@@ -87,6 +92,7 @@ class ChildProfile {
     avatar: avatar ?? this.avatar,
     year: year ?? this.year,
     colorTheme: colorTheme ?? this.colorTheme,
+    goalPreset: goalPreset ?? this.goalPreset,
     mode: mode ?? this.mode,
     lockedMode: clearLock ? null : (lockedMode ?? this.lockedMode),
     progress: progress ?? this.progress,
@@ -100,6 +106,7 @@ class ChildProfile {
     'avatar': avatar,
     'year': year,
     'colorTheme': colorTheme,
+    'goalPreset': goalPreset.name,
     'mode': mode.name,
     'lockedMode': lockedMode?.name,
     'progress': progress.toJson(),
@@ -113,6 +120,7 @@ class ChildProfile {
     avatar: j['avatar'] as String? ?? 'fox',
     year: (j['year'] as num?)?.toInt(),
     colorTheme: j['colorTheme'] as String? ?? 'default',
+    goalPreset: GoalPreset.parse(j['goalPreset']),
     mode: LearnMode.parse(j['mode']) ?? LearnMode.game,
     lockedMode: LearnMode.parse(j['lockedMode']),
     progress: ChildProgress.fromJson(

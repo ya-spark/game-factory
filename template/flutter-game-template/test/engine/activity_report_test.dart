@@ -159,7 +159,7 @@ void main() {
           {'id': 'x', 'nickname': 'N'},
         ],
       });
-      expect(m['version'], 7);
+      expect(m['version'], SaveData.currentVersion);
       final data = SaveData.fromJson(m);
       expect(data.profiles.single.activity.days, isEmpty);
     });

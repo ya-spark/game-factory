@@ -24,6 +24,18 @@ abstract final class TestIds {
   static const parentDelete = Key('parent.delete');
   static const parentDeleteConfirm = Key('parent.delete.confirm');
   static const parentWifiOnly = Key('parent.wifiOnly');
+
+  /// Parent area "Goals and reminders" (C4).
+  static const parentGoalsSection = Key('parent.goals.section');
+  static Key parentGoalPreset(String name) => Key('parent.goals.preset.$name');
+  static const parentGoalSummary = Key('parent.goals.summary');
+  static const parentRemindersSwitch = Key('parent.reminders.switch');
+  static const parentReminderTime = Key('parent.reminders.time');
+  static Key parentReminderTimeOption(int minutes) =>
+      Key('parent.reminders.time.$minutes');
+  static Key parentReminderDay(int weekday) =>
+      Key('parent.reminders.day.$weekday');
+  static const parentRemindersDenied = Key('parent.reminders.denied');
   static const parentAllYears = Key('parent.allYears');
   static const parentBuyFull = Key('parent.buy.full');
   static const parentRestore = Key('parent.restore');

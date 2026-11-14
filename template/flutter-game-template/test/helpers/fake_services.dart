@@ -35,6 +35,9 @@ Future<Services> buildFakeServices({
   bool webShell =
       false, // the web build: no real-money items, browser-only save note
   String webPlayStoreUrl = '', // web.play_store_url
+  NotificationService? notifications,
+  bool goalsParentArea = false, // goals_reminders.parent_area (the Craft apps)
+  bool settingsReminderRow = true, // goals_reminders.settings_row
   String?
   audience, // child | teen | adult: overrides `audience:` of app.config.yaml
 }) async {
@@ -60,6 +63,14 @@ Future<Services> buildFakeServices({
     yaml = yaml
         .replaceFirst('extra_themes: false', 'extra_themes: true')
         .replaceFirst('sound_packs: false', 'sound_packs: true');
+  }
+  {
+    yaml = yaml.replaceFirst(
+      RegExp(
+        r'goals_reminders:\n  parent_area: (true|false)\n  settings_row: (true|false)',
+      ),
+      'goals_reminders:\n  parent_area: $goalsParentArea\n  settings_row: $settingsReminderRow',
+    );
   }
   if (webPlayStoreUrl.isNotEmpty) {
     yaml = yaml.replaceFirst(
@@ -90,7 +101,7 @@ Future<Services> buildFakeServices({
     leaderboard: LocalLeaderboardService(prefs),
     ads: ads ?? FakeAdService(),
     purchases: FakePurchaseService(catalog),
-    notifications: const NoopNotificationService(),
+    notifications: notifications ?? const NoopNotificationService(),
     analytics: const NoopAnalyticsService(),
     remoteConfig: const NoopRemoteConfigService(),
     profile: profile,
@@ -102,4 +113,50 @@ Future<Services> buildFakeServices({
   );
   services.wirePurchases();
   return services;
+}
+
+/// Records what is scheduled; [permission] is what `requestPermission` answers.
+class FakeNotificationService implements NotificationService {
+  FakeNotificationService({this.permission = true});
+  bool permission;
+  int permissionAsks = 0;
+  final Map<int, DateTime> scheduled = {};
+  final Map<int, String> bodies = {};
+  final List<int> cancelled = [];
+
+  @override
+  Future<void> initialize() async {}
+  @override
+  Future<bool> requestPermission() async {
+    permissionAsks++;
+    return permission;
+  }
+
+  @override
+  Future<void> scheduleDailyReminder({
+    required int hour,
+    required int minute,
+    required String title,
+    required String body,
+  }) async {}
+  @override
+  Future<void> scheduleAt({
+    required int id,
+    required DateTime when,
+    required String title,
+    required String body,
+  }) async {
+    scheduled[id] = when;
+    bodies[id] = body;
+  }
+
+  @override
+  Future<void> cancelById(int id) async {
+    cancelled.add(id);
+    scheduled.remove(id);
+    bodies.remove(id);
+  }
+
+  @override
+  Future<void> cancelAll() async => scheduled.clear();
 }

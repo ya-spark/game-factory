@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../core/content/learning_service.dart';
 import '../core/profile/child_profile.dart';
+import '../core/save/save_data.dart';
 import '../core/services.dart';
 import '../engine/engine.dart';
 import 'child_report.dart';
@@ -22,6 +23,7 @@ class _ParentAreaScreenState extends State<ParentAreaScreen> {
   String? _childId;
   bool _allYears = false;
   String? _message;
+  bool _notificationsDenied = false;
   Future<List<int>>? _years;
 
   @override
@@ -105,6 +107,7 @@ class _ParentAreaScreenState extends State<ParentAreaScreen> {
           );
         },
       ),
+      if (s.config.goalsReminders.parentArea) ..._goals(s, child),
       const Text('Mode'),
       Wrap(
         spacing: 8,
@@ -213,6 +216,119 @@ class _ParentAreaScreenState extends State<ParentAreaScreen> {
     }
   }
 
+  /// Goal size for one child: Light, Steady or Big (items only; coins do not change).
+  List<Widget> _goals(Services s, ChildProfile child) => [
+    const SizedBox(height: 8),
+    const Text('Goals', key: TestIds.parentGoalsSection),
+    Wrap(
+      spacing: 8,
+      children: [
+        for (final p in GoalPreset.values)
+          ChoiceChip(
+            key: TestIds.parentGoalPreset(p.name),
+            label: Text(p.label),
+            selected: child.goalPreset == p,
+            onSelected: (_) => s.profile.setGoalPreset(child.id, p),
+          ),
+      ],
+    ),
+    Text(
+      '${child.goalPreset.dailyItems} items a day, '
+      '${child.goalPreset.weeklyItems} a week. Coins stay the same.',
+      key: TestIds.parentGoalSummary,
+    ),
+    const SizedBox(height: 8),
+  ];
+
+  /// Reminders for this device: switch, time (07:00 to 20:00) and days of the week.
+  List<Widget> _reminders(BuildContext context, Services s, SaveData d) {
+    const names = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+    final times = [
+      for (
+        var m = ReminderPlan.earliestHour * 60;
+        m <= ReminderPlan.latestHour * 60;
+        m += 30
+      )
+        m,
+    ];
+    final current =
+        ReminderPlan.clampHour(d.reminderHour) * 60 +
+        (d.reminderMinute >= 30 ? 30 : 0);
+    String clock(int m) =>
+        '${(m ~/ 60).toString().padLeft(2, '0')}:${(m % 60).toString().padLeft(2, '0')}';
+    return [
+      Text(
+        'Goals and reminders',
+        style: Theme.of(context).textTheme.titleMedium,
+      ),
+      SwitchListTile(
+        key: TestIds.parentRemindersSwitch,
+        title: const Text('Reminders on this device'),
+        subtitle: const Text(
+          'A gentle nudge at the time you choose. Never on a day the goal is met, '
+          'and it stops after 3 days without opening the app.',
+        ),
+        value: d.remindersOn,
+        onChanged: (v) async {
+          if (v) {
+            final ok = await s.notifications.requestPermission();
+            if (!ok) {
+              if (mounted) setState(() => _notificationsDenied = true);
+              return;
+            }
+          }
+          if (mounted) setState(() => _notificationsDenied = false);
+          await s.profile.setReminders(v);
+        },
+      ),
+      if (_notificationsDenied)
+        const Padding(
+          key: TestIds.parentRemindersDenied,
+          padding: EdgeInsets.only(bottom: 8),
+          child: Text('Notifications are off in system settings.'),
+        ),
+      if (d.remindersOn) ...[
+        Row(
+          children: [
+            const Text('Time'),
+            const SizedBox(width: 12),
+            DropdownButton<int>(
+              key: TestIds.parentReminderTime,
+              value: current,
+              items: [
+                for (final m in times)
+                  DropdownMenuItem(
+                    key: TestIds.parentReminderTimeOption(m),
+                    value: m,
+                    child: Text(clock(m)),
+                  ),
+              ],
+              onChanged: (m) {
+                if (m != null) s.profile.setReminderTime(m ~/ 60, m % 60);
+              },
+            ),
+          ],
+        ),
+        Wrap(
+          spacing: 6,
+          children: [
+            for (var w = 1; w <= 7; w++)
+              FilterChip(
+                key: TestIds.parentReminderDay(w),
+                label: Text(names[w - 1]),
+                selected: d.reminderDays.contains(w),
+                onSelected: (on) => s.profile.setReminderDays({
+                  ...d.reminderDays.where((x) => x != w),
+                  if (on) w,
+                }),
+              ),
+          ],
+        ),
+      ],
+      const SizedBox(height: 8),
+    ];
+  }
+
   List<Widget> _deviceSection(
     BuildContext context,
     Services s,
@@ -221,6 +337,7 @@ class _ParentAreaScreenState extends State<ParentAreaScreen> {
     final learning = s.learning;
     final d = s.profile.data;
     return [
+      if (s.config.goalsReminders.parentArea) ..._reminders(context, s, d),
       Text('Learning', style: Theme.of(context).textTheme.titleMedium),
       SwitchListTile(
         key: TestIds.parentSpacedReview,

@@ -101,7 +101,7 @@ class _StudyTabState extends State<StudyTab> {
       open: pool ?? d.open,
       progress: child.progress,
       packs: d.packs,
-      rewardsConfig: s.config.rewards,
+      rewardsConfig: s.rewardsFor(s.profile.activeChild),
       subject: subject,
       year: year,
       today: s.profile.today,
@@ -267,7 +267,7 @@ class _StudyTabState extends State<StudyTab> {
   List<Widget> _learn(BuildContext context, _StudyData d) {
     final t = ThemeTokens.of(context);
     final s = ServicesScope.of(context);
-    final cfg = s.config.rewards;
+    final cfg = s.rewardsFor(s.profile.activeChild);
     final progress = _progressData;
     final r = progress.rewards;
     final todayPasses = r.todayDay == s.profile.today ? r.todayPasses : 0;

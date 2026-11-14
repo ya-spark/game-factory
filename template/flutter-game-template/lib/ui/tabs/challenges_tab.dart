@@ -18,7 +18,7 @@ class ChallengesTab extends StatelessWidget {
   Widget build(BuildContext context) {
     final t = ThemeTokens.of(context);
     final s = ServicesScope.of(context);
-    final cfg = s.config.rewards;
+    final cfg = s.rewardsFor(child);
     final r = child.progress.rewards;
     final today = s.profile.today;
     final todayPasses = r.todayDay == today ? r.todayPasses : 0;

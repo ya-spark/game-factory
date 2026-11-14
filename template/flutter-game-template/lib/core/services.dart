@@ -9,6 +9,7 @@ import 'speech/tts_speech_service.dart';
 import 'audio/audio_service.dart';
 import 'audio/audioplayers_audio_service.dart';
 import '../engine/engine.dart';
+import 'profile/child_profile.dart';
 import 'config/app_config.dart';
 import 'content/learning_service.dart';
 import 'config/products.dart';
@@ -17,6 +18,7 @@ import 'leaderboard/leaderboard_service.dart';
 import 'links/external_link_service.dart';
 import 'links/url_external_link_service.dart';
 import 'notifications/notification_service.dart';
+import 'notifications/reminder_scheduler.dart';
 import 'platform/platform_services.dart';
 import 'profile/profile_store.dart';
 import 'purchase/parent_gate_guard.dart';
@@ -74,7 +76,15 @@ class Services {
   final AdService ads;
   final PurchaseService purchases;
   final NotificationService notifications;
+
+  /// The rewards config with [child]'s goal preset (item goals only).
+  RewardsConfig rewardsFor(ChildProfile? child) => child == null
+      ? config.rewards
+      : config.rewards.withPreset(child.goalPreset);
   final AnalyticsService analytics;
+
+  /// One-off reminders set in the Parent area (Craft apps, `goals_reminders.parent_area`); null elsewhere.
+  ReminderScheduler? reminders;
   final RemoteConfigService remoteConfig;
   final ProfileStore profile;
   final ShareService share;
@@ -174,6 +184,13 @@ class Services {
       links: const UrlExternalLinkService(),
       learning: learning,
     );
+    if (config.goalsReminders.parentArea && config.content.enabled) {
+      s.reminders = ReminderScheduler(
+        notifications: notifications,
+        profile: profile,
+        title: config.displayName,
+      );
+    }
     s.wirePurchases();
     return s;
   }
@@ -221,6 +238,7 @@ class Services {
       notifications.initialize(),
       remoteConfig.refresh(),
     ]);
+    await reminders?.start();
     await identity.refresh();
     await _syncAfterSignIn();
     // Silent, at most once a day, failures ignored.

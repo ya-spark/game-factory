@@ -107,7 +107,7 @@ Future<void> startMistakesRound(
     items: items,
     progress: child.progress,
     packs: packs,
-    rewardsConfig: s.config.rewards,
+    rewardsConfig: s.rewardsFor(child),
     today: s.profile.today,
     streakDays: s.profile.displayStreak,
     gameId: game.id,

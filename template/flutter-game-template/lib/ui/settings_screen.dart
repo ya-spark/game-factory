@@ -148,56 +148,65 @@ class SettingsScreen extends StatelessWidget {
                   onChanged: p.setVibration,
                 ),
               ),
-              KidPanel(
-                child: Column(
-                  children: [
-                    SwitchListTile(
-                      key: TestIds.settingsReminders,
-                      title: const Text('Daily reminder'),
-                      subtitle: Text(
-                        'A local notification at '
-                        '${_clock(p.data.reminderHour, p.data.reminderMinute)}',
-                      ),
-                      value: p.data.remindersOn,
-                      onChanged: (v) async {
-                        if (v) {
-                          final ok = await s.notifications.requestPermission();
-                          if (!ok) return;
-                          await _schedule(
-                            s,
-                            p.data.reminderHour,
-                            p.data.reminderMinute,
-                          );
-                        } else {
-                          await s.notifications.cancelAll();
-                        }
-                        await p.setReminders(v);
-                      },
-                    ),
-                    if (p.data.remindersOn)
-                      ListTile(
-                        key: TestIds.settingsReminderTime,
-                        title: const Text('Reminder time'),
-                        trailing: Text(
-                          _clock(p.data.reminderHour, p.data.reminderMinute),
+              if (s.config.goalsReminders.settingsRow)
+                KidPanel(
+                  child: Column(
+                    children: [
+                      SwitchListTile(
+                        key: TestIds.settingsReminders,
+                        title: const Text('Daily reminder'),
+                        subtitle: Text(
+                          'A local notification at '
+                          '${_clock(p.data.reminderHour, p.data.reminderMinute)}',
                         ),
-                        onTap: () async {
-                          final t = await showTimePicker(
-                            context: context,
-                            initialTime: TimeOfDay(
-                              hour: p.data.reminderHour,
-                              minute: p.data.reminderMinute,
-                            ),
-                          );
-                          if (t == null) return;
-                          await p.setReminderTime(t.hour, t.minute);
-                          await s.notifications.cancelAll();
-                          await _schedule(s, t.hour, t.minute);
+                        value: p.data.remindersOn,
+                        onChanged: (v) async {
+                          if (v) {
+                            final ok = await s.notifications
+                                .requestPermission();
+                            if (!ok) return;
+                            if (!s.config.goalsReminders.parentArea) {
+                              await _schedule(
+                                s,
+                                p.data.reminderHour,
+                                p.data.reminderMinute,
+                              );
+                            }
+                          } else if (!s.config.goalsReminders.parentArea) {
+                            await s.notifications.cancelAll();
+                          }
+                          await p.setReminders(v);
                         },
                       ),
-                  ],
+                      if (p.data.remindersOn)
+                        ListTile(
+                          key: TestIds.settingsReminderTime,
+                          title: const Text('Reminder time'),
+                          trailing: Text(
+                            _clock(p.data.reminderHour, p.data.reminderMinute),
+                          ),
+                          onTap: () async {
+                            final t = await showTimePicker(
+                              context: context,
+                              initialTime: TimeOfDay(
+                                hour: p.data.reminderHour,
+                                minute: p.data.reminderMinute,
+                              ),
+                            );
+                            if (t == null) return;
+                            final h = !s.config.goalsReminders.parentArea
+                                ? t.hour
+                                : ReminderPlan.clampHour(t.hour);
+                            await p.setReminderTime(h, t.minute);
+                            if (!s.config.goalsReminders.parentArea) {
+                              await s.notifications.cancelAll();
+                              await _schedule(s, h, t.minute);
+                            }
+                          },
+                        ),
+                    ],
+                  ),
                 ),
-              ),
               KidPanel(
                 child: Column(
                   children: [

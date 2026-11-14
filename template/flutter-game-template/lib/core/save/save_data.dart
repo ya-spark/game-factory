@@ -23,6 +23,8 @@ class SaveData {
     this.remindersOn = false,
     this.reminderHour = 19,
     this.reminderMinute = 0,
+    this.reminderDays = const {1, 2, 3, 4, 5, 6, 7},
+    this.lastOpenedDay = -1,
     this.textSize = 'normal',
     this.reduceMotion = false,
     this.lastSeenMs = 0,
@@ -42,7 +44,7 @@ class SaveData {
   });
 
   /// Bump when the JSON shape changes and add a step to [SaveMigrator].
-  static const int currentVersion = 7;
+  static const int currentVersion = 8;
 
   final int coins;
   final int bestScore;
@@ -71,6 +73,12 @@ class SaveData {
   /// Local time of the daily reminder.
   final int reminderHour;
   final int reminderMinute;
+
+  /// Weekdays (1 Monday .. 7 Sunday) that get a reminder. Default: every day.
+  final Set<int> reminderDays;
+
+  /// Day index the app was last opened (-1: unknown); drives the 3-day silent stop.
+  final int lastOpenedDay;
 
   /// `small`, `normal` or `large` ([TextSizeChoice]); multiplies the system text size.
   final String textSize;
@@ -127,6 +135,8 @@ class SaveData {
     bool? remindersOn,
     int? reminderHour,
     int? reminderMinute,
+    Set<int>? reminderDays,
+    int? lastOpenedDay,
     String? textSize,
     bool? reduceMotion,
     int? lastSeenMs,
@@ -165,6 +175,8 @@ class SaveData {
     remindersOn: remindersOn ?? this.remindersOn,
     reminderHour: reminderHour ?? this.reminderHour,
     reminderMinute: reminderMinute ?? this.reminderMinute,
+    reminderDays: reminderDays ?? this.reminderDays,
+    lastOpenedDay: lastOpenedDay ?? this.lastOpenedDay,
     textSize: textSize ?? this.textSize,
     reduceMotion: reduceMotion ?? this.reduceMotion,
     lastSeenMs: lastSeenMs ?? this.lastSeenMs,
@@ -194,6 +206,8 @@ class SaveData {
     'remindersOn': remindersOn,
     'reminderHour': reminderHour,
     'reminderMinute': reminderMinute,
+    'reminderDays': (reminderDays.toList()..sort()),
+    'lastOpenedDay': lastOpenedDay,
     'textSize': textSize,
     'reduceMotion': reduceMotion,
     'lastSeenMs': lastSeenMs,
@@ -232,6 +246,8 @@ class SaveData {
     remindersOn: j['remindersOn'] as bool? ?? false,
     reminderHour: ((j['reminderHour'] as num?)?.toInt() ?? 19).clamp(0, 23),
     reminderMinute: ((j['reminderMinute'] as num?)?.toInt() ?? 0).clamp(0, 59),
+    reminderDays: _days(j['reminderDays']),
+    lastOpenedDay: (j['lastOpenedDay'] as num?)?.toInt() ?? -1,
     textSize: j['textSize'] as String? ?? 'normal',
     reduceMotion: j['reduceMotion'] as bool? ?? false,
     lastSeenMs: (j['lastSeenMs'] as num?)?.toInt() ?? 0,
@@ -257,6 +273,14 @@ class SaveData {
     downloadWifiOnly: j['downloadWifiOnly'] as bool? ?? false,
   );
 
+  static Set<int> _days(Object? o) {
+    final s = {
+      for (final v in (o is List ? o : const []))
+        if (v is num && v >= 1 && v <= 7) v.toInt(),
+    };
+    return o is List ? s : {1, 2, 3, 4, 5, 6, 7};
+  }
+
   static Map<String, Object?>? _map(Object? o) =>
       o is Map ? o.cast<String, Object?>() : null;
 }
@@ -280,6 +304,7 @@ abstract final class SaveMigrator {
         4 => _v4ToV5(j),
         5 => _v5ToV6(j),
         6 => _v6ToV7(j),
+        7 => _v7ToV8(j),
         _ => throw StateError('No migration from $v'),
       };
       v = (j['version'] as num).toInt();
@@ -337,6 +362,13 @@ abstract final class SaveMigrator {
       },
     };
   }
+
+  /// v8 added the per-child goal preset (`goalPreset`, default Steady), the reminder weekdays
+  /// (default every day) and the last-opened day. Old saves keep their reminder switch and time.
+  static Map<String, Object?> _v7ToV8(Map<String, Object?> j) => {
+    ...j,
+    'version': 8,
+  };
 
   /// v7 added the per-child activity log (`activity`, 8 weeks). Old saves start with an empty
   /// log; nothing else changes.

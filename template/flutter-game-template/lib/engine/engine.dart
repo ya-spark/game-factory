@@ -24,6 +24,7 @@ export 'content/validator.dart';
 export 'family/activity_log.dart';
 export 'family/play_time.dart';
 export 'family/progress_report.dart';
+export 'family/reminder_plan.dart';
 export 'family/text_size.dart';
 
 // Issue 1C1: minigames, rewards, AI tutor hook.
@@ -45,4 +46,5 @@ export 'minigames/tug_of_war/rules/family_tug_rules.dart';
 export 'minigames/tug_of_war/rules/tug_of_war_rules.dart';
 export 'minigames/word_builder/rules/word_builder_rules.dart';
 export 'minigames/word_grid/rules/word_grid_rules.dart';
+export 'rewards/goal_preset.dart';
 export 'rewards/rewards.dart';
