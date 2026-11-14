@@ -40,6 +40,7 @@ class ChildProfile {
     this.lockedMode,
     this.progress = const ChildProgress(),
     this.playTime = const PlayTimeLog(),
+    this.activity = const ActivityLog(),
   });
 
   final String id;
@@ -65,6 +66,10 @@ class ChildProfile {
   /// Time played per day (this device only), for the weekly total in the grown-ups' view.
   final PlayTimeLog playTime;
 
+  /// Answers, passes and topics per day for the last 8 weeks (this device only), for the
+  /// weekly report.
+  final ActivityLog activity;
+
   ChildProfile copyWith({
     String? nickname,
     String? avatar,
@@ -75,6 +80,7 @@ class ChildProfile {
     bool clearLock = false,
     ChildProgress? progress,
     PlayTimeLog? playTime,
+    ActivityLog? activity,
   }) => ChildProfile(
     id: id,
     nickname: nickname ?? this.nickname,
@@ -85,6 +91,7 @@ class ChildProfile {
     lockedMode: clearLock ? null : (lockedMode ?? this.lockedMode),
     progress: progress ?? this.progress,
     playTime: playTime ?? this.playTime,
+    activity: activity ?? this.activity,
   );
 
   Map<String, Object?> toJson() => {
@@ -97,6 +104,7 @@ class ChildProfile {
     'lockedMode': lockedMode?.name,
     'progress': progress.toJson(),
     'playTime': playTime.toJson(),
+    'activity': activity.toJson(),
   };
 
   factory ChildProfile.fromJson(Map<String, Object?> j) => ChildProfile(
@@ -111,6 +119,7 @@ class ChildProfile {
       (j['progress'] as Map?)?.cast<String, Object?>(),
     ),
     playTime: PlayTimeLog.fromJson(j['playTime']),
+    activity: ActivityLog.fromJson(j['activity']),
   );
 }
 

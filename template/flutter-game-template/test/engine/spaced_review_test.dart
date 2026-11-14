@@ -133,7 +133,7 @@ void main() {
           },
         ],
       });
-      expect(migrated['version'], 6);
+      expect(migrated['version'], SaveData.currentVersion);
       final data = SaveData.fromJson(migrated);
       final items = data.profiles.single.progress.items;
       expect(items['passed']!.box, 1);

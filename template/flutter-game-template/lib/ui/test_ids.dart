@@ -342,6 +342,13 @@ abstract final class TestIds {
   // Progress and the grown-ups' area
   static const progressScreen = Key('progress.screen');
   static const reportPlayTime = Key('report.playTime');
+  static const reportThisWeek = Key('report.thisWeek');
+  static const reportLastWeek = Key('report.lastWeek');
+  static const reportStrongest = Key('report.strongest');
+  static const reportAttention = Key('report.attention');
+  static Key reportPractise(String key) => Key('report.practise.$key');
+  static const reportShare = Key('report.share');
+  static const reportShareName = Key('report.shareName');
   static const reportTopicsCount = Key('report.topicsCount');
   static Key reportTopic(String key) => Key('report.topic.$key');
   static const parentReset = Key('parent.reset');

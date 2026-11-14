@@ -179,6 +179,15 @@ engine differs from its lock.
   "Revise your mistakes" challenge also counts due items answered right.
   UI: `lib/ui/mistakes_round.dart` ("Today's review" entry on Play and on Learn/Revise, hidden at 0;
   a Quick quiz round, or Flash review cards in Scout).
+- Parent progress report (C3): `ChildProfile.activity` is an `ActivityLog` (`lib/engine/family/activity_log.dart`),
+  one `DayActivity` per day (answers, correct, newly passed items, topic keys), kept 8 weeks (`keepDays` 56),
+  next to `PlayTimeLog`. `ProfileStore.setChildProgress` writes it from the difference between the old and new
+  progress, so every answer path (rounds, Flash review, review round) is counted; a clock moved back (a day
+  before the latest entry) writes nothing. Save version 7 adds it (old saves start empty). `ProgressReport`
+  (pure Dart): `week` (this week = the 7 days up to today; `weeksAgo: 1` = last week), `strongest` (topics
+  Mastered by `masteryOf`), `needsAttention` (up to 3 topics with the most `mistakeIds`), `shareText`.
+  `ShareService.shareText` shares plain text through the system share sheet; the child's nickname is in it
+  only when the report switch is on (`shareNicknameDefault` in `lib/ui/child_report.dart`: off, on in Craft Champion).
 - Shop: `shopItems` (avatars and colour themes, coins), `ProfileStore.buyItem` / `equipItem`.
   The chosen colour theme is stored per child; applying it to the theme comes with 2B2.
 

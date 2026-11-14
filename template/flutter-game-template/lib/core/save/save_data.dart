@@ -42,7 +42,7 @@ class SaveData {
   });
 
   /// Bump when the JSON shape changes and add a step to [SaveMigrator].
-  static const int currentVersion = 6;
+  static const int currentVersion = 7;
 
   final int coins;
   final int bestScore;
@@ -279,6 +279,7 @@ abstract final class SaveMigrator {
         3 => _v3ToV4(j),
         4 => _v4ToV5(j),
         5 => _v5ToV6(j),
+        6 => _v6ToV7(j),
         _ => throw StateError('No migration from $v'),
       };
       v = (j['version'] as num).toInt();
@@ -336,6 +337,13 @@ abstract final class SaveMigrator {
       },
     };
   }
+
+  /// v7 added the per-child activity log (`activity`, 8 weeks). Old saves start with an empty
+  /// log; nothing else changes.
+  static Map<String, Object?> _v6ToV7(Map<String, Object?> j) => {
+    ...j,
+    'version': 7,
+  };
 
   /// v6 added the spaced-review box (`bx`) to every item result: last answer wrong 0, passed 1,
   /// otherwise 0. Items with no `ls` (answered before version 5) are not due until answered

@@ -11,6 +11,9 @@ abstract class ShareService {
   /// Invites to the game with the high score message. Does nothing while there is no link.
   Future<void> shareApp({int bestScore = 0});
 
+  /// Shares plain text only (the grown-ups' weekly summary). The app sends nothing itself.
+  Future<void> shareText(String text);
+
   /// True when share texts carry a link; "Share app" is shown only then.
   bool get hasLink;
 }
@@ -45,6 +48,9 @@ abstract class BaseShareService implements ShareService {
   @override
   Future<void> shareAchievement({required String title, Uint8List? image}) =>
       send(achievementText(title), image);
+
+  @override
+  Future<void> shareText(String text) => send(text, null);
 
   @override
   Future<void> shareApp({int bestScore = 0}) async {

@@ -570,8 +570,18 @@ class ProfileStore extends ChangeNotifier {
   }
 
   /// Saves a child's progress (after an answer or a release step).
-  Future<void> setChildProgress(String id, ChildProgress progress) =>
-      _updateChild(id, (p) => p.copyWith(progress: progress));
+  /// The answers recorded since the last save also go into the child's activity log (a clock
+  /// moved back writes nothing).
+  Future<void> setChildProgress(String id, ChildProgress progress) {
+    final day = today;
+    return _updateChild(
+      id,
+      (p) => p.copyWith(
+        progress: progress,
+        activity: p.activity.recordChange(day, p.progress, progress),
+      ),
+    );
+  }
 
   Future<void> setDownloadWifiOnly(bool v) =>
       _commit(_data.copyWith(downloadWifiOnly: v));

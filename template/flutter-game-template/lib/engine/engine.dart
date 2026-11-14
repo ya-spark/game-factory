@@ -20,6 +20,7 @@ export 'content/spelling.dart';
 export 'content/validator.dart';
 
 // Settings and the grown-ups' progress view (pure Dart).
+export 'family/activity_log.dart';
 export 'family/play_time.dart';
 export 'family/progress_report.dart';
 export 'family/text_size.dart';

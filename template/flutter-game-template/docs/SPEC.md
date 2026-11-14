@@ -132,6 +132,12 @@ Testable statements the test agent turns into tests.
 - Home at 360 x 640 dp: the icon row (More games, Shop, Settings) is 48 dp targets 8 dp apart at the top right and overlaps no Home element.
 
 ## Craft screen fixes (owner issue 132, 2026-11-12)
+- Parent report (inside the grown-ups' gate and the Progress page): this week and last week (time played, answers
+  and accuracy, items newly passed, days played and days in a row), Strongest topics (Mastered), Needs attention
+  (up to 3 topics with the most mistakes, each with a Practise button), and "Share this week's summary" (plain text
+  through the system share sheet; nothing is sent by the app). Activity is kept 8 weeks on the device. The
+  nickname is in the shared text only when the switch is on (default off; on in Craft Champion). No coin figures,
+  no ranking, no comparison between children.
 - Topic names: Learn, Progress, Revise and "Try next" show the topic's display name, which is the title of its pack (from `content/topics.yaml`); if no pack is loaded they show the tidied id (underscores to spaces, first letter capital). Never the raw id.
 - Challenges (learning profiles) hold only learning goals paid by the rewards engine within the caps: today's goal, this week's goal and the streak goal (next streak milestone). The block puzzle daily challenges (combo, lines, score) stay in the puzzle profile only (`challenges_screen.dart`).
 - Play lists each game once. The daily game is its own tile with a "Daily" badge, not a second tile. There is one tile per game, not per subject.

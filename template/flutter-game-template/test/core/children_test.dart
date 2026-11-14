@@ -217,7 +217,7 @@ void main() {
     expect(d.profiles, hasLength(1));
     expect(d.profiles.single.year, isNull);
     expect(d.fullUnlock, isFalse);
-    expect(SaveData.currentVersion, 6);
+    expect(SaveData.currentVersion, 7);
     // v0 saves migrate all the way
     expect(
       SaveData.fromJson(SaveMigrator.migrate({'highScore': 5})).profiles,

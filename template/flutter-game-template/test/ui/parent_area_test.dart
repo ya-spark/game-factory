@@ -115,10 +115,20 @@ void main() {
       await tester.tap(find.byKey(TestIds.parentLockStudy));
       await tester.pumpAndSettle();
       expect(s.profile.children.single.lockedMode?.name, 'study');
+      await tester.scrollUntilVisible(
+        find.byKey(TestIds.parentWifiOnly),
+        200,
+        scrollable: find.byType(Scrollable).first,
+      );
       await tester.tap(find.byKey(TestIds.parentWifiOnly));
       await tester.pumpAndSettle();
       expect(s.profile.data.downloadWifiOnly, isTrue);
       expect(s.profile.data.spacedReview, isTrue);
+      await tester.scrollUntilVisible(
+        find.byKey(TestIds.parentSpacedReview),
+        200,
+        scrollable: find.byType(Scrollable).first,
+      );
       await tester.tap(find.byKey(TestIds.parentSpacedReview));
       await tester.pumpAndSettle();
       expect(s.profile.data.spacedReview, isFalse);
