@@ -15,7 +15,7 @@ import 'tabs/tab_data.dart';
 import 'test_ids.dart';
 import 'theme/design_scope.dart';
 
-/// The tab set for a mode. Game: Play, Challenges, Shop. Study: Learn, Progress, Revise.
+/// The tab set for a mode. Game: Play, Challenges, Shop. Study: Learn, Progress, Revise (the bar has exactly three tabs; the Map opens from Learn).
 /// Apps without modes (the Mind hubs): Games, Challenges, Shop.
 List<DsTab> tabsFor({required bool hasModes, required LearnMode mode}) {
   if (hasModes && mode == LearnMode.study) {

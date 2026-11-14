@@ -7,6 +7,7 @@ import '../../core/services.dart';
 import '../../engine/engine.dart';
 import '../kit/ds_bars.dart';
 import '../kit/ds_cards.dart';
+import '../kit/ds_buttons.dart';
 import '../kit/ds_chips.dart';
 import '../mistakes_round.dart';
 import '../quick_quiz_screen.dart';
@@ -14,8 +15,9 @@ import '../test_ids.dart';
 import '../theme/app_theme.dart';
 import '../theme/design_scope.dart';
 import 'tab_data.dart';
+import 'topic_map_view.dart';
 
-/// Study mode pages: Learn, Progress and Revise (the bottom bar picks one with [page]).
+/// Study mode pages: Learn, Map, Progress and Revise (the bottom bar picks one with [page]).
 /// Practice is untimed, uses the Quick quiz in study mode and shows the explanation after
 /// every answer. Accuracy shows only in apps that allow it (not Scout).
 class StudyTab extends StatefulWidget {
@@ -27,7 +29,7 @@ class StudyTab extends StatefulWidget {
   });
   final ChildProfile child;
 
-  /// `learn`, `progress` or `revise`.
+  /// `learn`, `map`, `progress` or `revise`.
   final String page;
   final TabLoaders? loaders;
 
@@ -36,9 +38,12 @@ class StudyTab extends StatefulWidget {
 }
 
 class _StudyData {
-  const _StudyData(this.open, this.packs);
+  const _StudyData(this.open, this.packs, [this.topics]);
   final List<PoolItem> open;
   final List<LoadedPack> packs;
+
+  /// `topics.yaml` (the teaching order) when the app bundles it; the Map falls back to id order.
+  final Topics? topics;
 }
 
 typedef _Topic = ({
@@ -53,10 +58,25 @@ class _StudyTabState extends State<StudyTab> {
 
   TabLoaders get _loaders => widget.loaders ?? TabLoaders.of(context);
 
+  String? _mapSubject;
+  int? _mapYear;
+
   Future<_StudyData> _load() async => _StudyData(
     await _loaders.openItems(widget.child.id),
     await _loaders.packs(),
+    widget.page == 'map' ? await _loadTopics() : null,
   );
+
+  Future<Topics?> _loadTopics() async {
+    try {
+      final bundle = DefaultAssetBundle.of(context);
+      return Topics.parse(
+        await bundle.loadString('assets/content/topics.yaml'),
+      );
+    } on Object {
+      return null;
+    }
+  }
 
   @override
   void didChangeDependencies() {
@@ -152,6 +172,7 @@ class _StudyTabState extends State<StudyTab> {
     final title = switch (widget.page) {
       'progress' => 'Progress',
       'revise' => 'Revise',
+      'map' => 'Map',
       _ => 'Learn',
     };
     return FutureBuilder<_StudyData>(
@@ -162,6 +183,7 @@ class _StudyTabState extends State<StudyTab> {
           key: switch (widget.page) {
             'progress' => TestIds.progressTab,
             'revise' => TestIds.reviseTab,
+            'map' => TestIds.mapTab,
             _ => TestIds.learnTab,
           },
           padding: EdgeInsets.all(t.sp('lg')),
@@ -175,6 +197,7 @@ class _StudyTabState extends State<StudyTab> {
               ...switch (widget.page) {
                 'progress' => _progress(context, d),
                 'revise' => _revise(context, d),
+                'map' => _map(context, d),
                 _ => _learn(context, d),
               },
           ],
@@ -266,6 +289,41 @@ class _StudyTabState extends State<StudyTab> {
     int? lastYear;
     return [
       _mistakesEntry(d),
+      Padding(
+        padding: EdgeInsets.only(bottom: t.sp('md')),
+        child: DsCard(
+          id: 'learn.map',
+          semanticLabel: 'Topic map, see where you are',
+          onTap: () async {
+            await Navigator.of(context).push(
+              MaterialPageRoute<void>(
+                builder: (_) => Scaffold(
+                  key: TestIds.mapScreen,
+                  appBar: AppBar(),
+                  body: SafeArea(
+                    child: StudyTab(
+                      child: widget.child,
+                      page: 'map',
+                      loaders: widget.loaders,
+                    ),
+                  ),
+                ),
+              ),
+            );
+            if (mounted) _reload();
+          },
+          child: Row(
+            key: TestIds.mapEntry,
+            children: [
+              const DsIcon('chevron_right'),
+              SizedBox(width: t.sp('sm')),
+              Expanded(
+                child: Text('Topic map', style: t.styles['subheading']!),
+              ),
+            ],
+          ),
+        ),
+      ),
       DsCard(
         id: 'goal.learn',
         child: Column(
@@ -362,6 +420,110 @@ class _StudyTabState extends State<StudyTab> {
       showAccuracy: _showAccuracy,
       onTap: () =>
           _practice(d, subject: tp.subject, year: tp.year, topic: tp.topic),
+    );
+  }
+
+  // ---- Map ------------------------------------------------------------------------------
+
+  List<Widget> _map(BuildContext context, _StudyData d) {
+    final t = ThemeTokens.of(context);
+    final s = ServicesScope.of(context);
+    final years = TopicMap.years(d.packs);
+    if (years.isEmpty) {
+      return [
+        Container(
+          key: TestIds.mapEmpty,
+          child: _empty('The map will show here.'),
+        ),
+      ];
+    }
+    final own = widget.child.year;
+    final year = years.contains(_mapYear)
+        ? _mapYear!
+        : (years.contains(own) ? own! : years.first);
+    final subjects = TopicMap.subjects(d.packs, year);
+    final subject = subjects.contains(_mapSubject)
+        ? _mapSubject!
+        : subjects.first;
+    final nodes = TopicMap.build(
+      subject: subject,
+      year: year,
+      packs: d.packs,
+      open: d.open,
+      progress: _progressData,
+      today: s.profile.today,
+      topics: d.topics,
+      spaced: s.profile.spacedReview,
+    );
+    Widget chip(Key key, String label, bool on, VoidCallback tap) => Semantics(
+      selected: on,
+      button: true,
+      label: label,
+      excludeSemantics: true,
+      onTap: tap,
+      child: ChoiceChip(
+        key: key,
+        label: Text(label, style: t.styles['body']!),
+        selected: on,
+        showCheckmark: true,
+        onSelected: (_) => tap(),
+      ),
+    );
+    String cap(String x) => x.isEmpty ? x : x[0].toUpperCase() + x.substring(1);
+    return [
+      Wrap(
+        spacing: t.sp('sm'),
+        runSpacing: t.sp('sm'),
+        children: [
+          for (final sub in subjects)
+            chip(
+              TestIds.mapSubject(sub),
+              cap(sub),
+              sub == subject,
+              () => setState(() => _mapSubject = sub),
+            ),
+        ],
+      ),
+      SizedBox(height: t.sp('sm')),
+      Wrap(
+        spacing: t.sp('sm'),
+        runSpacing: t.sp('sm'),
+        children: [
+          for (final y in years)
+            chip(
+              TestIds.mapYear(y),
+              y == 0 ? 'Foundation' : 'Year $y',
+              y == year,
+              () => setState(() => _mapYear = y),
+            ),
+        ],
+      ),
+      SizedBox(height: t.sp('lg')),
+      if (nodes.isEmpty)
+        Container(key: TestIds.mapEmpty, child: _empty('No topics here yet.'))
+      else
+        TopicMapPath(nodes: nodes, onTap: (n) => _mapSheet(d, n)),
+    ];
+  }
+
+  Future<void> _mapSheet(_StudyData d, MapNode n) async {
+    final practise = await showModalBottomSheet<bool>(
+      context: context,
+      isScrollControlled: true,
+      builder: (sheet) => TopicMapSheet(
+        node: n,
+        showAccuracy: _showAccuracy,
+        onPractise: () => Navigator.of(sheet).pop(true),
+        onRevise: () => Navigator.of(sheet).pop(false),
+      ),
+    );
+    if (practise == null || !mounted) return;
+    await _practice(
+      d,
+      subject: n.subject,
+      year: n.year,
+      topic: n.topic,
+      pool: practise ? null : n.reviseItems,
     );
   }
 

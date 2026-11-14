@@ -5,6 +5,8 @@
 # Years:   0 = Foundation, 1 to 12 = Year 1 to Year 12.
 # The validator rejects any pack or item whose topic is not listed here for its
 # subject and year. Topic ids are lowercase letters, digits and underscores.
+# Order: topics are listed in the teaching order. The Study mode Map shows them in this order
+# within a subject and year, so put each topic where it is best learned.
 # Names are original; they do not follow any published syllabus wording.
 
 maths:

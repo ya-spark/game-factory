@@ -106,6 +106,10 @@ class Topics {
   Set<String> topicsFor(String subject, int year) =>
       (_byKey['$subject/$year'] ?? const {}).keys.toSet();
 
+  /// Topic ids for [subject] in [year] in the order of `topics.yaml`: the teaching order.
+  List<String> orderFor(String subject, int year) =>
+      (_byKey['$subject/$year'] ?? const <String, String>{}).keys.toList();
+
   String? displayName(String subject, int year, String topic) =>
       _byKey['$subject/$year']?[topic];
 }

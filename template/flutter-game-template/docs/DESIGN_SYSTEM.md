@@ -102,6 +102,14 @@ every mode and level of the app, with switches for large text and reduce motion,
     items across topics: mistakes first, then due items; it also shows on Play and Learn, only while something is
     due or needs revising. Empty state: "Nothing due today. Great work!". Scout uses Flash review cards, the other
     apps the Quick quiz.
+  - *Map* (opened from the "Topic map" card at the top of Learn, because the bottom bar has exactly three tabs): a
+    Maths/English switch, a year switch (only years with built-in content; the child's year first) and a winding
+    vertical path of topic nodes in the teaching order (file order of `topics.yaml`). Each node has an icon and a
+    text label: *Opens as you go* (no open items yet, dimmed, tap only explains), *Learning*, *Getting there*,
+    *Mastered* (three pips, `masteryOf`), and a "N to revise" badge (mistakes plus due items). Nothing is locked: a
+    tap opens a sheet with passed of total, mastery, revise count, accuracy (not in Scout) and "Practise" and
+    "Revise this topic" (only with something to revise). Nodes are bigger for Scout and Ranger; screen readers hear
+    "Topic 3 of 6: Fractions, Getting there, 4 to revise". Built by the pure-Dart `TopicMap`.
 - **Mastery** (rule in `design/tokens.json`, `mastery`, code `masteryOf`): Mastered at 90% passed and 80% correct,
   Learning below 40% passed, else Getting there. Shown as a coloured dot and a word.
 - **Accuracy** ("74% correct") shows for Ranger and Champion only (`AppTokens.showsAccuracy`); Scout shows stars, bars

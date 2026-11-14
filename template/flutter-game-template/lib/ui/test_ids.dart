@@ -280,6 +280,20 @@ abstract final class TestIds {
   static const progressTab = Key('tab.progress');
   static const reviseTab = Key('tab.revise');
   static const learnGoal = Key('learn.goal');
+
+  // Study mode "Map" page: the topic path, nodes by topic key, the tap sheet
+  static const mapEntry = Key('learn.mapEntry');
+  static const mapScreen = Key('map.screen');
+  static const mapTab = Key('tab.map');
+  static const mapPath = Key('map.path');
+  static Key mapSubject(String subject) => Key('map.subject.$subject');
+  static Key mapYear(int year) => Key('map.year.$year');
+  static Key mapNode(String key) => Key('map.node.$key');
+  static Key mapPips(String key) => Key('map.pips.$key');
+  static Key mapRevise(String key) => Key('map.revise.$key');
+  static const mapSheet = Key('map.sheet');
+  static const mapSheetClosed = Key('map.sheet.closed');
+  static const mapEmpty = Key('map.empty');
   static Key progressTopic(String key) => Key('progress.topic.$key');
   static Key reviseTopic(String key) => Key('revise.topic.$key');
   // Practise my mistakes (Home entry in both modes, the round, the empty state)

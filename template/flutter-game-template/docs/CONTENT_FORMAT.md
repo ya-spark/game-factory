@@ -36,6 +36,10 @@ ignored). The owner creates it and keeps it off every repo. Tests use the clearl
 
 ## Topics file
 
+The order of topics in each year is the teaching order: the Study Map (`lib/engine/content/topic_map.dart`) shows
+the topics in file order, so reorder the file to reorder the path. A bundled copy at `assets/content/topics.yaml`
+supplies the order to the app (without it, topics fall back to id order).
+
 `content/topics.yaml` lists the allowed subjects (`maths`, `english`), years (`0` = Foundation, `1` to
 `12`) and topic ids, with a display name each. A pack or item whose topic is not listed for its
 subject and year is rejected. This is a first draft for the owner to review.

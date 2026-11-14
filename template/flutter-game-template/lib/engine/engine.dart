@@ -17,6 +17,7 @@ export 'content/pool_report.dart';
 export 'content/progress.dart';
 export 'content/repository.dart';
 export 'content/spelling.dart';
+export 'content/topic_map.dart';
 export 'content/validator.dart';
 
 // Settings and the grown-ups' progress view (pure Dart).
