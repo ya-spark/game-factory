@@ -271,6 +271,9 @@ abstract final class TestIds {
   static const mistakesEntry = Key('mistakes.entry');
   static const mistakesRound = Key('mistakes.round');
   static const mistakesEmpty = Key('mistakes.empty');
+
+  /// Parent area switch "Spaced review" (due items in Today's review).
+  static const parentSpacedReview = Key('parent.spacedReview');
   static const playTryNext = Key('play.tryNext');
   static const playDaily = Key('play.daily');
   static const playHero = Key('play.hero');

@@ -221,6 +221,17 @@ class _ParentAreaScreenState extends State<ParentAreaScreen> {
     final learning = s.learning;
     final d = s.profile.data;
     return [
+      Text('Learning', style: Theme.of(context).textTheme.titleMedium),
+      SwitchListTile(
+        key: TestIds.parentSpacedReview,
+        title: const Text('Spaced review'),
+        subtitle: const Text(
+          'Brings back answered questions after a few days, in Today\'s review.',
+        ),
+        value: d.spacedReview,
+        onChanged: s.profile.setSpacedReview,
+      ),
+      const SizedBox(height: 8),
       Text('Downloads', style: Theme.of(context).textTheme.titleMedium),
       SwitchListTile(
         key: TestIds.parentWifiOnly,

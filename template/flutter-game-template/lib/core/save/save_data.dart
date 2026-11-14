@@ -1,4 +1,4 @@
-import '../../engine/content/progress.dart' show mistakeClearStreak;
+import '../../engine/content/progress.dart' show ItemResult, mistakeClearStreak;
 import '../profile/child_profile.dart';
 import '../retention/achievements.dart';
 import '../retention/daily_challenges.dart';
@@ -17,6 +17,7 @@ class SaveData {
     this.voiceOn = true,
     this.leftHanded = false,
     this.tipsOff = false,
+    this.spacedReview = true,
     this.tipHomeDay = -1,
     this.vibrationOn = true,
     this.remindersOn = false,
@@ -41,7 +42,7 @@ class SaveData {
   });
 
   /// Bump when the JSON shape changes and add a step to [SaveMigrator].
-  static const int currentVersion = 5;
+  static const int currentVersion = 6;
 
   final int coins;
   final int bestScore;
@@ -58,6 +59,9 @@ class SaveData {
 
   /// Tips are turned off ("Don't show tips again" ticked, or the settings switch is off).
   final bool tipsOff;
+
+  /// Parent switch "Spaced review": due items join "Today's review". Off keeps the mistakes round.
+  final bool spacedReview;
 
   /// Day index on which the home tip of the day was closed.
   final int tipHomeDay;
@@ -117,6 +121,7 @@ class SaveData {
     bool? voiceOn,
     bool? leftHanded,
     bool? tipsOff,
+    bool? spacedReview,
     int? tipHomeDay,
     bool? vibrationOn,
     bool? remindersOn,
@@ -154,6 +159,7 @@ class SaveData {
     voiceOn: voiceOn ?? this.voiceOn,
     leftHanded: leftHanded ?? this.leftHanded,
     tipsOff: tipsOff ?? this.tipsOff,
+    spacedReview: spacedReview ?? this.spacedReview,
     tipHomeDay: tipHomeDay ?? this.tipHomeDay,
     vibrationOn: vibrationOn ?? this.vibrationOn,
     remindersOn: remindersOn ?? this.remindersOn,
@@ -182,6 +188,7 @@ class SaveData {
     'voiceOn': voiceOn,
     'leftHanded': leftHanded,
     'tipsOff': tipsOff,
+    'spacedReview': spacedReview,
     'tipHomeDay': tipHomeDay,
     'vibrationOn': vibrationOn,
     'remindersOn': remindersOn,
@@ -219,6 +226,7 @@ class SaveData {
     voiceOn: j['voiceOn'] as bool? ?? true,
     leftHanded: j['leftHanded'] as bool? ?? false,
     tipsOff: j['tipsOff'] as bool? ?? false,
+    spacedReview: j['spacedReview'] as bool? ?? true,
     tipHomeDay: (j['tipHomeDay'] as num?)?.toInt() ?? -1,
     vibrationOn: j['vibrationOn'] as bool? ?? true,
     remindersOn: j['remindersOn'] as bool? ?? false,
@@ -270,6 +278,7 @@ abstract final class SaveMigrator {
         2 => _v2ToV3(j),
         3 => _v3ToV4(j),
         4 => _v4ToV5(j),
+        5 => _v5ToV6(j),
         _ => throw StateError('No migration from $v'),
       };
       v = (j['version'] as num).toInt();
@@ -321,6 +330,46 @@ abstract final class SaveMigrator {
                         (((e.value as Map)['ok'] as bool? ?? false)
                             ? mistakeClearStreak
                             : 0),
+                  }
+                : e.value,
+        },
+      },
+    };
+  }
+
+  /// v6 added the spaced-review box (`bx`) to every item result: last answer wrong 0, passed 1,
+  /// otherwise 0. Items with no `ls` (answered before version 5) are not due until answered
+  /// again, so nothing becomes due all at once.
+  static Map<String, Object?> _v5ToV6(Map<String, Object?> j) {
+    final profiles = j['profiles'];
+    return {
+      ...j,
+      'version': 6,
+      if (profiles is List)
+        'profiles': [
+          for (final p in profiles)
+            if (p is Map) _profileV6(p.cast<String, Object?>()) else p,
+        ],
+    };
+  }
+
+  static Map<String, Object?> _profileV6(Map<String, Object?> p) {
+    final progress = p['progress'];
+    if (progress is! Map) return p;
+    final items = progress['items'];
+    if (items is! Map) return p;
+    return {
+      ...p,
+      'progress': {
+        ...progress.cast<String, Object?>(),
+        'items': {
+          for (final e in items.entries)
+            e.key: e.value is Map
+                ? {
+                    ...(e.value as Map).cast<String, Object?>(),
+                    'bx': ItemResult.legacyBox(
+                      (e.value as Map).cast<String, Object?>(),
+                    ),
                   }
                 : e.value,
         },

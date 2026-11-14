@@ -145,7 +145,10 @@ class QuizSession {
     final tk0 = topicKey(p.subject, p.year, p.topic);
     final newTopic = !progress.topics.containsKey(tk0);
     final earlier = progress.items[p.id];
-    final revised = correct && earlier != null && !earlier.lastCorrect;
+    final revised =
+        correct &&
+        earlier != null &&
+        (!earlier.lastCorrect || earlier.isDue(today));
     var next = progress.record(p, correct: correct, gameId: gameId, day: today);
     var stars = 0;
     var coins = 0;

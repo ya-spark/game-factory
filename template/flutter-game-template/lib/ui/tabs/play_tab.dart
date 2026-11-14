@@ -279,10 +279,17 @@ class _PlayTabState extends State<PlayTab> {
                     ),
                   if (!mind)
                     MistakesEntry(
-                      count: [
-                        for (final id in child.progress.mistakeIds)
-                          if (open.any((p) => p.id == id)) id,
-                      ].length,
+                      count: reviewCount(
+                        child.progress,
+                        open,
+                        flash:
+                            DesignScope.bundleOf(context)
+                                ?.app
+                                .practisesWithFlashCards ??
+                            false,
+                        today: ServicesScope.of(context).profile.today,
+                        spaced: ServicesScope.of(context).profile.spacedReview,
+                      ),
                       onStart: () async {
                         final packs = await _loaders.packs();
                         if (!context.mounted) return;

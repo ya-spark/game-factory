@@ -111,10 +111,17 @@ class _StudyTabState extends State<StudyTab> {
     if (mounted) _reload();
   }
 
-  /// Open items still in the mistakes notebook (the same set the round draws from).
+  /// Items in "Today's review" (the same set the round draws from), capped for the screen.
   int _mistakeCount(_StudyData d) {
-    final open = d.open.map((p) => p.id).toSet();
-    return _progressData.mistakeIds.where(open.contains).length;
+    final s = ServicesScope.of(context);
+    return reviewCount(
+      _progressData,
+      d.open,
+      flash:
+          DesignScope.bundleOf(context)?.app.practisesWithFlashCards ?? false,
+      today: s.profile.today,
+      spaced: s.profile.spacedReview,
+    );
   }
 
   Widget _mistakesEntry(_StudyData d) {
@@ -460,7 +467,11 @@ class _StudyTabState extends State<StudyTab> {
             .add(p);
       }
     }
-    if (byTopic.isEmpty) return const [MistakesEmpty()];
+    if (byTopic.isEmpty) {
+      return [
+        if (_mistakeCount(d) == 0) const MistakesEmpty() else _mistakesEntry(d),
+      ];
+    }
     final entries = byTopic.entries.toList()
       ..sort((a, b) => a.key.compareTo(b.key));
     return [

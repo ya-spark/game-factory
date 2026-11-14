@@ -329,6 +329,9 @@ class ProfileStore extends ChangeNotifier {
 
   /// Tips on/off: the "Don't show tips again" checkbox and the settings switch share this.
   bool get tipsEnabled => !_data.tipsOff;
+  bool get spacedReview => _data.spacedReview;
+  Future<void> setSpacedReview(bool v) =>
+      _commit(_data.copyWith(spacedReview: v));
   Future<void> setTipsEnabled(bool v) => _commit(_data.copyWith(tipsOff: !v));
 
   /// The home tip of the day has not been closed today.

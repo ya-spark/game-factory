@@ -64,8 +64,17 @@ class ReleaseState {
 /// Correct answers in a row that clear an item from the mistakes notebook.
 const int mistakeClearStreak = 2;
 
-/// Items in one "Practise my mistakes" round.
+/// Items in one "Today's review" round.
 const int mistakeRoundSize = 10;
+
+/// Days an answered item waits, by box (0 to 4), before it is due again.
+const List<int> reviewLadder = [1, 3, 7, 21, 45];
+
+/// The highest box.
+const int reviewTopBox = 4;
+
+/// The Home count of "Today's review" never shows more than this.
+const int reviewCountCap = 20;
 
 /// Result of one item for one child.
 class ItemResult {
@@ -75,6 +84,7 @@ class ItemResult {
     this.lastCorrect = false,
     this.streak = 0,
     this.lastSeenDay,
+    this.box = 0,
   });
   final int attempts;
   final int passes;
@@ -85,6 +95,22 @@ class ItemResult {
 
   /// Day number (the daily-release clock) of the last answer; null in old saves. Saved as `ls`.
   final int? lastSeenDay;
+
+  /// Spaced-review box, 0 to 4 (not the streak). A right answer moves it up one box, a wrong
+  /// one drops it to 0; it moves at most once a day. Saved as `bx`.
+  final int box;
+
+  /// True when the item was answered before and `today - lastSeenDay` has reached the wait of
+  /// its box ([reviewLadder]). Items with no day (old saves) are never due; a clock moved back
+  /// makes nothing due.
+  bool isDue(int today) =>
+      lastSeenDay != null &&
+      today - lastSeenDay! >= reviewLadder[box.clamp(0, reviewTopBox)];
+
+  /// Days past the due day (negative while not yet due); null without a `lastSeenDay`.
+  int? overdueDays(int today) => lastSeenDay == null
+      ? null
+      : today - lastSeenDay! - reviewLadder[box.clamp(0, reviewTopBox)];
   bool get passed => passes > 0;
 
   /// True while the item sits in the mistakes notebook: it was answered wrongly at some point
@@ -98,6 +124,7 @@ class ItemResult {
     'ok': lastCorrect,
     'cs': streak,
     if (lastSeenDay != null) 'ls': lastSeenDay,
+    'bx': box,
   };
 
   /// Old saves have no `cs`: an item last answered right counts as cleared (streak at the
@@ -110,7 +137,18 @@ class ItemResult {
       lastCorrect: ok,
       streak: (j['cs'] as num?)?.toInt() ?? (ok ? mistakeClearStreak : 0),
       lastSeenDay: (j['ls'] as num?)?.toInt(),
+      box: legacyBox(j),
     );
+  }
+
+  /// The box of a saved result: `bx`, or for saves before version 6 derived from the answers:
+  /// last answer wrong 0, passed 1, otherwise 0.
+  static int legacyBox(Map<String, Object?> j) {
+    final bx = (j['bx'] as num?)?.toInt();
+    if (bx != null) return bx.clamp(0, reviewTopBox);
+    final ok = j['ok'] as bool? ?? false;
+    final passes = (j['p'] as num?)?.toInt() ?? 0;
+    return ok && passes > 0 ? 1 : 0;
   }
 }
 
@@ -244,12 +282,25 @@ class ChildProgress {
     int? day,
   }) {
     final before = items[p.id];
+    // The clock went back: nothing moves and the last day stays.
+    final seen = before?.lastSeenDay;
+    final clockBack = day != null && seen != null && day < seen;
+    // The box moves once a day (the first answer of the day); a wrong answer always drops to 0.
+    final oldBox = before?.box ?? 0;
+    final newBox = clockBack
+        ? oldBox
+        : !correct
+        ? 0
+        : (day != null && seen == day && before != null)
+        ? oldBox
+        : (oldBox + 1).clamp(0, reviewTopBox);
     final now = ItemResult(
+      box: newBox,
       attempts: (before?.attempts ?? 0) + 1,
       passes: (before?.passes ?? 0) + (correct ? 1 : 0),
       lastCorrect: correct,
       streak: correct ? (before?.streak ?? 0) + 1 : 0,
-      lastSeenDay: day ?? before?.lastSeenDay,
+      lastSeenDay: clockBack ? seen : (day ?? seen),
     );
     final tk = topicKey(p.subject, p.year, p.topic);
     final t = topics[tk] ?? const TopicResult();
@@ -312,25 +363,43 @@ class ChildProgress {
     return best;
   }
 
-  /// Items for one "Practise my mistakes" round: open items still in the notebook, oldest
-  /// `lastSeenDay` first (never-dated first), ties by id, at most [limit].
+  /// The items "Today's review" draws from, in order: open items in the mistakes notebook, plus
+  /// (when [spaced]) open items that are due on [today]. Mistakes come first, then the most
+  /// overdue (never-dated first), ties by id.
+  List<PoolItem> reviewItems(
+    Iterable<PoolItem> open, {
+    required int today,
+    bool spaced = true,
+  }) {
+    final out = <PoolItem>[
+      for (final p in open)
+        if (items[p.id] case final r?)
+          if (r.isMistake || (spaced && r.isDue(today))) p,
+    ];
+    int overdue(PoolItem p) => items[p.id]!.overdueDays(today) ?? 1 << 30;
+    out.sort((a, b) {
+      final ma = items[a.id]!.isMistake ? 0 : 1;
+      final mb = items[b.id]!.isMistake ? 0 : 1;
+      if (ma != mb) return ma.compareTo(mb);
+      final c = overdue(b).compareTo(overdue(a));
+      return c != 0 ? c : a.id.compareTo(b.id);
+    });
+    return out;
+  }
+
+  /// The #154 mistakes-only round (spaced review off): [reviewRound] without the due items.
   List<PoolItem> mistakeRound(
     Iterable<PoolItem> open, {
     int limit = mistakeRoundSize,
-  }) {
-    final byId = {for (final p in open) p.id: p};
-    final ids = [
-      for (final id in mistakeIds)
-        if (byId.containsKey(id)) id,
-    ];
-    ids.sort((a, b) {
-      final c = (items[a]!.lastSeenDay ?? -1 << 30).compareTo(
-        items[b]!.lastSeenDay ?? -1 << 30,
-      );
-      return c != 0 ? c : a.compareTo(b);
-    });
-    return [for (final id in ids.take(limit)) byId[id]!];
-  }
+  }) => reviewRound(open, today: 0, spaced: false, limit: limit);
+
+  /// One round of [reviewItems], at most [limit].
+  List<PoolItem> reviewRound(
+    Iterable<PoolItem> open, {
+    required int today,
+    bool spaced = true,
+    int limit = mistakeRoundSize,
+  }) => reviewItems(open, today: today, spaced: spaced).take(limit).toList();
 
   Map<String, Object?> toJson() => {
     'games': {for (final e in games.entries) e.key: e.value.toJson()},

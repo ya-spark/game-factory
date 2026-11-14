@@ -166,10 +166,19 @@ engine differs from its lock.
   `lastSeenDay` (`ls`, day index of the last answer, null in old saves; for spaced repetition later).
   An item is in `ChildProgress.mistakeIds` when it was answered wrongly and has not yet been
   answered right `mistakeClearStreak` (2) times in a row; a wrong answer resets the streak.
-  `ChildProgress.mistakeRound(open)` picks up to `mistakeRoundSize` (10) open items, oldest
-  `lastSeenDay` first, ties by id. Save version 5 migrates old items (`ok` true = cleared).
-  UI: `lib/ui/mistakes_round.dart` ("Practise my mistakes" entry on Play and on Learn/Revise, hidden
-  at 0; a Quick quiz round, or Flash review cards in Scout).
+  Save version 5 migrates old items (`ok` true = cleared).
+- Spaced repetition (C2): `ItemResult.box` (`bx`, 0 to 4, separate from the streak). A right answer
+  moves it up one box, a wrong one drops it to 0; it moves at most once a day (the first answer of the
+  day; compared with `lastSeenDay`), and a clock moved back changes nothing. An answered item is due
+  when `today - lastSeenDay >= reviewLadder[box]` (`[1, 3, 7, 21, 45]` days); items with no
+  `lastSeenDay` are never due. Save version 6 derives `bx` for old items (last answer wrong 0, passed 1,
+  otherwise 0). `ChildProgress.reviewItems(open, today:, spaced:)` is the merged "Today's review" list:
+  open mistakes first, then due items, most overdue first, ties by id; `reviewRound` takes up to
+  `mistakeRoundSize` (10); the Home count is capped at `reviewCountCap` (20). `spaced: false` (Parent
+  switch "Spaced review", `SaveData.spacedReview`, default on) leaves the mistakes round only. The
+  "Revise your mistakes" challenge also counts due items answered right.
+  UI: `lib/ui/mistakes_round.dart` ("Today's review" entry on Play and on Learn/Revise, hidden at 0;
+  a Quick quiz round, or Flash review cards in Scout).
 - Shop: `shopItems` (avatars and colour themes, coins), `ProfileStore.buyItem` / `equipItem`.
   The chosen colour theme is stored per child; applying it to the theme comes with 2B2.
 

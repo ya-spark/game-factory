@@ -118,6 +118,10 @@ void main() {
       await tester.tap(find.byKey(TestIds.parentWifiOnly));
       await tester.pumpAndSettle();
       expect(s.profile.data.downloadWifiOnly, isTrue);
+      expect(s.profile.data.spacedReview, isTrue);
+      await tester.tap(find.byKey(TestIds.parentSpacedReview));
+      await tester.pumpAndSettle();
+      expect(s.profile.data.spacedReview, isFalse);
 
       // delete the child
       await tester.ensureVisible(find.byKey(TestIds.parentDelete));

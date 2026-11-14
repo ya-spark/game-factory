@@ -37,6 +37,8 @@ Future<ServicesFake> _pump(
   String id, {
   required int wrong,
   bool study = false,
+  int due = 0,
+  bool spaced = true,
 }) async {
   const year = 3;
   tester.view.physicalSize = const Size(400, 2400);
@@ -44,11 +46,16 @@ Future<ServicesFake> _pump(
   addTearDown(tester.view.reset);
   final s = await buildFakeServices(contentEnabled: true);
   final kid = (await s.profile.addChild('Mia', year: year))!;
-  final items = [for (var i = 0; i < 6; i++) _item('i$i', year)];
+  final items = [for (var i = 0; i < 6 + due; i++) _item('i$i', year)];
   var progress = const ChildProgress();
   for (var i = 0; i < wrong; i++) {
     progress = progress.record(items[i], correct: false);
   }
+  // Items answered right long ago: due today.
+  for (var i = 6; i < 6 + due; i++) {
+    progress = progress.record(items[i], correct: true, day: 1);
+  }
+  await s.profile.setSpacedReview(spaced);
   await s.profile.setChildProgress(kid.id, progress);
   if (study) await s.profile.setChildMode(kid.id, LearnMode.study);
   s.profile.selectChild(kid.id);
@@ -111,14 +118,46 @@ void main() {
     ) async {
       await _pump(tester, id, wrong: 3);
       expect(find.byKey(TestIds.mistakesEntry), findsOneWidget);
-      expect(find.text('3 to practise'), findsOneWidget);
+      expect(find.text('3 to say hello to'), findsOneWidget);
       expect(find.textContaining('coin'), findsNothing);
+    });
+
+    testWidgets('$id: due items alone show the entry', (tester) async {
+      await _pump(tester, id, wrong: 0, due: 4);
+      expect(find.byKey(TestIds.mistakesEntry), findsOneWidget);
+      expect(find.text('4 to say hello to'), findsOneWidget);
+    });
+
+    testWidgets(
+      '$id: mistakes and due items are counted together, capped at 20',
+      (tester) async {
+        await _pump(tester, id, wrong: 3, due: 30);
+        expect(find.text('20 to say hello to'), findsOneWidget);
+      },
+    );
+
+    testWidgets('$id: the Parent switch off hides due items', (tester) async {
+      await _pump(tester, id, wrong: 0, due: 4, spaced: false);
+      expect(find.byKey(TestIds.mistakesEntry), findsNothing);
+    });
+
+    testWidgets('$id: switch off keeps the mistakes round', (tester) async {
+      await _pump(tester, id, wrong: 2, due: 4, spaced: false);
+      expect(find.text('2 to say hello to'), findsOneWidget);
+    });
+
+    testWidgets('$id: Revise shows the entry for due items, no empty text', (
+      tester,
+    ) async {
+      await _pump(tester, id, wrong: 0, due: 3, study: true);
+      expect(find.byKey(TestIds.mistakesEntry), findsOneWidget);
+      expect(find.byKey(TestIds.mistakesEmpty), findsNothing);
     });
 
     testWidgets('$id: Study Revise shows the empty state at 0', (tester) async {
       await _pump(tester, id, wrong: 0, study: true);
       expect(find.byKey(TestIds.mistakesEmpty), findsOneWidget);
-      expect(find.text('Nothing to practise. Great work!'), findsOneWidget);
+      expect(find.text('Nothing due today. Great work!'), findsOneWidget);
       expect(find.byKey(TestIds.mistakesEntry), findsNothing);
     });
 
