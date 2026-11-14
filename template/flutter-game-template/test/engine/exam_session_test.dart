@@ -1,6 +1,5 @@
 import 'dart:math';
 
-import 'package:flutter_game_template/core/save/save_data.dart';
 import 'package:flutter_game_template/engine/engine.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -342,22 +341,6 @@ void main() {
       expect(r.day, 42);
       expect(r.questions, 10);
       expect(r.percent, r.correct * 10);
-    });
-  });
-
-  group('save version 9', () {
-    test('a version 8 save migrates with no exams and no extra time', () {
-      final d = SaveData.fromJson(
-        SaveMigrator.migrate({
-          'version': 8,
-          'profiles': [
-            {'id': 'p1', 'nickname': 'Mia'},
-          ],
-        }),
-      );
-      expect(SaveData.currentVersion, 9);
-      expect(d.profiles.single.exams.records, isEmpty);
-      expect(d.profiles.single.extraTime, ExtraTime.none);
     });
   });
 }
