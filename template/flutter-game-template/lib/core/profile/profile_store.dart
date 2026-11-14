@@ -291,6 +291,11 @@ class ProfileStore extends ChangeNotifier {
   /// Uses an owned avatar or colour theme for a child. False when the child does not own it.
   Future<bool> equipItem(String childId, ShopItem i) async {
     if (!ownsItem(i)) return false;
+    if (i.kind == ShopKind.sound) {
+      // Sound packs are device-wide: using one sets the Music choice in Settings.
+      await setAmbience(i.id);
+      return true;
+    }
     await _updateChild(
       childId,
       (p) => i.kind == ShopKind.avatar

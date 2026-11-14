@@ -30,6 +30,8 @@ Future<Services> buildFakeServices({
   ParentGateGuard? parentGate,
   SaveService? profileSaves,
   bool? familyMode, // null: as in app.config.yaml
+  bool shopExtras =
+      false, // shop.extra_themes and shop.sound_packs on (the Mind hubs)
   bool webShell =
       false, // the web build: no real-money items, browser-only save note
   String webPlayStoreUrl = '', // web.play_store_url
@@ -53,6 +55,11 @@ Future<Services> buildFakeServices({
       RegExp(r'family_mode:\n  enabled: (true|false)'),
       'family_mode:\n  enabled: $familyMode',
     );
+  }
+  if (shopExtras) {
+    yaml = yaml
+        .replaceFirst('extra_themes: false', 'extra_themes: true')
+        .replaceFirst('sound_packs: false', 'sound_packs: true');
   }
   if (webPlayStoreUrl.isNotEmpty) {
     yaml = yaml.replaceFirst(

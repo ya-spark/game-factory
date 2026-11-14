@@ -71,10 +71,29 @@ class SettingsScreen extends StatelessWidget {
                         child: DropdownButton<String>(
                           isExpanded: true,
                           key: TestIds.settingsAmbience,
-                          value: p.data.ambience,
+                          value: resolveAmbience(
+                            p.data.ambience,
+                            owned: p.data.ownedItems,
+                            packsEnabled: s.config.shop.soundPacks,
+                          ),
                           items: [
                             for (final t in ambienceTracks)
-                              DropdownMenuItem(value: t.$1, child: Text(t.$2)),
+                              if (!soundPackIds.contains(t.$1) ||
+                                  s.config.shop.soundPacks)
+                                DropdownMenuItem(
+                                  key: TestIds.settingsAmbienceItem(t.$1),
+                                  value: t.$1,
+                                  // A pack not bought yet shows a lock and cannot be picked.
+                                  enabled:
+                                      !soundPackIds.contains(t.$1) ||
+                                      p.data.ownedItems.contains(t.$1),
+                                  child: Text(
+                                    !soundPackIds.contains(t.$1) ||
+                                            p.data.ownedItems.contains(t.$1)
+                                        ? t.$2
+                                        : '${t.$2} (locked)',
+                                  ),
+                                ),
                           ],
                           onChanged: (v) {
                             if (v != null) p.setAmbience(v);
@@ -82,6 +101,20 @@ class SettingsScreen extends StatelessWidget {
                         ),
                       ),
                     ),
+                    if (s.config.shop.soundPacks &&
+                        soundPackIds.any(
+                          (id) => !p.data.ownedItems.contains(id),
+                        ))
+                      const Padding(
+                        padding: EdgeInsets.symmetric(horizontal: 16),
+                        child: Align(
+                          alignment: Alignment.centerLeft,
+                          child: Text(
+                            'Locked sounds: get them in the Shop.',
+                            key: TestIds.settingsAmbienceLocked,
+                          ),
+                        ),
+                      ),
                     SwitchListTile(
                       key: TestIds.settingsVoice,
                       title: const Text('Voice'),

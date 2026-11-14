@@ -12,6 +12,7 @@ import '../kit/ds_art.dart';
 import '../shop_screen.dart';
 import '../test_ids.dart';
 import '../theme/app_theme.dart';
+import '../theme/color_themes.dart';
 import 'play_tab.dart';
 import 'tab_data.dart';
 
@@ -41,9 +42,16 @@ class ShopTab extends StatelessWidget {
 
     Widget itemCard(ShopItem i, {required Key key}) {
       final owned = p.ownsItem(i);
-      final used = i.kind == ShopKind.avatar
-          ? child.avatar == i.id
-          : child.colorTheme == i.id;
+      final used = switch (i.kind) {
+        ShopKind.avatar => child.avatar == i.id,
+        ShopKind.theme => child.colorTheme == i.id,
+        ShopKind.sound => p.data.ambience == i.id,
+      };
+      final previewable =
+          (i.kind == ShopKind.theme &&
+              s.config.shop.extraThemes &&
+              colorThemeSpec(i.id) != null) ||
+          (i.kind == ShopKind.sound && s.config.shop.soundPacks);
       return SizedBox(
         width: 150,
         child: DsCard(
@@ -58,6 +66,22 @@ class ShopTab extends StatelessWidget {
               SizedBox(height: t.sp('xs')),
               if (!owned) DsCoinChip(id: 'shop.${i.id}', coins: i.price),
               SizedBox(height: t.sp('xs')),
+              if (previewable) ...[
+                DsButton(
+                  id: i.kind == ShopKind.sound
+                      ? 'shop.sound.preview.${i.id}'
+                      : 'shop.theme.preview.${i.id}',
+                  label: i.kind == ShopKind.sound ? 'Listen' : 'Preview',
+                  kind: DsButtonKind.ghost,
+                  semanticLabel: i.kind == ShopKind.sound
+                      ? 'Listen to ${i.title} for 10 seconds'
+                      : 'Preview ${i.title}',
+                  onPressed: () => i.kind == ShopKind.sound
+                      ? s.audio.previewAmbience(i.id)
+                      : showThemeSheet(context, child: child, item: i),
+                ),
+                SizedBox(height: t.sp('xs')),
+              ],
               DsButton(
                 id: 'shop.use.${i.id}',
                 label: used ? 'In use' : (owned ? 'Use' : 'Buy'),
@@ -87,6 +111,10 @@ class ShopTab extends StatelessWidget {
     }
 
     final loaders = this.loaders ?? TabLoaders.of(context);
+    final items = shopItemsFor(
+      extraThemes: s.config.shop.extraThemes,
+      soundPacks: s.config.shop.soundPacks,
+    );
     return ListView(
       key: TestIds.shopTab,
       padding: EdgeInsets.all(t.sp('lg')),
@@ -97,7 +125,7 @@ class ShopTab extends StatelessWidget {
           spacing: t.sp('md'),
           runSpacing: t.sp('md'),
           children: [
-            for (final i in shopItems.where((i) => i.kind == ShopKind.avatar))
+            for (final i in items.where((i) => i.kind == ShopKind.avatar))
               itemCard(i, key: TestIds.shopAvatar(i.id)),
           ],
         ),
@@ -106,10 +134,21 @@ class ShopTab extends StatelessWidget {
           spacing: t.sp('md'),
           runSpacing: t.sp('md'),
           children: [
-            for (final i in shopItems.where((i) => i.kind == ShopKind.theme))
+            for (final i in items.where((i) => i.kind == ShopKind.theme))
               itemCard(i, key: TestIds.shopTheme(i.id)),
           ],
         ),
+        if (s.config.shop.soundPacks) ...[
+          section('Sounds'),
+          Wrap(
+            spacing: t.sp('md'),
+            runSpacing: t.sp('md'),
+            children: [
+              for (final i in items.where((i) => i.kind == ShopKind.sound))
+                itemCard(i, key: TestIds.shopSound(i.id)),
+            ],
+          ),
+        ],
         FutureBuilder<List<PoolItem>>(
           future: loaders.openItems(child.id),
           builder: (context, snap) {
@@ -197,4 +236,151 @@ class ShopTab extends StatelessWidget {
       ],
     );
   }
+}
+
+/// The preview sheet of a colour theme: swatches and a small sample (a card and a button in
+/// that theme), with Buy or Use. Colours come from the theme palette, not the app's own.
+Future<void> showThemeSheet(
+  BuildContext context, {
+  required ChildProfile child,
+  required ShopItem item,
+}) {
+  final palette = colorThemeOverrides(item.id);
+  if (palette == null) return Future.value();
+  final p = ServicesScope.of(context).profile;
+  Color c(String token) => Color(palette[token]!);
+  return showModalBottomSheet<void>(
+    context: context,
+    isScrollControlled: true,
+    builder: (sheetContext) => ListenableBuilder(
+      listenable: p,
+      builder: (_, _) {
+        final owned = p.ownsItem(item);
+        final active = p.activeChild?.colorTheme == item.id;
+        return SafeArea(
+          child: SingleChildScrollView(
+            key: TestIds.themeSheet,
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Semantics(
+                  header: true,
+                  child: Text(
+                    item.title,
+                    style: Theme.of(sheetContext).textTheme.titleLarge,
+                  ),
+                ),
+                const SizedBox(height: 12),
+                Wrap(
+                  spacing: 8,
+                  runSpacing: 8,
+                  children: [
+                    for (final token in const [
+                      'bg',
+                      'surface',
+                      'surface-alt',
+                      'primary',
+                      'accent',
+                      'text',
+                    ])
+                      Semantics(
+                        label: 'Swatch $token',
+                        child: Container(
+                          key: TestIds.themeSwatch(token),
+                          width: 44,
+                          height: 44,
+                          decoration: BoxDecoration(
+                            color: c(token),
+                            shape: BoxShape.circle,
+                            border: Border.all(color: c('border'), width: 2),
+                          ),
+                        ),
+                      ),
+                  ],
+                ),
+                const SizedBox(height: 16),
+                ExcludeSemantics(
+                  child: Container(
+                    key: TestIds.themeSheetSampleCard,
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: c('bg'),
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(color: c('border')),
+                    ),
+                    child: Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: c('surface'),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'A sample card',
+                            style: TextStyle(
+                              color: c('text'),
+                              fontWeight: FontWeight.w800,
+                              fontSize: 18,
+                            ),
+                          ),
+                          Text(
+                            'This is how text looks.',
+                            style: TextStyle(color: c('text-muted')),
+                          ),
+                          const SizedBox(height: 8),
+                          Container(
+                            key: TestIds.themeSheetSampleButton,
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 16,
+                              vertical: 10,
+                            ),
+                            decoration: BoxDecoration(
+                              color: c('primary'),
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: Text(
+                              'Button',
+                              style: TextStyle(
+                                color: c('on-primary'),
+                                fontWeight: FontWeight.w800,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 16),
+                DsButton(
+                  id: 'shop.themeSheet.action',
+                  label: active ? 'In use' : (owned ? 'Use' : 'Buy'),
+                  expand: true,
+                  semanticLabel: active
+                      ? '${item.title}, in use'
+                      : (owned
+                            ? 'Use ${item.title}'
+                            : 'Buy ${item.title} for ${item.price} coins'),
+                  onPressed: active
+                      ? null
+                      : () async {
+                          if (await p.buyItem(item)) {
+                            await p.equipItem(child.id, item);
+                            if (sheetContext.mounted) {
+                              Navigator.of(sheetContext).pop();
+                            }
+                          }
+                        },
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    ),
+  );
 }

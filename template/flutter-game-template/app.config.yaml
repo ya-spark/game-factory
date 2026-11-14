@@ -81,6 +81,11 @@ retention:
   achievements: true
   game_challenges: false # hubs set true: daily challenges are game-based (score, different games, streak)
 
+# Optional shop sections, bought with coins. The Mind hubs turn both on.
+shop:
+  extra_themes: false # four more colour themes (Midnight, Lavender, Sand, Slate)
+  sound_packs: false  # ambience packs (Rain, Waves, Forest wind, Fireplace), shown as "Sounds"
+
 # Google Play Games Services: sign-in, leaderboard, cloud save. Off = local only.
 # Setup steps: game-factory docs/PLAY_GAMES_SETUP.md. IDs are public, not secrets.
 play_games:

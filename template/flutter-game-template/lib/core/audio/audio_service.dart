@@ -6,7 +6,29 @@ const List<(String, String, String?)> ambienceTracks = [
   ('heartbeat', 'Heartbeat', 'heartbeat.mp3'),
   ('night', 'Night', 'night.mp3'),
   ('bird', 'Bird', 'bird.mp3'),
+  // Sound packs bought in the Shop (`shop.sound_packs`); a pack id is also its shop item id.
+  ('rain', 'Rain', 'rain.mp3'),
+  ('waves', 'Waves', 'waves.mp3'),
+  ('forest_wind', 'Forest wind', 'forest_wind.mp3'),
+  ('fireplace', 'Fireplace', 'fireplace.mp3'),
 ];
+
+/// Ambience tracks that must be bought first.
+const Set<String> soundPackIds = {'rain', 'waves', 'forest_wind', 'fireplace'};
+
+/// The ambience to play for a saved choice: a pack that is not owned (or whose shop is off)
+/// falls back to the default track. Everything else is used as saved.
+String resolveAmbience(
+  String saved, {
+  required Set<String> owned,
+  required bool packsEnabled,
+}) {
+  if (!soundPackIds.contains(saved)) return saved;
+  return packsEnabled && owned.contains(saved) ? saved : defaultAmbienceId;
+}
+
+/// How long a sound pack sample plays in the Shop.
+const Duration ambiencePreviewLength = Duration(seconds: 10);
 
 /// Id of the ambience track used until the player picks another one.
 const String defaultAmbienceId = 'morning_birds';
@@ -31,6 +53,12 @@ abstract class AudioService {
 
   /// Pause and app in background.
   Future<void> pauseAmbience();
+
+  /// Plays a short sample ([ambiencePreviewLength]) of an ambience track, for the Shop.
+  /// Respects the Sound switch and master volume; stops by itself or with [stopPreview].
+  Future<void> previewAmbience(String id);
+
+  Future<void> stopPreview();
 
   Future<void> dispose();
 }
@@ -57,6 +85,12 @@ class NoopAudioService implements AudioService {
   Future<void> pauseAmbience() async {}
 
   @override
+  Future<void> previewAmbience(String id) async {}
+
+  @override
+  Future<void> stopPreview() async {}
+
+  @override
   Future<void> dispose() async {}
 }
 
@@ -68,6 +102,10 @@ class FakeAudioService implements AudioService {
   bool voiceOn = true;
   bool ambiencePlaying = false;
   final List<String> voices = [];
+
+  /// Ambience ids sampled, in order; [previewing] is the one playing now.
+  final List<String> previews = [];
+  String? previewing;
 
   @override
   void apply({
@@ -95,6 +133,16 @@ class FakeAudioService implements AudioService {
 
   @override
   Future<void> pauseAmbience() async => ambiencePlaying = false;
+
+  @override
+  Future<void> previewAmbience(String id) async {
+    if (!sound) return;
+    previews.add(id);
+    previewing = id;
+  }
+
+  @override
+  Future<void> stopPreview() async => previewing = null;
 
   @override
   Future<void> dispose() async => ambiencePlaying = false;

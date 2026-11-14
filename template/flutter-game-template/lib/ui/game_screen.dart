@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import '../core/ads/ad_service.dart';
+import '../core/audio/audio_service.dart';
 import '../core/config/app_config.dart';
 import '../core/profile/profile_store.dart';
 import '../core/services.dart';
@@ -68,7 +69,11 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
     s.audio.apply(
       sound: d.soundOn,
       volume: d.masterVolume,
-      ambience: d.ambience,
+      ambience: resolveAmbience(
+        d.ambience,
+        owned: d.ownedItems,
+        packsEnabled: s.config.shop.soundPacks,
+      ),
       voice: d.voiceOn,
     );
   }

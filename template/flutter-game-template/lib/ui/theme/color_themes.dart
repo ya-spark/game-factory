@@ -19,6 +19,11 @@ const List<ColorThemeSpec> colorThemeSpecs = [
   ColorThemeSpec('sunset', 0xFFE8743B),
   ColorThemeSpec('forest', 0xFF2F8F4E),
   ColorThemeSpec('ocean', 0xFF1E88C8),
+  // Extra themes (Mind hubs, `shop.extra_themes`).
+  ColorThemeSpec('midnight', 0xFF5C6BC0, dark: true),
+  ColorThemeSpec('lavender', 0xFF8E6CC8),
+  ColorThemeSpec('sand', 0xFFC2A15B),
+  ColorThemeSpec('slate', 0xFF607D8B),
 ];
 
 ColorThemeSpec? colorThemeSpec(String id) {

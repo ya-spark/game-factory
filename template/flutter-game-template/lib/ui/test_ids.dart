@@ -302,6 +302,22 @@ abstract final class TestIds {
   static Key shopAvatar(String id) => Key('shop.avatar.$id');
   static Key shopTheme(String id) => Key('shop.theme.$id');
   static Key shopGame(String id) => Key('shop.game.$id');
+  static Key shopSound(String id) => Key('shop.sound.$id');
+
+  /// Preview sheet of a colour theme and its swatches, sample card and sample button.
+  static const themeSheet = Key('shop.themeSheet');
+  static Key themeSwatch(String token) => Key('shop.themeSheet.swatch.$token');
+  static const themeSheetSampleCard = Key('shop.themeSheet.sampleCard');
+  static const themeSheetSampleButton = Key('shop.themeSheet.sampleButton');
+  static const themeSheetAction = Key('shop.themeSheet.action');
+
+  /// 10-second sample button of a sound pack (Shop).
+  static Key shopSoundPreview(String id) => Key('shop.sound.preview.$id');
+
+  static const settingsAmbienceLocked = Key('settings.ambience.locked');
+
+  /// A sound pack row in the Settings Music list (locked ones show a lock).
+  static Key settingsAmbienceItem(String id) => Key('settings.ambience.$id');
   static const shopParentArea = Key('shop.parentArea');
 
   // Theme gallery (debug only)

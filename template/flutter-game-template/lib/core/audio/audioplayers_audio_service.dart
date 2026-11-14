@@ -105,6 +105,36 @@ class AudioplayersAudioService implements AudioService {
     }
   }
 
+  AudioPlayer? _preview;
+  Timer? _previewTimer;
+
+  @override
+  Future<void> previewAmbience(String id) async {
+    String? file;
+    for (final t in ambienceTracks) {
+      if (t.$1 == id) file = t.$3;
+    }
+    if (!enabled || file == null) return;
+    try {
+      _previewTimer?.cancel();
+      final pl = _preview ??= AudioPlayer()..setAudioContext(_context);
+      await pl.setReleaseMode(ReleaseMode.loop);
+      await pl.setVolume(ambienceVolume * 2 * masterVolume);
+      await pl.play(AssetSource('ambience/$file'));
+      _previewTimer = Timer(ambiencePreviewLength, stopPreview);
+    } catch (e) {
+      debugPrint('audio: preview $id failed: $e');
+    }
+  }
+
+  @override
+  Future<void> stopPreview() async {
+    _previewTimer?.cancel();
+    try {
+      await _preview?.stop();
+    } catch (_) {}
+  }
+
   /// The ambience is quieter while the voice speaks.
   double _ambienceLevel() =>
       (_arbiter.speaking ? ambienceDuckedVolume : ambienceVolume) *
@@ -121,7 +151,8 @@ class AudioplayersAudioService implements AudioService {
   Future<void> dispose() async {
     _arbiter.reset();
     _ambienceWanted = false;
-    for (final p in [?_voice, ?_ambience]) {
+    _previewTimer?.cancel();
+    for (final p in [?_voice, ?_ambience, ?_preview]) {
       try {
         await p.dispose();
       } catch (_) {}

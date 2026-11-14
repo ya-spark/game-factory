@@ -124,7 +124,7 @@ class ShopItem {
   final int price;
 }
 
-enum ShopKind { avatar, theme }
+enum ShopKind { avatar, theme, sound }
 
 const List<ShopItem> shopItems = [
   ShopItem('fox', ShopKind.avatar, 'Fox', 0),
@@ -139,4 +139,29 @@ const List<ShopItem> shopItems = [
   ShopItem('sunset', ShopKind.theme, 'Sunset', 60),
   ShopItem('forest', ShopKind.theme, 'Forest', 60),
   ShopItem('ocean', ShopKind.theme, 'Ocean', 60),
+  // Extra themes and ambience packs: shown only when `shop.extra_themes` / `shop.sound_packs`
+  // are on (the Mind hubs). A sound item id is the ambience track id.
+  ShopItem('midnight', ShopKind.theme, 'Midnight', 60),
+  ShopItem('lavender', ShopKind.theme, 'Lavender', 60),
+  ShopItem('sand', ShopKind.theme, 'Sand', 60),
+  ShopItem('slate', ShopKind.theme, 'Slate', 60),
+  ShopItem('rain', ShopKind.sound, 'Rain', 80),
+  ShopItem('waves', ShopKind.sound, 'Waves', 80),
+  ShopItem('forest_wind', ShopKind.sound, 'Forest wind', 80),
+  ShopItem('fireplace', ShopKind.sound, 'Fireplace', 80),
+];
+
+/// Theme ids that need `shop.extra_themes`.
+const Set<String> extraThemeIds = {'midnight', 'lavender', 'sand', 'slate'};
+
+/// The items the shop offers with the given flags (`shop.extra_themes`, `shop.sound_packs`).
+List<ShopItem> shopItemsFor({
+  required bool extraThemes,
+  required bool soundPacks,
+}) => [
+  for (final i in shopItems)
+    if (i.kind == ShopKind.sound
+        ? soundPacks
+        : (extraThemes || !extraThemeIds.contains(i.id)))
+      i,
 ];

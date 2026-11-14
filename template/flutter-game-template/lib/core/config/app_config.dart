@@ -140,6 +140,17 @@ class RetentionConfig {
   final bool gameChallenges;
 }
 
+/// `shop:` in app.config.yaml: optional shop sections (the Mind hubs turn both on).
+class ShopConfig {
+  const ShopConfig({this.extraThemes = false, this.soundPacks = false});
+
+  /// Four extra colour themes beside the four every app has.
+  final bool extraThemes;
+
+  /// Ambience packs bought with coins (the "Sounds" section).
+  final bool soundPacks;
+}
+
 enum ShareLinkMode {
   internalTest,
   store,
@@ -331,6 +342,7 @@ class AppConfig {
     required this.admobRelease,
     required this.adPacing,
     required this.retention,
+    this.shop = const ShopConfig(),
     required this.playGames,
     this.share = const ShareConfig(),
     this.moreGames = const [],
@@ -376,6 +388,7 @@ class AppConfig {
   final AdmobIds admobRelease;
   final AdPacingConfig adPacing;
   final RetentionConfig retention;
+  final ShopConfig shop;
   final PlayGamesConfig playGames;
   final ShareConfig share;
 
@@ -421,6 +434,7 @@ class AppConfig {
     final admob = root['admob'] as YamlMap;
     final ads = (root['ads'] as YamlMap?) ?? YamlMap();
     final ret = (root['retention'] as YamlMap?) ?? YamlMap();
+    final shop = (root['shop'] as YamlMap?) ?? YamlMap();
     final pg = (root['play_games'] as YamlMap?) ?? YamlMap();
     final share = (root['share'] as YamlMap?) ?? YamlMap();
     final more = (root['more_games'] as YamlList?) ?? YamlList();
@@ -502,6 +516,10 @@ class AppConfig {
         dailyChallenges: ret['daily_challenges'] as bool? ?? true,
         achievements: ret['achievements'] as bool? ?? true,
         gameChallenges: ret['game_challenges'] as bool? ?? false,
+      ),
+      shop: ShopConfig(
+        extraThemes: shop['extra_themes'] as bool? ?? false,
+        soundPacks: shop['sound_packs'] as bool? ?? false,
       ),
       playGames: PlayGamesConfig(
         enabled: policy.signInAllowed && (pg['enabled'] as bool? ?? false),
