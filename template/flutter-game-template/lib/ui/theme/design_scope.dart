@@ -33,12 +33,16 @@ class DesignScope extends StatelessWidget {
     required this.mode,
     this.level,
     this.prefs = const DesignPrefs(),
+    this.colorOverrides,
     required this.child,
   });
   final DesignBundle design;
   final DesignMode mode;
   final InterfaceLevel? level;
   final DesignPrefs prefs;
+
+  /// The equipped shop colour theme's palette, or null for the app's own colours.
+  final Map<String, int>? colorOverrides;
   final Widget child;
 
   /// The design files of the enclosing [DesignScope], or null when the app has the plain look.
@@ -52,6 +56,7 @@ class DesignScope extends StatelessWidget {
       shared: design.shared,
       mode: mode,
       level: level,
+      colorOverrides: colorOverrides,
       reduceMotion:
           prefs.reduceMotion || MediaQuery.disableAnimationsOf(context),
     );

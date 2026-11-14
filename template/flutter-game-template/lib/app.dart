@@ -8,6 +8,7 @@ import 'ui/app_shell.dart';
 import 'ui/home_screen.dart';
 import 'ui/profile_picker_screen.dart';
 import 'ui/theme/app_theme.dart';
+import 'ui/theme/color_themes.dart';
 import 'ui/theme/design_loader.dart';
 import 'ui/theme/design_scope.dart';
 import 'ui/theme/design_tokens.dart';
@@ -37,7 +38,14 @@ class GameApp extends StatelessWidget {
                 ? DesignMode.study
                 : DesignMode.game,
           );
-          return _app(cfg, seed, mode, design?.app.levelForYear(child?.year));
+          return _app(
+            cfg,
+            seed,
+            mode,
+            design?.app.levelForYear(child?.year),
+            colorThemeOverrides(child?.colorTheme ?? 'default'),
+            child?.colorTheme ?? 'default',
+          );
         },
       ),
     );
@@ -48,7 +56,10 @@ class GameApp extends StatelessWidget {
     Color seed,
     DesignMode? mode,
     InterfaceLevel? level,
+    Map<String, int>? colors,
+    String themeId,
   ) {
+    final spec = colorThemeSpec(themeId);
     return MaterialApp(
       title: cfg.displayName,
       debugShowCheckedModeBanner: false,
@@ -58,17 +69,20 @@ class GameApp extends StatelessWidget {
               shared: design!.shared,
               mode: mode!,
               level: level,
+              colorOverrides: colors,
             )
           : ThemeData(
               useMaterial3: true,
               colorScheme:
                   ColorScheme.fromSeed(
-                    seedColor: seed,
-                    brightness: cfg.themeDark
+                    seedColor: spec == null ? seed : Color(spec.seed),
+                    brightness: (spec?.dark ?? cfg.themeDark)
                         ? Brightness.dark
                         : Brightness.light,
                   ).copyWith(
-                    surface: cfg.themeDark ? const Color(0xFF0F2430) : null,
+                    surface: spec == null && cfg.themeDark
+                        ? const Color(0xFF0F2430)
+                        : null,
                   ),
             ),
       builder: (context, child) {
@@ -92,6 +106,7 @@ class GameApp extends StatelessWidget {
                 design: design!,
                 mode: mode!,
                 level: level,
+                colorOverrides: colors,
                 child: scaled,
               );
       },

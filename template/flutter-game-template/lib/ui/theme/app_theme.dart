@@ -152,16 +152,19 @@ TextStyle designTextStyle({
 /// One [ThemeData] for [mode] of [app]. [level] (Scout and Ranger only, from the child's year
 /// via [InterfaceLevel.forYear]) scales text and raises the minimum touch size.
 /// A mode the app lacks falls back to its only mode (Mind apps: `default`).
+/// [colorOverrides] is the equipped shop theme's palette (see `color_themes.dart`).
 ThemeData buildDesignTheme({
   required AppTokens app,
   required SharedTokens shared,
   required DesignMode mode,
   InterfaceLevel? level,
   bool reduceMotion = false,
+  Map<String, int>? colorOverrides,
 }) {
   final m = app.modes[app.resolveMode(mode)]!;
   final lv = level == null ? null : app.levels[level];
-  Color c(String n) => Color(m.color(n));
+  // A shop colour theme replaces the listed colour tokens; everything else stays.
+  Color c(String n) => Color(colorOverrides?[n] ?? m.color(n));
   final brightness = ThemeData.estimateBrightnessForColor(c('bg'));
 
   final type = {

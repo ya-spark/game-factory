@@ -136,7 +136,7 @@ const List<ShopItem> shopItems = [
   ShopItem('rabbit', ShopKind.avatar, 'Rabbit', 60),
   ShopItem('penguin', ShopKind.avatar, 'Penguin', 80),
   ShopItem('default', ShopKind.theme, 'Classic', 0),
-  ShopItem('sunset', ShopKind.theme, 'Sunset', 50),
-  ShopItem('forest', ShopKind.theme, 'Forest', 50),
-  ShopItem('ocean', ShopKind.theme, 'Ocean', 50),
+  ShopItem('sunset', ShopKind.theme, 'Sunset', 60),
+  ShopItem('forest', ShopKind.theme, 'Forest', 60),
+  ShopItem('ocean', ShopKind.theme, 'Ocean', 60),
 ];
