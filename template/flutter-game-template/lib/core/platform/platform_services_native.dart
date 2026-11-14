@@ -18,6 +18,11 @@ import '../purchase/purchase_service.dart';
 import '../save/play_games_save.dart';
 import '../save/save_service.dart';
 
+/// Android keeps the plugin's default storage keys, so existing saves stay where they are.
+const bool isWebBuild = false;
+
+String? preferencesPrefix(AppConfig config) => null;
+
 /// Android: the real vendor-backed services (Play Games, AdMob, Play Billing, local notifications).
 CloudSaveBackend createCloudSave(AppConfig config) =>
     config.playGames.enabled ? PlayGamesCloudSave() : const NoCloudSave();

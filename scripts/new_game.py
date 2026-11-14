@@ -212,16 +212,15 @@ def rewrite_android(out: Path, package: str) -> None:
         d = d.parent
 
 
-def rewrite_web(out: Path, name: str) -> None:
-    """Puts the game name in the web page title and manifest (the web copy, web/)."""
-    web = out / "web"
-    if not web.is_dir():
+def rewrite_web(out: Path) -> None:
+    """Writes the web shell (page title, description, social tags, loading screen, manifest) from
+    the game's app.config.yaml with scripts/web_shell.py (the copy in the game). Call after rewrite_config."""
+    if not (out / "web").is_dir():
         return
-    esc = name.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
-    for fn in ("index.html", "manifest.json"):
-        f = web / fn
-        text = f.read_text(encoding="utf-8")
-        f.write_text(text.replace("Block Puzzle", name if fn == "manifest.json" else esc), encoding="utf-8")
+    spec = importlib.util.spec_from_file_location("web_shell", out / "scripts" / "web_shell.py")
+    mod = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(mod)
+    mod.write_shell(out)
 
 
 def move_workflows(out: Path) -> None:
@@ -616,7 +615,7 @@ def generate(
     rewrite_config(out, game_id, name, package, color)
     rewrite_dart_package(out, game_id)
     rewrite_android(out, package)
-    rewrite_web(out, name)
+    rewrite_web(out)
     move_workflows(out)
     rewrite_docs(out, name)
     if profile != "puzzle":

@@ -1,7 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart' show rootBundle;
 import 'package:flutter/widgets.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 import 'ads/ad_service.dart';
 import 'analytics/analytics_service.dart';
@@ -23,6 +22,7 @@ import 'profile/profile_store.dart';
 import 'purchase/parent_gate_guard.dart';
 import 'purchase/purchase_service.dart';
 import 'remote_config/remote_config_service.dart';
+import 'save/prefs_namespace.dart';
 import 'save/save_service.dart';
 import 'share/share_service.dart';
 import 'share/system_share_service.dart';
@@ -50,6 +50,7 @@ class Services {
     this.learning,
     TipService? tips,
     ParentGateGuard? parentGate,
+    this.webShell = isWebBuild,
   }) : links = links ?? FakeExternalLinkService(),
        tips = tips ?? TipService(),
        parentGate = parentGate ?? ParentGateGuard();
@@ -60,6 +61,10 @@ class Services {
 
   /// Parent gate rules and lock state, shared so the lock survives closing the dialog.
   final ParentGateGuard parentGate;
+
+  /// True in the web build. The UI then hides every real-money item (coin packs, Remove Ads, Full
+  /// Unlock, extra packs, Restore) and shows the browser-only save note. Tests set it directly.
+  final bool webShell;
 
   final AppConfig config;
   final ProductCatalog catalog;
@@ -90,7 +95,7 @@ class Services {
     required AppConfig config,
     required ProductCatalog catalog,
   }) async {
-    final prefs = await SharedPreferences.getInstance();
+    final prefs = await openPreferences(prefix: preferencesPrefix(config));
     final saves = SyncingSaveService(
       LocalSaveService(prefs),
       createCloudSave(config),

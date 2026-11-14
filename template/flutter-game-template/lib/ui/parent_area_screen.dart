@@ -243,37 +243,43 @@ class _ParentAreaScreenState extends State<ParentAreaScreen> {
         onChanged: s.profile.setDownloadWifiOnly,
       ),
       const SizedBox(height: 8),
-      Text('Purchases', style: Theme.of(context).textTheme.titleMedium),
-      ListTile(
-        title: const Text('Remove Ads'),
-        subtitle: const Text('One purchase. No ads, now and in later updates.'),
-        trailing: d.adsRemoved
-            ? const Text('Owned')
-            : FilledButton(
-                key: TestIds.parentRemoveAds,
-                onPressed: () => _buy(context, s, 'remove_ads_all'),
-                child: Text(s.purchases.priceOf('remove_ads_all') ?? 'Buy'),
-              ),
-      ),
-      ListTile(
-        title: const Text('Full Unlock'),
-        subtitle: const Text('Opens all built-in content, including updates.'),
-        trailing: d.fullUnlock
-            ? const Text('Owned')
-            : FilledButton(
-                key: TestIds.parentBuyFull,
-                onPressed: () => _buy(context, s, 'unlock_full'),
-                child: Text(s.purchases.priceOf('unlock_full') ?? 'Buy'),
-              ),
-      ),
-      TextButton(
-        key: TestIds.parentRestore,
-        onPressed: () => learning != null
-            ? learning.restorePurchases()
-            : s.purchases.restore(),
-        child: const Text('Restore purchases'),
-      ),
-      if (learning != null) ...[
+      if (!s.webShell) ...[
+        Text('Purchases', style: Theme.of(context).textTheme.titleMedium),
+        ListTile(
+          title: const Text('Remove Ads'),
+          subtitle: const Text(
+            'One purchase. No ads, now and in later updates.',
+          ),
+          trailing: d.adsRemoved
+              ? const Text('Owned')
+              : FilledButton(
+                  key: TestIds.parentRemoveAds,
+                  onPressed: () => _buy(context, s, 'remove_ads_all'),
+                  child: Text(s.purchases.priceOf('remove_ads_all') ?? 'Buy'),
+                ),
+        ),
+        ListTile(
+          title: const Text('Full Unlock'),
+          subtitle: const Text(
+            'Opens all built-in content, including updates.',
+          ),
+          trailing: d.fullUnlock
+              ? const Text('Owned')
+              : FilledButton(
+                  key: TestIds.parentBuyFull,
+                  onPressed: () => _buy(context, s, 'unlock_full'),
+                  child: Text(s.purchases.priceOf('unlock_full') ?? 'Buy'),
+                ),
+        ),
+        TextButton(
+          key: TestIds.parentRestore,
+          onPressed: () => learning != null
+              ? learning.restorePurchases()
+              : s.purchases.restore(),
+          child: const Text('Restore purchases'),
+        ),
+      ],
+      if (learning != null && !s.webShell) ...[
         const SizedBox(height: 8),
         Text('Extra packs', style: Theme.of(context).textTheme.titleMedium),
         SwitchListTile(

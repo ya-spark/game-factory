@@ -318,6 +318,8 @@ abstract final class TestIds {
   static const settingsSwitchPlayer = Key('settings.switchPlayer');
   static const settingsPrivacyPolicy = Key('settings.privacyPolicy');
   static const settingsVersion = Key('settings.version');
+  static const settingsWebSaveNote = Key('settings.webSaveNote');
+  static const settingsGetAndroidApp = Key('settings.getAndroidApp');
   static const settingsGrownUps = Key('settings.grownUps');
   static const settingsProgress = Key('settings.progress');
 

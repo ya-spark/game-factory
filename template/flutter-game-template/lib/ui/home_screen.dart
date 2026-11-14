@@ -211,13 +211,14 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                           colors: const [Color(0xFF7AD7F0), Color(0xFF3FA7FF)],
                           onPressed: () => openMoreGames(context),
                         ),
-                      HomeIconButton(
-                        key: TestIds.homeShop,
-                        icon: Icons.shopping_basket,
-                        label: 'Shop',
-                        colors: const [Color(0xFF6BEBB0), Color(0xFF1FB57A)],
-                        onPressed: () => _open(const ShopScreen()),
-                      ),
+                      if (!s.webShell)
+                        HomeIconButton(
+                          key: TestIds.homeShop,
+                          icon: Icons.shopping_basket,
+                          label: 'Shop',
+                          colors: const [Color(0xFF6BEBB0), Color(0xFF1FB57A)],
+                          onPressed: () => _open(const ShopScreen()),
+                        ),
                       HomeIconButton(
                         key: TestIds.homeSettings,
                         icon: Icons.settings,

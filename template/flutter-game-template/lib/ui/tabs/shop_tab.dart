@@ -160,39 +160,40 @@ class ShopTab extends StatelessWidget {
             );
           },
         ),
-        section('For grown-ups'),
-        DsCard(
-          id: 'shop.grownups',
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                'Coin packs, Remove Ads and the full pack are for a grown-up.',
-                style: t.styles['body']!,
-              ),
-              SizedBox(height: t.sp('sm')),
-              DsButton(
-                id: 'shop.parentArea',
-                label: 'Ask a grown-up',
-                icon: 'lock',
-                kind: DsButtonKind.secondary,
-                onPressed: () => gated(
-                  s.config.content.enabled
-                      ? const ParentAreaScreen()
-                      : const ShopScreen(),
+        if (!s.webShell) section('For grown-ups'),
+        if (!s.webShell)
+          DsCard(
+            id: 'shop.grownups',
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Coin packs, Remove Ads and the full pack are for a grown-up.',
+                  style: t.styles['body']!,
                 ),
-              ),
-              SizedBox(height: t.sp('xs')),
-              DsButton(
-                id: 'shop.coins',
-                label: 'Coins and Remove Ads',
-                icon: 'lock',
-                kind: DsButtonKind.ghost,
-                onPressed: () => gated(const ShopScreen()),
-              ),
-            ],
+                SizedBox(height: t.sp('sm')),
+                DsButton(
+                  id: 'shop.parentArea',
+                  label: 'Ask a grown-up',
+                  icon: 'lock',
+                  kind: DsButtonKind.secondary,
+                  onPressed: () => gated(
+                    s.config.content.enabled
+                        ? const ParentAreaScreen()
+                        : const ShopScreen(),
+                  ),
+                ),
+                SizedBox(height: t.sp('xs')),
+                DsButton(
+                  id: 'shop.coins',
+                  label: 'Coins and Remove Ads',
+                  icon: 'lock',
+                  kind: DsButtonKind.ghost,
+                  onPressed: () => gated(const ShopScreen()),
+                ),
+              ],
+            ),
           ),
-        ),
       ],
     );
   }

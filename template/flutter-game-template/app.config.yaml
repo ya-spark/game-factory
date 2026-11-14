@@ -30,6 +30,14 @@ platforms:
   web:
     enabled: false
 
+# The public web copy (web/index.html, web/manifest.json). description: short text for the page,
+# the social preview and the manifest. indexable: false writes noindex (the owner turns it on).
+# play_store_url: the "Get the Android app" link in Settings and on the page; empty hides it.
+web:
+  description: "A free game that saves your progress in your browser."
+  indexable: false
+  play_store_url: ""
+
 # AdMob. debug.* MUST be Google's sample IDs; release.* MUST NOT be sample IDs.
 # scripts/ad_safety_check.sh enforces both in CI.
 admob:

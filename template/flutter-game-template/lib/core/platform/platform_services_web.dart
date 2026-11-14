@@ -10,7 +10,14 @@ import '../identity/identity_service.dart';
 import '../leaderboard/leaderboard_service.dart';
 import '../notifications/notification_service.dart';
 import '../purchase/purchase_service.dart';
+import '../save/prefs_namespace.dart';
 import '../save/save_service.dart';
+
+/// True in the web build: the shell hides real-money items and explains the browser-only save.
+const bool isWebBuild = true;
+
+/// Every game's web copy shares one origin, so each keeps its keys under `<app id>.`.
+String? preferencesPrefix(AppConfig config) => webStoragePrefix(config.appId);
 
 /// Web build (a test copy on the Hostinger VPS). No vendor SDK is imported here: ads, billing,
 /// Play Games and notifications do not exist in a browser, so they are stubs that do nothing and

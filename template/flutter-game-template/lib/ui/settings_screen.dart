@@ -14,6 +14,11 @@ import 'theme/design_scope.dart';
 import 'theme_gallery_screen.dart';
 import 'widgets.dart';
 
+/// Shown in Settings in the web copy only.
+const String webSaveNote =
+    'Progress is saved in this browser only. Clearing site data, or using another browser or '
+    'device, starts fresh. The Android app keeps its own save.';
+
 class SettingsScreen extends StatelessWidget {
   const SettingsScreen({super.key});
 
@@ -282,8 +287,10 @@ class SettingsScreen extends StatelessWidget {
                           key: TestIds.settingsGrownUps,
                           leading: const Icon(Icons.lock_outline),
                           title: const Text('Grown-ups'),
-                          subtitle: const Text(
-                            'Weekly progress, reset and purchases',
+                          subtitle: Text(
+                            s.webShell
+                                ? 'Weekly progress and reset'
+                                : 'Weekly progress, reset and purchases',
                           ),
                           onTap: () async {
                             final nav = Navigator.of(context);
@@ -307,6 +314,23 @@ class SettingsScreen extends StatelessWidget {
                             ),
                           ),
                         ),
+                ),
+              if (s.webShell)
+                const KidPanel(
+                  child: ListTile(
+                    key: TestIds.settingsWebSaveNote,
+                    leading: Icon(Icons.info_outline),
+                    title: Text(webSaveNote),
+                  ),
+                ),
+              if (s.webShell && s.config.web.hasPlayStoreLink)
+                KidPanel(
+                  child: ListTile(
+                    key: TestIds.settingsGetAndroidApp,
+                    leading: const Icon(Icons.android),
+                    title: const Text('Get the Android app'),
+                    onTap: () => s.links.openUrl(s.config.web.playStoreUrl),
+                  ),
                 ),
               if (s.config.privacyUrl.isNotEmpty)
                 KidPanel(

@@ -6,6 +6,7 @@ import 'package:flutter_game_template/core/audio/audio_service.dart';
 import 'package:flutter_game_template/core/config/app_config.dart';
 import 'package:flutter_game_template/core/config/products.dart';
 import 'package:flutter_game_template/core/identity/identity_service.dart';
+import 'package:flutter_game_template/core/links/external_link_service.dart';
 import 'package:flutter_game_template/core/leaderboard/leaderboard_service.dart';
 import 'package:flutter_game_template/core/notifications/notification_service.dart';
 import 'package:flutter_game_template/core/profile/profile_store.dart';
@@ -29,6 +30,9 @@ Future<Services> buildFakeServices({
   ParentGateGuard? parentGate,
   SaveService? profileSaves,
   bool familyMode = false,
+  bool webShell =
+      false, // the web build: no real-money items, browser-only save note
+  String webPlayStoreUrl = '', // web.play_store_url
   String?
   audience, // child | teen | adult: overrides `audience:` of app.config.yaml
 }) async {
@@ -48,6 +52,12 @@ Future<Services> buildFakeServices({
     yaml = yaml.replaceFirst(
       RegExp(r'family_mode:\n  enabled: false'),
       'family_mode:\n  enabled: true',
+    );
+  }
+  if (webPlayStoreUrl.isNotEmpty) {
+    yaml = yaml.replaceFirst(
+      'play_store_url: ""',
+      'play_store_url: "$webPlayStoreUrl"',
     );
   }
   final config = AppConfig.fromYamlString(yaml);
@@ -80,6 +90,8 @@ Future<Services> buildFakeServices({
     share: share ?? FakeShareService(),
     audio: audio ?? FakeAudioService(),
     parentGate: parentGate,
+    links: FakeExternalLinkService(),
+    webShell: webShell,
   );
   services.wirePurchases();
   return services;

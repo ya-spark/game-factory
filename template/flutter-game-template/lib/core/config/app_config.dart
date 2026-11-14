@@ -206,6 +206,27 @@ class PlatformsConfig {
   final bool web;
 }
 
+/// `web:` in `app.config.yaml`: the public web copy (not the Android app). Nothing here is
+/// read by the Android build.
+class WebConfig {
+  const WebConfig({
+    this.description = '',
+    this.indexable = false,
+    this.playStoreUrl = '',
+  });
+
+  /// Short page description (meta description, social preview, manifest).
+  final String description;
+
+  /// `web.indexable`: false (default) writes `noindex, nofollow`; the owner turns it on.
+  final bool indexable;
+
+  /// `web.play_store_url`: the "Get the Android app" link. Empty hides it.
+  final String playStoreUrl;
+
+  bool get hasPlayStoreLink => playStoreUrl.isNotEmpty;
+}
+
 class PlayGamesConfig {
   const PlayGamesConfig({
     this.enabled = false,
@@ -321,7 +342,11 @@ class AppConfig {
     this.audience = Audience.adult,
     this.speech = const SpeechConfig(),
     this.privacyUrl = '',
+    this.web = const WebConfig(),
   });
+
+  /// The web copy's page settings (`web:`).
+  final WebConfig web;
 
   /// `app.privacy_url`: the published privacy policy (https). Empty hides the Settings link.
   final String privacyUrl;
@@ -409,6 +434,7 @@ class AppConfig {
     final audience = Audience.parse(root['audience'] as String?);
     final policy = AudiencePolicy(audience);
     final speech = (root['speech'] as YamlMap?) ?? YamlMap();
+    final webCfg = (root['web'] as YamlMap?) ?? YamlMap();
     return AppConfig(
       audience: audience,
       speech: SpeechConfig(
@@ -437,6 +463,11 @@ class AppConfig {
       displayName: app['display_name'] as String,
       packageName: app['package_name'] as String,
       privacyUrl: app['privacy_url'] as String? ?? '',
+      web: WebConfig(
+        description: (webCfg['description'] as String? ?? '').trim(),
+        indexable: webCfg['indexable'] as bool? ?? false,
+        playStoreUrl: (webCfg['play_store_url'] as String? ?? '').trim(),
+      ),
       themeSeedColor: _parseColor(theme['seed_color'] as String? ?? '#2EC4B6'),
       themeDark: theme['dark'] as bool? ?? true,
       designId: theme['design'] as String?,

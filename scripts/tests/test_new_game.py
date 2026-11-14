@@ -89,6 +89,26 @@ class GenerateTest(unittest.TestCase):
         )
         self.assertIn("package:my_game/", dart)
 
+    def test_web_shell_is_generated_for_the_game(self):
+        out = self.tmp / "game"
+        self.gen(out)
+        idx = (out / "web/index.html").read_text()
+        self.assertIn("<title>My Game</title>", idx)
+        self.assertIn('<meta name="theme-color" content="#112233">', idx)
+        self.assertIn('property="og:title" content="My Game"', idx)
+        self.assertIn('id="loading"', idx)
+        self.assertIn('content="noindex, nofollow"', idx)
+        self.assertNotIn("test copy", idx.lower())
+        self.assertNotIn("Get the Android app", idx)
+        man = (out / "web/manifest.json").read_text()
+        self.assertIn('"name": "My Game"', man)
+        self.assertNotIn("test copy", man.lower())
+        self.assertTrue((out / "scripts/web_shell.py").is_file())
+        # idempotent
+        import subprocess
+        r = subprocess.run([sys.executable, str(out / "scripts/web_shell.py"), str(out), "--check"])
+        self.assertEqual(r.returncode, 0)
+
     def test_features_and_docs_are_carried(self):
         out = self.tmp / "game"
         self.gen(out)
