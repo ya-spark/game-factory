@@ -5,14 +5,18 @@ import '../../core/services.dart';
 import '../../engine/engine.dart';
 import '../kit/ds_bars.dart';
 import '../kit/ds_buttons.dart';
+import '../stats_screen.dart';
 import '../test_ids.dart';
 import '../theme/app_theme.dart';
 
 /// Challenges (Game mode): learning goals that pay stars and a few coins (paid by the rewards
 /// engine as items are passed, within the weekly coin cap), and the daily challenges to claim.
 class ChallengesTab extends StatelessWidget {
-  const ChallengesTab({super.key, required this.child});
+  const ChallengesTab({super.key, required this.child, this.registry});
   final ChildProfile child;
+
+  /// Titles for the Stats page.
+  final MiniGameRegistry? registry;
 
   @override
   Widget build(BuildContext context) {
@@ -79,6 +83,23 @@ class ChallengesTab extends StatelessWidget {
           child: Text('Challenges', style: t.styles['title']!),
         ),
         SizedBox(height: t.sp('md')),
+        if (s.config.gameStats.enabled) ...[
+          KeyedSubtree(
+            key: TestIds.statsEntry,
+            child: DsButton(
+              id: 'stats.entry',
+              label: 'Stats',
+              kind: DsButtonKind.secondary,
+              expand: true,
+              onPressed: () => Navigator.of(context).push(
+                MaterialPageRoute<void>(
+                  builder: (_) => StatsScreen(registry: registry),
+                ),
+              ),
+            ),
+          ),
+          SizedBox(height: t.sp('md')),
+        ],
         if (s.config.content.enabled) ...[
           goal(
             'daily',

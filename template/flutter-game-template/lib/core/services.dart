@@ -113,6 +113,7 @@ class Services {
     final profile = ProfileStore(
       saves: saves,
       retention: config.retention,
+      gameStatsEnabled: config.gameStats.enabled,
       // Craft apps (learning games with stars): the daily reward and challenges are capped too.
       cappedRewards: config.content.enabled && config.rewards.starsEnabled
           ? config.rewards

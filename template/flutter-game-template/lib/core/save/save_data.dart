@@ -1,4 +1,5 @@
 import '../../engine/content/progress.dart' show ItemResult, mistakeClearStreak;
+import '../../engine/stats/game_stats.dart';
 import '../profile/child_profile.dart';
 import '../retention/achievements.dart';
 import '../retention/daily_challenges.dart';
@@ -41,10 +42,11 @@ class SaveData {
     this.unlockedGames = const {},
     this.ownedItems = const {},
     this.downloadWifiOnly = false,
+    this.gameStats = const GameStats(),
   });
 
   /// Bump when the JSON shape changes and add a step to [SaveMigrator].
-  static const int currentVersion = 9;
+  static const int currentVersion = 10;
 
   final int coins;
   final int bestScore;
@@ -119,6 +121,9 @@ class SaveData {
   /// Parent setting: full packs never download on mobile data.
   final bool downloadWifiOnly;
 
+  /// Per-game stats (M2, `game_stats.enabled`). Device only; "Reset game stats" clears them.
+  final GameStats gameStats;
+
   SaveData copyWith({
     int? coins,
     int? bestScore,
@@ -153,7 +158,9 @@ class SaveData {
     Set<String>? unlockedGames,
     Set<String>? ownedItems,
     bool? downloadWifiOnly,
+    GameStats? gameStats,
   }) => SaveData(
+    gameStats: gameStats ?? this.gameStats,
     profiles: profiles ?? this.profiles,
     fullUnlock: fullUnlock ?? this.fullUnlock,
     ownedPacks: ownedPacks ?? this.ownedPacks,
@@ -224,6 +231,7 @@ class SaveData {
     'unlockedGames': unlockedGames.toList()..sort(),
     'ownedItems': ownedItems.toList()..sort(),
     'downloadWifiOnly': downloadWifiOnly,
+    'gameStats': gameStats.toJson(),
   };
 
   /// Expects JSON already migrated to [currentVersion].
@@ -271,6 +279,7 @@ class SaveData {
     unlockedGames: {...?(j['unlockedGames'] as List?)?.cast<String>()},
     ownedItems: {...?(j['ownedItems'] as List?)?.cast<String>()},
     downloadWifiOnly: j['downloadWifiOnly'] as bool? ?? false,
+    gameStats: GameStats.fromJson(_map(j['gameStats'])),
   );
 
   static Set<int> _days(Object? o) {
@@ -306,6 +315,7 @@ abstract final class SaveMigrator {
         6 => _v6ToV7(j),
         7 => _v7ToV8(j),
         8 => _v8ToV9(j),
+        9 => _v9ToV10(j),
         _ => throw StateError('No migration from $v'),
       };
       v = (j['version'] as num).toInt();
@@ -363,6 +373,14 @@ abstract final class SaveMigrator {
       },
     };
   }
+
+  /// v10 added the per-game stats (`gameStats`, M2). Old saves start with empty stats; nothing
+  /// else changes.
+  static Map<String, Object?> _v9ToV10(Map<String, Object?> j) => {
+    ...j,
+    'version': 10,
+    'gameStats': j['gameStats'] ?? const GameStats().toJson(),
+  };
 
   /// v9 added the per-child exam history (`exams`, the last 10) and the parent's extra-time
   /// choice (`extraTime`, default none). Old saves start with no exams; nothing else changes.

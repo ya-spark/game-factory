@@ -114,6 +114,18 @@ abstract final class TestIds {
   static const settingsTips = Key('settings.tips');
   static const settingsShareApp = Key('settings.shareApp');
 
+  // Stats (M2)
+  static const statsEntry = Key('stats.entry');
+  static const statsScreen = Key('stats.screen');
+  static const statsOverview = Key('stats.overview');
+  static const statsEmpty = Key('stats.empty');
+  static Key statsCard(String gameId) => Key('stats.card.$gameId');
+  static Key statsTrend(String gameId) => Key('stats.trend.$gameId');
+  static const newBestMessage = Key('stats.newBest');
+  static const settingsResetStats = Key('settings.resetStats');
+  static const settingsResetStatsCancel = Key('settings.resetStats.cancel');
+  static const settingsResetStatsConfirm = Key('settings.resetStats.confirm');
+
   // More games
   static const homeMoreGames = Key('home.moreGames');
   static const settingsMoreGames = Key('settings.moreGames');

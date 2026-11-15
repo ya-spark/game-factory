@@ -120,7 +120,7 @@ class _AppShellState extends State<AppShell> with WidgetsBindingObserver {
             registry: registry,
             loaders: widget.loaders,
           ),
-          'challenges' => ChallengesTab(child: child),
+          'challenges' => ChallengesTab(child: child, registry: registry),
           'shop' => ShopTab(
             child: child,
             registry: registry,

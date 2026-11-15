@@ -35,12 +35,16 @@ class ProfileStore extends ChangeNotifier {
     required this._saves,
     required this.retention,
     this.cappedRewards,
+    this.gameStatsEnabled = false,
     Clock? clock,
   }) : _clock = clock ?? DateTime.now;
 
   /// Set in the Craft apps: coins from the daily reward and the daily challenges count against
   /// the active child's weekly coin cap (`RewardsEngine.grantCapped`). Null: paid in full.
   final RewardsConfig? cappedRewards;
+
+  /// `game_stats.enabled` (M2): finished runs go into the per-game stats.
+  final bool gameStatsEnabled;
 
   final SaveService _saves;
   final RetentionConfig retention;
@@ -195,6 +199,41 @@ class ProfileStore extends ChangeNotifier {
       score,
     );
     await _commit(_data.copyWith(challenges: c));
+  }
+
+  // ---- game stats (M2) ------------------------------------------------------
+
+  /// Message for the run that just ended, shown once by the hub after the game screen closes.
+  String? _pendingNewBest;
+
+  /// Records one finished run in the per-game stats. [gameTitle] words the new-best message
+  /// (kept until [takeNewBestMessage]). Call it before the score call that updates the tile's
+  /// best, so a new best is judged against the old one. No-op when `game_stats` is off.
+  Future<void> recordRun(RunReport r, {String? gameTitle}) async {
+    if (!gameStatsEnabled) return;
+    final tile = activeChild?.progress.games[r.gameId]?.best ?? 0;
+    final out = _data.gameStats.record(r, today, priorBest: tile);
+    if (out.isNewBest) {
+      final name = gameTitle ?? r.gameId;
+      _pendingNewBest = out.newFastestVariant != null
+          ? 'New personal best: your fastest ${out.newFastestVariant} $name'
+          : 'New personal best in $name: ${r.score}';
+    }
+    await _commit(_data.copyWith(gameStats: out.book));
+  }
+
+  /// The pending "New personal best" line, once; null when the last run set no record.
+  String? takeNewBestMessage() {
+    final m = _pendingNewBest;
+    _pendingNewBest = null;
+    return m;
+  }
+
+  /// "Reset game stats": clears history, averages, wins, times and days. The best scores on the
+  /// tiles, the coins and the achievements stay.
+  Future<void> resetGameStats() async {
+    _pendingNewBest = null;
+    await _commit(_data.copyWith(gameStats: _data.gameStats.reset()));
   }
 
   /// Records a finished game. Returns achievements unlocked by it.

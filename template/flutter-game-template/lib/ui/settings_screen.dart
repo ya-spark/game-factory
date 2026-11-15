@@ -374,6 +374,41 @@ class SettingsScreen extends StatelessWidget {
                     onTap: () => s.links.openUrl(s.config.web.playStoreUrl),
                   ),
                 ),
+              if (s.config.gameStats.enabled)
+                KidPanel(
+                  child: ListTile(
+                    key: TestIds.settingsResetStats,
+                    leading: const Icon(Icons.restart_alt),
+                    title: const Text('Reset game stats'),
+                    subtitle: const Text(
+                      'Clears history, averages and times. Best scores, coins and achievements stay.',
+                    ),
+                    onTap: () async {
+                      final yes = await showDialog<bool>(
+                        context: context,
+                        builder: (ctx) => AlertDialog(
+                          title: const Text('Reset game stats?'),
+                          content: const Text(
+                            'This clears your history, averages and times. Your best scores, coins and achievements stay.',
+                          ),
+                          actions: [
+                            TextButton(
+                              key: TestIds.settingsResetStatsCancel,
+                              onPressed: () => Navigator.of(ctx).pop(false),
+                              child: const Text('Cancel'),
+                            ),
+                            TextButton(
+                              key: TestIds.settingsResetStatsConfirm,
+                              onPressed: () => Navigator.of(ctx).pop(true),
+                              child: const Text('Reset'),
+                            ),
+                          ],
+                        ),
+                      );
+                      if (yes == true) await p.resetGameStats();
+                    },
+                  ),
+                ),
               if (s.config.privacyUrl.isNotEmpty)
                 KidPanel(
                   child: ListTile(

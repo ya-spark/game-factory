@@ -402,6 +402,8 @@ def apply_profile_config(out: Path, profile: str, audience: str) -> None:
         _set_key(cfg, "exam_practice", "enabled", "true" if audience == "teen" else "false")
     if profile == "mind":
         _set_key(cfg, "minigames", "coin_price", "300")
+        # M2: per-game stats, the Stats page and the "New personal best" message.
+        _set_key(cfg, "game_stats", "enabled", "true")
         text = cfg.read_text(encoding="utf-8")
         new, n = re.subn(r"(  stars:\n    enabled:) true", r"\1 false", text, count=1)
         if n == 0:

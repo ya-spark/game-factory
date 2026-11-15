@@ -39,6 +39,7 @@ Future<Services> buildFakeServices({
   bool goalsParentArea = false, // goals_reminders.parent_area (the Craft apps)
   bool settingsReminderRow = true, // goals_reminders.settings_row
   bool examPractice = false, // exam_practice.enabled (Champion)
+  bool gameStats = false, // game_stats.enabled (the Mind hubs)
   String?
   audience, // child | teen | adult: overrides `audience:` of app.config.yaml
 }) async {
@@ -77,6 +78,10 @@ Future<Services> buildFakeServices({
     RegExp(r'exam_practice:\n  enabled: (true|false)'),
     'exam_practice:\n  enabled: $examPractice',
   );
+  yaml = yaml.replaceFirst(
+    RegExp(r'game_stats:\n  enabled: (true|false)'),
+    'game_stats:\n  enabled: $gameStats',
+  );
   if (webPlayStoreUrl.isNotEmpty) {
     yaml = yaml.replaceFirst(
       'play_store_url: ""',
@@ -90,6 +95,7 @@ Future<Services> buildFakeServices({
   final profile = ProfileStore(
     saves: profileSaves ?? MemorySaveService(),
     retention: config.retention,
+    gameStatsEnabled: config.gameStats.enabled,
     cappedRewards: config.content.enabled && config.rewards.starsEnabled
         ? config.rewards
         : null,

@@ -27,6 +27,7 @@ export 'family/play_time.dart';
 export 'family/progress_report.dart';
 export 'family/reminder_plan.dart';
 export 'family/text_size.dart';
+export 'stats/game_stats.dart';
 
 // Issue 1C1: minigames, rewards, AI tutor hook.
 export 'ai/ai_tutor.dart';

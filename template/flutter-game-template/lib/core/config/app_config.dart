@@ -163,6 +163,13 @@ class GoalsRemindersConfig {
   final bool settingsRow;
 }
 
+/// `game_stats:` in app.config.yaml (M2). On for the Mind hubs: per-game stats on the device, a
+/// Stats page opened from the Challenges tab and a "New personal best" message.
+class GameStatsConfig {
+  const GameStatsConfig({this.enabled = false});
+  final bool enabled;
+}
+
 /// `exam_practice:` in app.config.yaml (C7). On for Champion (teen Craft); off elsewhere.
 class ExamPracticeConfig {
   const ExamPracticeConfig({this.enabled = false});
@@ -363,6 +370,7 @@ class AppConfig {
     this.shop = const ShopConfig(),
     this.goalsReminders = const GoalsRemindersConfig(),
     this.examPractice = const ExamPracticeConfig(),
+    this.gameStats = const GameStatsConfig(),
     required this.playGames,
     this.share = const ShareConfig(),
     this.moreGames = const [],
@@ -411,6 +419,7 @@ class AppConfig {
   final ShopConfig shop;
   final GoalsRemindersConfig goalsReminders;
   final ExamPracticeConfig examPractice;
+  final GameStatsConfig gameStats;
   final PlayGamesConfig playGames;
   final ShareConfig share;
 
@@ -459,6 +468,7 @@ class AppConfig {
     final shop = (root['shop'] as YamlMap?) ?? YamlMap();
     final gr = (root['goals_reminders'] as YamlMap?) ?? YamlMap();
     final ep = (root['exam_practice'] as YamlMap?) ?? YamlMap();
+    final gs = (root['game_stats'] as YamlMap?) ?? YamlMap();
     final pg = (root['play_games'] as YamlMap?) ?? YamlMap();
     final share = (root['share'] as YamlMap?) ?? YamlMap();
     final more = (root['more_games'] as YamlList?) ?? YamlList();
@@ -549,6 +559,7 @@ class AppConfig {
         parentArea: gr['parent_area'] as bool? ?? false,
         settingsRow: gr['settings_row'] as bool? ?? true,
       ),
+      gameStats: GameStatsConfig(enabled: gs['enabled'] as bool? ?? false),
       examPractice: ExamPracticeConfig(
         enabled: ep['enabled'] as bool? ?? false,
       ),

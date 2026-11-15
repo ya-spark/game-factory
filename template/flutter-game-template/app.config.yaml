@@ -92,6 +92,11 @@ goals_reminders:
   parent_area: false
   settings_row: true
 
+# Per-game stats on the device, a Stats page opened from the Challenges tab and a calm "New personal
+# best" message (M2). The Mind hubs turn it on; the Craft apps keep it off.
+game_stats:
+  enabled: false
+
 # Exam practice in Study mode (C7): a timed set with a review at the end. Champion turns it on.
 exam_practice:
   enabled: false

@@ -259,3 +259,35 @@ the child retry after a wrong try.
 - Test IDs: `mgTile`, `mgSlot`, `mgCheck`, `mgClear`, `mgUndo`, `mgGiveUp`, `mgStartAlt`, `mgCell`,
   `mgClue`, `mgLetter`, `mgGrid` in `lib/ui/test_ids.dart`.
 - Tests: `test/engine/minigames/m4b_rules_test.dart`, `test/ui/minigames/m4b_screens_test.dart`.
+
+## Game stats (M2)
+
+Per-game personal stats for the hubs, behind `game_stats.enabled` in `app.config.yaml` (on for the Mind
+hubs via `new_game.py --profile mind`; off for the template default and the Craft apps). Device only: no
+sharing, no export, no backend.
+
+- **Rules** (`lib/engine/stats/game_stats.dart`, pure Dart): `RunReport` (game id, score, won or null,
+  seconds, mistakes, hints, variant), `GameStats.record(report, day, priorBest)` returns a `RunOutcome`
+  (`newBestScore`, `newFastestVariant`). Per game: plays, wins and win rate (only where the game has
+  wins), best score, average of the last **20** runs (`statsRunWindow`), fastest won solve per variant,
+  total active time, last played day, and the last 20 runs (day, score, seconds, won) for the trend.
+  Overview: time this week (last 7 days), total time, days played (per-day seconds kept for 28 days).
+- **New best**: needs an earlier best to beat (the first run, or the first solve of a variant, sets the
+  baseline; the tile's best counts as the baseline). The hub shows one calm line per run, after the
+  game screen has closed (`StandaloneRun.announce`), never during play.
+- **Timer rule**: `ActiveTimer` counts foreground seconds only (`ActiveTimeScope` pauses it when the app
+  leaves the foreground); each run on a screen is timed on its own (`lap`); a clock moved back counts
+  zero, never negative. A game that keeps its own seconds (a resumed puzzle) passes them in `RunExtras`.
+- **Report hook** (`lib/ui/run_report_scope.dart`): a game screen calls
+  `RunReportScope.report(context, RunExtras(won: ..., mistakes: ..., hints: ..., variant: ...))` right
+  before its existing `onScore(score)` call; the hub's `StandaloneRun` joins it with the score and the
+  measured seconds and calls `ProfileStore.recordRun` (before the tile best is updated). Outside a scope
+  it does nothing. Copied games report plays, best, average and time only, through their `host/` adapters.
+- **Stats page** (`lib/ui/stats_screen.dart`): opened from a row on the Challenges tab (not a tab);
+  overview plus one card per played game, with a trend line drawn in code and its text equivalent
+  ("Scores trending up, last 5: ..."). `StatsScreen.extraOverview` lets a hub add lines (Ember: daily puzzles).
+- **Reset**: Settings, "Reset game stats", with a confirmation. `GameStats.reset()` clears history, averages,
+  wins, times and days; best scores (tiles), coins and achievements stay.
+- **Save**: version 10 adds `gameStats`; older saves start with empty stats.
+- Tests: `test/engine/game_stats_test.dart`, `test/core/game_stats_save_test.dart`,
+  `test/ui/game_stats_ui_test.dart`.

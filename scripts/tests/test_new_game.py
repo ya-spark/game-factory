@@ -255,6 +255,11 @@ class ProfileTest(unittest.TestCase):
             cfg = (self.gen(name=f"x{n}", **kw) / "app.config.yaml").read_text()
             self.assertIn("exam_practice:\n  enabled: false", cfg)
 
+    def test_game_stats_flag(self):
+        for n, (kw, want) in enumerate(((dict(profile="craft", audience="child"), "false"), (dict(profile="puzzle"), "false"), (dict(profile="mind", audience="adult"), "true"))):
+            cfg = (self.gen(name=f"gs{n}", **kw) / "app.config.yaml").read_text()
+            self.assertIn(f"game_stats:\n  enabled: {want}", cfg)
+
     def check_design(self, out, design_id, family, font_files, other_font, has_art):
         """Only this game's design files are copied; every file is licensed; pubspec lists them."""
         self.assertFalse((out / "design").exists())
