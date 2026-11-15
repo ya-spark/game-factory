@@ -269,7 +269,7 @@ class SettingsScreen extends StatelessWidget {
                     onTap: () => s.share.shareApp(bestScore: p.data.bestScore),
                   ),
                 ),
-              if (s.ads.privacyOptionsRequired)
+              if (s.ads.privacyOptionsRequired && !s.webShell)
                 KidPanel(
                   child: ListTile(
                     key: TestIds.settingsPrivacy,

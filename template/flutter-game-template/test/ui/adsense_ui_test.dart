@@ -66,6 +66,8 @@ void main() {
     await tester.tap(row);
     await tester.pump();
     expect(ads.shown, 1);
+    // One privacy row on web, not two.
+    expect(find.byKey(TestIds.settingsPrivacy), findsNothing);
   });
 
   testWidgets('no consent dialog: a calm message, nothing opens', (
