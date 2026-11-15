@@ -16,12 +16,14 @@ apps:
     repo: ya-spark/game-wingy
     package: com.activemindcraft.wingy
     status: draft
-  - id: craft_lowteen
-    repo: ya-spark/game-craft-lowteen
+  # NOTE (owner, 2026-11-15): the repo names follow the AUDIENCE (preteen = Scout, Years 0-6; lowteen = Ranger,
+  # Years 7-10); the app ids craft_lowteen and craft_preteen are historical and stay as they are in the code.
+  - id: craft_lowteen          # Craft Scout
+    repo: ya-spark/game-craft-preteen
     package: com.activemindcraft.craftscout
     status: draft
-  - id: craft_preteen
-    repo: ya-spark/game-craft-preteen
+  - id: craft_preteen          # Craft Ranger
+    repo: ya-spark/game-craft-lowteen
     package: com.activemindcraft.craftranger
     status: draft
   - id: craft_highteen
