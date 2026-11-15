@@ -6,10 +6,15 @@ tmp="$(mktemp -d)"
 trap 'rm -rf "$tmp"' EXIT
 fails=0
 
-# case <name> <expected 0|1> <sed expression applied to the template config>
+# NORM resets a repo's own profile to the plain adult template state, so every case below starts from the same
+# config whether this runs in the template or in a child, teen or adult game repo.
+NORM='s/^audience: [a-z]+/audience: adult/; s/^  age_treatment: [a-z]+/  age_treatment: none/; s/^  child_directed: (true|false)/  child_directed: false/; s/^  rewarded_enabled: (true|false)/  rewarded_enabled: true/; s/^  max_ad_content_rating: [A-Z]+/  max_ad_content_rating: PG/; s/^  interstitials_enabled: (true|false)/  interstitials_enabled: false/; /^play_games:/,/^[^ #]/ s/^  enabled: (true|false)/  enabled: false/; /^adsense:/,/^[^ #]/ s/^  enabled: (true|false)/  enabled: false/'
+
+# case <name> <expected 0|1> <sed expression applied after NORM>
 run_case() {
   local name="$1" expected="$2" expr="$3"
   cp "$root/app.config.yaml" "$tmp/c.yaml"
+  sed -i -E "$NORM" "$tmp/c.yaml"
   [ -n "$expr" ] && sed -i -E "$expr" "$tmp/c.yaml"
   PROFILE_CONFIG="$tmp/c.yaml" bash "$root/scripts/profile_check.sh" >/dev/null 2>&1
   local rc=$?
@@ -47,9 +52,6 @@ parent_gate:\
   purchases: true\
   coin_spends: false'
 # AdSense (X2b): the age treatment must match the audience when AdSense is switched on.
-# NORM resets an app's own profile to the plain adult template state, so the cases below also hold
-# when this self-test runs in a game repo (child or teen app) and not only in the template.
-NORM='s/^audience: [a-z]+/audience: adult/; s/^  age_treatment: [a-z]+/  age_treatment: none/; s/^  child_directed: (true|false)/  child_directed: false/; s/^  rewarded_enabled: (true|false)/  rewarded_enabled: true/; s/^  max_ad_content_rating: [A-Z]+/  max_ad_content_rating: PG/'
 ASON='/^adsense:/,/^[^ #]/ s/^  enabled: false/  enabled: true/'
 run_case "adult with adsense on and treatment none passes" 0 "$NORM; $ASON"
 run_case "child with adsense on, treatment child passes" 0 "$NORM; $CHILD; $ASON; /^adsense:/,/^[^ #]/ s/^  age_treatment: none/  age_treatment: child/"
