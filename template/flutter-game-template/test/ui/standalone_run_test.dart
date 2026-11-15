@@ -29,11 +29,17 @@ void main() {
 
   test('a game that reports once per run is not counted twice', () async {
     final p = await _store();
-    final run = StandaloneRun(profile: p, gameId: 'g', title: 'G');
+    final run = StandaloneRun(
+      profile: p,
+      gameId: 'g',
+      title: 'G',
+      reportsRuns: true,
+    );
     await run.wrapForTest(
       (sink) => sink(30, const RunExtras(won: true, variant: 'Hard')),
     );
     await run.onScore(30);
+    await run.onScore(31);
     final e = p.data.gameStats.entry('g');
     expect(e.plays, 1);
     expect(e.wins, 1);

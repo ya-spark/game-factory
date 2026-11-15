@@ -83,13 +83,17 @@ class StandaloneRun {
     required this.profile,
     required this.gameId,
     required this.title,
+    this.reportsRuns = false,
   }) : timer = ActiveTimer(() => profile.trustedNow);
 
   final ProfileStore profile;
   final String gameId;
   final String title;
   final ActiveTimer timer;
-  bool _reports = false;
+
+  /// The game reports its own runs through [RunReportScope] (the hub-native games): its plain
+  /// `onScore` call is then not a run (Merge calls it on every move).
+  final bool reportsRuns;
 
   /// Wraps the game screen: foreground timing and the report hook.
   Widget wrap(Widget screen) => ActiveTimeScope(
@@ -107,14 +111,13 @@ class StandaloneRun {
   }
 
   Future<void> _finished(int score, RunExtras x) {
-    _reports = true;
     return _record(score, x);
   }
 
-  /// The game's plain score call. A game that reports through [RunReportScope] has already been
-  /// recorded; the others (the copied games) are recorded here, once per call.
+  /// The game's plain score call. A game that reports through [RunReportScope] ([reportsRuns])
+  /// is recorded there; the others (the copied games) are recorded here, once per call.
   Future<void> onScore(int score) =>
-      _reports ? Future.value() : _record(score, null);
+      reportsRuns ? Future.value() : _record(score, null);
 
   /// Each run on a screen is timed on its own.
   Future<void> _record(int score, RunExtras? x) {

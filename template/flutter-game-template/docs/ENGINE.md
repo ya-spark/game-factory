@@ -283,7 +283,7 @@ sharing, no export, no backend.
   once per finished run, right before its existing `onScore(score)` call (a game whose `onScore` fires on
   every move, like Merge, calls it only when the run is over). The hub's `StandaloneRun` joins it with the
   measured seconds and calls `ProfileStore.recordRun` (before the tile best is updated); `onScore` alone
-  records the games that never call the hook (the copied games: plays, best, average and time only,
+  records the games that do not report (`reportsRuns` false; the copied games: plays, best, average and time only,
   through their `host/` adapters). Outside a scope the hook does nothing.
 - **Stats page** (`lib/ui/stats_screen.dart`): opened from a row on the Challenges tab (not a tab);
   overview plus one card per played game, with a trend line drawn in code and its text equivalent
