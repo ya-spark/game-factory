@@ -106,6 +106,8 @@ abstract final class TestIds {
   static const settingsVibration = Key('settings.vibration');
   static const settingsReminders = Key('settings.reminders');
   static const settingsPrivacy = Key('settings.privacy');
+  static const settingsAdChoices = Key('settings.adChoices'); // web only (X2b)
+  static Key adSlot(String placementName) => Key('ads.slot.$placementName');
   static const settingsPlayGames = Key('settings.playGames');
   static const settingsVolume = Key('settings.volume');
   static const settingsAmbience = Key('settings.ambience');

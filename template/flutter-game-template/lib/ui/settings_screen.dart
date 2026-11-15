@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
+import '../core/ads/adsense_plan.dart';
 import '../core/audio/audio_service.dart';
 import '../core/config/app_config.dart';
 import '../core/services.dart';
@@ -274,6 +275,31 @@ class SettingsScreen extends StatelessWidget {
                     key: TestIds.settingsPrivacy,
                     title: const Text('Ad privacy options'),
                     onTap: s.ads.showPrivacyOptions,
+                  ),
+                ),
+              if (AdSensePlan.showPrivacyChoicesRow(
+                s.config.adsense,
+                web: s.webShell,
+              ))
+                KidPanel(
+                  child: ListTile(
+                    key: TestIds.settingsAdChoices,
+                    leading: const Icon(Icons.privacy_tip_outlined),
+                    title: const Text('Ad privacy choices'),
+                    onTap: () async {
+                      final messenger = ScaffoldMessenger.of(context);
+                      if (!s.ads.privacyOptionsRequired) {
+                        messenger.showSnackBar(
+                          const SnackBar(
+                            content: Text(
+                              'There are no ad choices to change right now.',
+                            ),
+                          ),
+                        );
+                        return;
+                      }
+                      await s.ads.showPrivacyOptions();
+                    },
                   ),
                 ),
               if (s.config.playGames.enabled && !kIsWeb)

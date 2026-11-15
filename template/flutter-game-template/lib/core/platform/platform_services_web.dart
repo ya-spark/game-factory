@@ -2,6 +2,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../engine/engine.dart';
 import '../ads/ad_service.dart';
+import '../ads/adsense_ad_service.dart';
 import '../config/app_config.dart';
 import '../config/products.dart';
 import '../content/connectivity_probe.dart';
@@ -19,9 +20,10 @@ const bool isWebBuild = true;
 /// Every game's web copy shares one origin, so each keeps its keys under `<app id>.`.
 String? preferencesPrefix(AppConfig config) => webStoragePrefix(config.appId);
 
-/// Web build (a test copy on the Hostinger VPS). No vendor SDK is imported here: ads, billing,
-/// Play Games and notifications do not exist in a browser, so they are stubs that do nothing and
-/// say so. Progress is kept in the browser's local storage (SharedPreferences).
+/// Web build (a test copy on the Hostinger VPS). No vendor SDK is imported here: billing, Play
+/// Games and notifications do not exist in a browser, so they are stubs that do nothing and say
+/// so. Ads are Google AdSense (`AdSenseAdService`), and only when `adsense.enabled` with a real
+/// publisher id; otherwise `NoAdService`. Progress is kept in the browser's local storage (SharedPreferences).
 CloudSaveBackend createCloudSave(AppConfig config) => const NoCloudSave();
 
 IdentityService createIdentity(AppConfig config, SharedPreferences prefs) =>
@@ -36,7 +38,12 @@ AdService createAdService(
   AppConfig config, {
   required bool release,
   required bool adsRemoved,
-}) => NoAdService();
+}) => config.adsense.isLive
+    ? AdSenseAdService(
+        config: config.adsense,
+        bannerEnabled: config.adPacing.bannerEnabled,
+      )
+    : NoAdService();
 
 PurchaseService createPurchaseService(ProductCatalog catalog) =>
     UnavailablePurchaseService();

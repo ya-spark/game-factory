@@ -352,6 +352,16 @@ class ProfileTest(unittest.TestCase):
         self.assertIn("audience: adult",
                       (self.gen("b", profile="mind") / "app.config.yaml").read_text())
 
+    def test_adsense_age_treatment_follows_the_audience(self):
+        for kw, want in ((dict(profile="craft"), "child"),
+                         (dict(profile="craft", audience="teen"), "teen"),
+                         (dict(profile="mind"), "none"),
+                         (dict(profile="puzzle"), "none")):
+            cfg = (self.gen("t" + want + str(len(kw)) + kw["profile"], **kw) / "app.config.yaml").read_text()
+            self.assertIn(f"age_treatment: {want}", cfg, kw)
+            self.assertIn("adsense:\n  enabled: false", cfg)
+            self.assertIn("test_mode: true", cfg)
+
     def test_bad_combinations_refused(self):
         for kw in (dict(profile="mind", audience="child"), dict(profile="craft", audience="adult"),
                    dict(profile="x"), dict(audience="kid"), dict(ci="maybe"),

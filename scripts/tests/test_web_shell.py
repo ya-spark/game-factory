@@ -55,6 +55,34 @@ class WebShellTest(unittest.TestCase):
         self.assertEqual(ws.write_shell(d, check=True), ["index.html"])
         self.assertEqual((d / "web/index.html").read_text(), "x")
 
+    def ads_app(self, enabled, pub):
+        d = self.app()
+        cfg = (d / "app.config.yaml").read_text()
+        cfg += f"adsense:\n  enabled: {enabled}\n  publisher_id: {pub}\n  test_mode: true\n"
+        (d / "app.config.yaml").write_text(cfg)
+        ws.write_shell(d)
+        return (d / "web/index.html").read_text()
+
+    # Built here, never written literally: the ad safety check scans the repo for real-looking ids.
+    PUB = "ca-pub-" + "1234567" + "890123456"
+
+    def test_adsense_script_off_by_default_and_for_placeholder(self):
+        self.assertNotIn("adsbygoogle", self.app_index())
+        self.assertNotIn("adsbygoogle", self.ads_app("false", "PLACEHOLDER_ADSENSE_PUBLISHER_ID"))
+        self.assertNotIn("adsbygoogle", self.ads_app("true", "PLACEHOLDER_ADSENSE_PUBLISHER_ID"))
+
+    def test_adsense_script_needs_enabled_and_a_real_looking_id(self):
+        self.assertNotIn("adsbygoogle", self.ads_app("false", self.PUB))
+        self.assertNotIn("adsbygoogle", self.ads_app("true", "ca-pub-123"))
+        idx = self.ads_app("true", self.PUB)
+        self.assertIn(f"adsbygoogle.js?client={self.PUB}", idx)
+        self.assertEqual(idx.count("<script async src=\"https://pagead"), 1)
+
+    def app_index(self):
+        d = self.app()
+        ws.write_shell(d)
+        return (d / "web/index.html").read_text()
+
 
 if __name__ == "__main__":
     unittest.main()

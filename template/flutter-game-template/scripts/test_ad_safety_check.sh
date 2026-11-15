@@ -35,4 +35,12 @@ run_case "banner built outside AdService fails" 1 "mkdir -p lib/ui && echo 'fina
 run_case "child app without rewarded ads passes" 0 "sed -i '$CHILD' app.config.yaml"
 run_case "child app with rewarded ads fails" 1 "sed -i '$CHILD; s/^  rewarded_enabled: false/  rewarded_enabled: true/' app.config.yaml"
 run_case "child app without a parent gate in the shop fails" 1 "sed -i '$CHILD' app.config.yaml; sed -i 's/showParentGate/skipGate/' lib/ui/shop_screen.dart"
+# AdSense (X2b): a real-looking publisher id is built here, never written literally, so this file
+# does not trip the check itself.
+PUB="ca-pub-$(printf '%s%s' 1234567 890123456)"
+run_case "real AdSense publisher id in app.config.yaml fails" 1 "sed -i 's|publisher_id: PLACEHOLDER_ADSENSE_PUBLISHER_ID|publisher_id: $PUB|' app.config.yaml"
+run_case "real AdSense publisher id in lib/ fails" 1 "mkdir -p lib && echo \"const p = '$PUB';\" > lib/leak.dart"
+run_case "real AdSense publisher id in a web file fails" 1 "mkdir -p web && echo '<script src=\"x?client=$PUB\"></script>' > web/index.html"
+run_case "adsense test_mode false fails" 1 "sed -i 's/^  test_mode: true/  test_mode: false/' app.config.yaml"
+run_case "AdSense placeholders pass" 0 ":"
 exit $fails

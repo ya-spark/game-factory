@@ -263,6 +263,64 @@ class WebConfig {
   bool get hasPlayStoreLink => playStoreUrl.isNotEmpty;
 }
 
+/// Google's Tag for Age Treatment (TFAT), `data-tag-for-age-treatment` on the ad element:
+/// 1 = child, 2 = teen, 0 = unspecified (AdSense help, "Tag for age treatment").
+enum AgeTreatment {
+  none('none', 0),
+  child('child', 1),
+  teen('teen', 2);
+
+  const AgeTreatment(this.configName, this.attributeValue);
+  final String configName;
+  final int attributeValue;
+
+  static AgeTreatment parse(String? v) => switch (v) {
+    'child' => child,
+    'teen' => teen,
+    _ => none,
+  };
+}
+
+/// `adsense:` in `app.config.yaml` (X2b): Google AdSense on the web copy only. Placeholders in
+/// the repo; the owner adds the real ids. Pure Dart.
+class AdSenseConfig {
+  const AdSenseConfig({
+    this.enabled = false,
+    this.publisherId = 'PLACEHOLDER_ADSENSE_PUBLISHER_ID',
+    this.testMode = true,
+    this.ageTreatment = AgeTreatment.none,
+    this.slots = const {},
+  });
+
+  final bool enabled;
+  final String publisherId;
+
+  /// Adds `data-adtest="on"`. True in every build from the repo.
+  final bool testMode;
+  final AgeTreatment ageTreatment;
+
+  /// Ad slot id per placement `configName` (menu, pre_game, post_game).
+  final Map<String, String> slots;
+
+  /// A real publisher id looks like `ca-pub-` and 16 digits.
+  static final RegExp publisherPattern = RegExp(r'^ca-pub-\d{16}$');
+
+  bool get hasRealPublisherId => publisherPattern.hasMatch(publisherId);
+
+  /// The script is injected and units may be requested only when switched on AND the id is real.
+  /// Same rule as `scripts/web_shell.py`.
+  bool get isLive => enabled && hasRealPublisherId;
+
+  /// Child and teen treatment mean non-personalised ads only.
+  bool get nonPersonalisedOnly => ageTreatment != AgeTreatment.none;
+
+  String? slotFor(AdPlacement placement) {
+    final s = slots[placement.configName];
+    if (s == null || s.isEmpty || s.startsWith('PLACEHOLDER')) return null;
+    return s;
+  }
+}
+
 class PlayGamesConfig {
   const PlayGamesConfig({
     this.enabled = false,
@@ -383,7 +441,11 @@ class AppConfig {
     this.speech = const SpeechConfig(),
     this.privacyUrl = '',
     this.web = const WebConfig(),
+    this.adsense = const AdSenseConfig(),
   });
+
+  /// Google AdSense on the web copy (`adsense:`).
+  final AdSenseConfig adsense;
 
   /// The web copy's page settings (`web:`).
   final WebConfig web;
@@ -483,6 +545,8 @@ class AppConfig {
     final policy = AudiencePolicy(audience);
     final speech = (root['speech'] as YamlMap?) ?? YamlMap();
     final webCfg = (root['web'] as YamlMap?) ?? YamlMap();
+    final adsense = (root['adsense'] as YamlMap?) ?? YamlMap();
+    final adsenseSlots = (adsense['slots'] as YamlMap?) ?? YamlMap();
     return AppConfig(
       audience: audience,
       speech: SpeechConfig(
@@ -511,6 +575,25 @@ class AppConfig {
       displayName: app['display_name'] as String,
       packageName: app['package_name'] as String,
       privacyUrl: app['privacy_url'] as String? ?? '',
+      adsense: AdSenseConfig(
+        enabled: adsense['enabled'] as bool? ?? false,
+        publisherId:
+            (adsense['publisher_id'] as String? ??
+                    'PLACEHOLDER_ADSENSE_PUBLISHER_ID')
+                .trim(),
+        testMode: adsense['test_mode'] as bool? ?? true,
+        // A child or teen app always gets its treatment, whatever the file says.
+        ageTreatment: switch (audience) {
+          Audience.child => AgeTreatment.child,
+          Audience.teen => AgeTreatment.teen,
+          Audience.adult => AgeTreatment.parse(
+            adsense['age_treatment'] as String?,
+          ),
+        },
+        slots: {
+          for (final e in adsenseSlots.entries) '${e.key}': '${e.value}'.trim(),
+        },
+      ),
       web: WebConfig(
         description: (webCfg['description'] as String? ?? '').trim(),
         indexable: webCfg['indexable'] as bool? ?? false,

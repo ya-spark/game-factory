@@ -52,6 +52,24 @@ admob:
     interstitial: PLACEHOLDER_ADMOB_INTERSTITIAL_ID
     rewarded: PLACEHOLDER_ADMOB_REWARDED_ID
 
+# Google AdSense on the web copy only (X2b). Nothing is served until the owner turns it on: the
+# AdSense script is added to web/index.html (scripts/web_shell.py) only when enabled is true AND
+# publisher_id is a real ca-pub-<16 digits> value. Placeholders only in the repo: a real publisher
+# id never belongs in git (scripts/ad_safety_check.sh fails on one). Units show only at the menu,
+# before a game and after a game, never in play. test_mode: true adds data-adtest="on" and must
+# stay true in every build from the repo. age_treatment is Google's Tag for Age Treatment
+# (data-tag-for-age-treatment): child (1) or teen (2) also mean non-personalised ads only.
+# child | teen | none must match the audience profile (scripts/profile_check.sh).
+adsense:
+  enabled: false
+  publisher_id: PLACEHOLDER_ADSENSE_PUBLISHER_ID # ca-pub-XXXXXXXXXXXXXXXX
+  test_mode: true
+  age_treatment: none # child | teen | none
+  slots:
+    menu: PLACEHOLDER_ADSENSE_SLOT_MENU
+    pre_game: PLACEHOLDER_ADSENSE_SLOT_PRE_GAME
+    post_game: PLACEHOLDER_ADSENSE_SLOT_POST_GAME
+
 # Ad pacing (see lib/core/ads/ad_frequency.dart).
 ads:
   interstitial_min_interval_seconds: 90

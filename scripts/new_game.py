@@ -384,6 +384,8 @@ def _set_key(path: Path, section: str | None, key: str, value: str) -> None:
 def apply_profile_config(out: Path, profile: str, audience: str) -> None:
     cfg = out / "app.config.yaml"
     _set_key(cfg, None, "audience", audience)
+    # X2b: the AdSense Tag for Age Treatment follows the audience (child, teen; adult = none).
+    _set_key(cfg, "adsense", "age_treatment", {"child": "child", "teen": "teen"}.get(audience, "none"))
     if profile == "puzzle":
         return
     directed = "true" if audience in ("child", "teen") else "false"

@@ -35,6 +35,7 @@ Future<Services> buildFakeServices({
   bool webShell =
       false, // the web build: no real-money items, browser-only save note
   String webPlayStoreUrl = '', // web.play_store_url
+  bool adsenseEnabled = false, // adsense.enabled (web ad privacy row)
   NotificationService? notifications,
   bool goalsParentArea = false, // goals_reminders.parent_area (the Craft apps)
   bool settingsReminderRow = true, // goals_reminders.settings_row
@@ -86,6 +87,12 @@ Future<Services> buildFakeServices({
     yaml = yaml.replaceFirst(
       'play_store_url: ""',
       'play_store_url: "$webPlayStoreUrl"',
+    );
+  }
+  if (adsenseEnabled) {
+    yaml = yaml.replaceFirst(
+      RegExp(r'adsense:\n  enabled: false'),
+      'adsense:\n  enabled: true',
     );
   }
   final config = AppConfig.fromYamlString(yaml);

@@ -4,6 +4,8 @@
 #      app.config.yaml admob.debug.*, android debug manifests, lib/ sources, tests;
 #   2. a Google TEST AdMob ID appears in release config (app.config.yaml admob.release.*).
 # Test IDs belong to Google's sample publisher ca-app-pub-3940256099942544.
+#   3. (X2b) a real AdSense publisher id (ca-pub- and 16 digits) appears anywhere in the repo, or
+#      app.config.yaml has adsense.test_mode: false. Placeholders only; the owner adds real ids.
 # Run from the game repo root:  bash scripts/ad_safety_check.sh
 set -euo pipefail
 cd "$(dirname "$0")/.."
@@ -99,6 +101,15 @@ if [ -d lib ]; then
   hits="$(grep -rnE 'BannerAd\(|AdWidget\(' lib | grep -v 'lib/core/ads/admob_ad_service.dart' || true)"
   [ -z "$hits" ] || err "banner ads must be built only by AdService.buildBanner(placement): $(echo "$hits" | head -3 | tr '\n' ' ')"
 fi
+
+# 4. AdSense (X2b): no real publisher id anywhere in the repo (config, sources, tests, docs, web
+#    shell, scripts), and test mode stays on in every build from the repo.
+PUB_RE='ca-pub-[0-9]{16}'
+while IFS= read -r hit; do
+  [ -z "$hit" ] && continue
+  err "real AdSense publisher id in the repo (placeholders only): ${hit%%:*}"
+done < <(grep -rlE "$PUB_RE" . --exclude-dir=.git --exclude-dir=build --exclude-dir=.dart_tool --exclude-dir=node_modules 2>/dev/null || true)
+[ "$(val adsense test_mode)" != "false" ] || err "$CONFIG adsense.test_mode must not be false (every build from the repo is a test build)"
 
 if [ "$fail" -ne 0 ]; then
   echo "AD SAFETY: FAILED" >&2

@@ -9,7 +9,9 @@ the 192px icon), a calm loading screen that goes away on the first Flutter frame
 manifest name, and `noindex, nofollow` unless `web.indexable: true`. The "Get the Android app" link
 is on the loading screen only when `web.play_store_url` is set. Idempotent: a second run changes
 nothing. `--check` writes nothing and exits 1 when a file would change (used by CI and the tests).
-No ad code and no third-party script: the page loads only the Flutter bundle.
+Ads (X2b): the Google AdSense script tag is written only when `adsense.enabled` is true AND
+`adsense.publisher_id` is a real `ca-pub-` + 16 digits value (see `adsense_live`), so every build
+from the repo (placeholder id) loads only the Flutter bundle and no third-party script.
 
 Needs PyYAML-free parsing on purpose (the script runs in plain Python): it reads the few keys it
 needs with a tiny line parser, see `read_config`.
@@ -35,7 +37,8 @@ def _scalar(v: str) -> str:
 
 def read_config(text: str) -> dict:
     """Reads app.display_name, theme.seed_color and the web: block (two-space indented scalars)."""
-    out = {"display_name": "", "seed_color": "#2EC4B6", "description": "", "indexable": False, "play_store_url": ""}
+    out = {"display_name": "", "seed_color": "#2EC4B6", "description": "", "indexable": False, "play_store_url": "",
+           "adsense_enabled": False, "adsense_publisher_id": ""}
     section = None
     for raw in text.splitlines():
         if not raw.strip() or raw.lstrip().startswith("#"):
@@ -52,6 +55,11 @@ def read_config(text: str) -> dict:
             out["display_name"] = val
         elif section == "theme" and key == "seed_color":
             out["seed_color"] = val
+        elif section == "adsense":
+            if key == "enabled":
+                out["adsense_enabled"] = val.lower() == "true"
+            elif key == "publisher_id":
+                out["adsense_publisher_id"] = val
         elif section == "web":
             if key == "description":
                 out["description"] = val
@@ -64,6 +72,14 @@ def read_config(text: str) -> dict:
     return out
 
 
+PUBLISHER_RE = re.compile(r"^ca-pub-\d{16}$")
+
+
+def adsense_live(c: dict) -> bool:
+    """The AdSense script is injected only when switched on AND the publisher id is real."""
+    return bool(c.get("adsense_enabled")) and bool(PUBLISHER_RE.match(c.get("adsense_publisher_id", "")))
+
+
 def render_index(c: dict) -> str:
     e = lambda s: html.escape(s, quote=True)  # noqa: E731
     name = e(c["display_name"])
@@ -73,6 +89,12 @@ def render_index(c: dict) -> str:
     link = ""
     if c["play_store_url"]:
         link = f'\n    <a class="get" href="{e(c["play_store_url"])}" rel="noopener">Get the Android app</a>'
+    ads = ""
+    if adsense_live(c):
+        ads = (
+            "\n  <!-- Google AdSense (adsense.enabled with a real publisher id in app.config.yaml) -->"
+            f'\n  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client={c["adsense_publisher_id"]}" crossorigin="anonymous"></script>'
+        )
     return f"""<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -106,7 +128,7 @@ def render_index(c: dict) -> str:
 
   <!-- Favicon and manifest -->
   <link rel="icon" type="image/png" href="favicon.png"/>
-  <link rel="manifest" href="manifest.json">
+  <link rel="manifest" href="manifest.json">{ads}
 
   <style>
     html, body {{ margin: 0; height: 100%; background: #101820; }}

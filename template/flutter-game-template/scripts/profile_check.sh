@@ -8,6 +8,8 @@
 #                   (parent_gate.purchases and parent_gate.coin_spends must not be false)
 #   child         : play_games.enabled false (no sign-in)
 #   adult         : ads.child_directed false
+#   adsense (X2b) : enabled true needs adsense.age_treatment child (child profile) or teen (teen
+#                   profile), never none; adsense.age_treatment is child | teen | none
 # Run from the game repo root:  bash scripts/profile_check.sh
 set -euo pipefail
 cd "$(dirname "$0")/.."
@@ -60,6 +62,18 @@ case "$audience" in
     [ "$directed" = "false" ] || err "adult profile: ads.child_directed must be false"
     ;;
 esac
+
+# AdSense on the web copy (X2b): the Tag for Age Treatment must match the audience, which also
+# means non-personalised ads only (the service requests that for child and teen).
+as_enabled="$(sub adsense enabled)"
+as_treatment="$(sub adsense age_treatment)"
+case "$as_treatment" in child | teen | none) ;; *) err "adsense.age_treatment must be child, teen or none (got '${as_treatment:-missing}')" ;; esac
+if [ "$as_enabled" = "true" ]; then
+  case "$audience" in
+    child) [ "$as_treatment" = "child" ] || err "child profile: adsense.enabled needs adsense.age_treatment: child (got '${as_treatment:-missing}')" ;;
+    teen)  [ "$as_treatment" = "teen" ]  || err "teen profile: adsense.enabled needs adsense.age_treatment: teen (got '${as_treatment:-missing}')" ;;
+  esac
+fi
 
 if [ "$fail" -ne 0 ]; then
   echo "PROFILE: FAILED" >&2

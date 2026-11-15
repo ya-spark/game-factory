@@ -46,4 +46,14 @@ run_case "teen with coin-spend gate off fails" 1 "$TEEN; "'$a\
 parent_gate:\
   purchases: true\
   coin_spends: false'
+# AdSense (X2b): the age treatment must match the audience when AdSense is switched on.
+ASON='/^adsense:/,/^[^ #]/ s/^  enabled: false/  enabled: true/'
+run_case "adult with adsense on and treatment none passes" 0 "$ASON"
+run_case "child with adsense on, treatment child passes" 0 "$CHILD; $ASON; /^adsense:/,/^[^ #]/ s/^  age_treatment: none/  age_treatment: child/"
+run_case "teen with adsense on, treatment teen passes" 0 "$TEEN; $ASON; /^adsense:/,/^[^ #]/ s/^  age_treatment: none/  age_treatment: teen/"
+run_case "child with adsense on, treatment none fails" 1 "$CHILD; $ASON"
+run_case "child with adsense on, treatment teen fails" 1 "$CHILD; $ASON; /^adsense:/,/^[^ #]/ s/^  age_treatment: none/  age_treatment: teen/"
+run_case "teen with adsense on, treatment none fails" 1 "$TEEN; $ASON"
+run_case "teen with adsense on, treatment child fails" 1 "$TEEN; $ASON; /^adsense:/,/^[^ #]/ s/^  age_treatment: none/  age_treatment: child/"
+run_case "unknown age treatment fails" 1 "s/^  age_treatment: none/  age_treatment: adult/"
 exit $fails
