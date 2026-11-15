@@ -101,7 +101,9 @@ class _PlayTabState extends State<PlayTab> {
   });
 
   void _reload() {
-    setState(() => _open = _loaders.openItems(widget.child.id));
+    setState(() {
+      _open = _loaders.openItems(widget.child.id);
+    });
     _loadPacks();
   }
 
