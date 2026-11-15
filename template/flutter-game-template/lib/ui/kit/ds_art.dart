@@ -1,155 +1,20 @@
 import 'package:flutter/material.dart';
 
 import '../test_ids.dart';
+import 'game_art_data.dart';
 import 'ds_svg.dart';
 
-/// Original tile art for every minigame and one shape per avatar, drawn as small SVGs held in
-/// code (simple shapes, theme colour through `currentColor`, no people). Listed in
-/// `assets/LICENSES.md`. A game without art here falls back to [fallbackGameArt].
+/// Tile art for every minigame (full-colour 96 by 96 SVGs with their own background, generated into
+/// `game_art_data.dart` by `scripts/gen_game_art.py`, never tinted) and one shape per avatar (small
+/// SVGs held in code, theme colour through `currentColor`, no people). Listed in `assets/LICENSES.md`. A game without art here falls back to [fallbackGameArt].
 const String fallbackGameArt = 'quick_quiz';
 
 String _svg(String body) =>
     '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" '
     'fill="currentColor">$body</svg>';
 
-/// Game id to art. Keys are the minigame ids.
-final Map<String, String> gameArt = {
-  'quick_quiz': _svg(
-    '<path d="M8 8h32a4 4 0 0 1 4 4v18a4 4 0 0 1-4 4H26l-9 8v-8H8a4 4 0 0 1-4-4V12a4 4 0 0 1 4-4z"/>'
-    '<path d="M20 15a4 4 0 1 1 6 3.5c-1.5 1-2 1.5-2 3" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" opacity=".9"/>'
-    '<circle cx="24" cy="27" r="2" fill="#fff"/>',
-  ),
-  'door_runner': _svg(
-    '<rect x="11" y="5" width="26" height="38" rx="3" opacity=".35"/>'
-    '<rect x="15" y="9" width="18" height="34" rx="2"/>'
-    '<circle cx="29" cy="27" r="2" fill="#fff"/>'
-    '<rect x="5" y="42" width="38" height="3" rx="1.5"/>',
-  ),
-  'balloon_pop': _svg(
-    '<ellipse cx="24" cy="19" rx="12" ry="15"/>'
-    '<path d="M21 34h6l-3 4z"/>'
-    '<path d="M24 38c-3 3 3 5 0 8" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>'
-    '<ellipse cx="19" cy="13" rx="3" ry="5" fill="#fff" opacity=".35"/>',
-  ),
-  'tug_of_war': _svg(
-    '<rect x="4" y="22" width="40" height="4" rx="2"/>'
-    '<rect x="21" y="14" width="6" height="20" rx="2" opacity=".6"/>'
-    '<circle cx="9" cy="24" r="5"/><circle cx="39" cy="24" r="5" opacity=".5"/>',
-  ),
-  'true_false': _svg(
-    '<circle cx="14" cy="24" r="10"/>'
-    '<path d="M9 24l4 4 7-8" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>'
-    '<circle cx="34" cy="24" r="10" opacity=".5"/>'
-    '<path d="M30 20l8 8M38 20l-8 8" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round"/>',
-  ),
-  'flash_review': _svg(
-    '<rect x="8" y="6" width="28" height="22" rx="4" opacity=".4" transform="rotate(-8 22 17)"/>'
-    '<rect x="12" y="16" width="28" height="22" rx="4"/>'
-    '<path d="M18 24h16M18 30h10" stroke="#fff" stroke-width="3" stroke-linecap="round"/>',
-  ),
-  'equation_builder': _svg(
-    '<path d="M8 20h12M14 14v12" stroke="currentColor" stroke-width="4" stroke-linecap="round"/>'
-    '<path d="M28 18h12M28 26h12" stroke="currentColor" stroke-width="4" stroke-linecap="round"/>'
-    '<rect x="6" y="34" width="36" height="6" rx="3" opacity=".4"/>',
-  ),
-  'cloze_fix': _svg(
-    '<rect x="4" y="12" width="14" height="6" rx="3"/>'
-    '<rect x="22" y="12" width="22" height="6" rx="3" opacity=".4"/>'
-    '<rect x="4" y="26" width="22" height="6" rx="3"/>'
-    '<rect x="30" y="25" width="14" height="8" rx="3" fill="none" stroke="currentColor" stroke-width="2" stroke-dasharray="3 2"/>',
-  ),
-  'word_grid': _svg(
-    '<rect x="5" y="5" width="12" height="12" rx="2"/><rect x="18" y="5" width="12" height="12" rx="2" opacity=".5"/>'
-    '<rect x="31" y="5" width="12" height="12" rx="2"/><rect x="5" y="18" width="12" height="12" rx="2" opacity=".5"/>'
-    '<rect x="18" y="18" width="12" height="12" rx="2"/><rect x="31" y="18" width="12" height="12" rx="2" opacity=".5"/>'
-    '<rect x="5" y="31" width="12" height="12" rx="2"/><rect x="18" y="31" width="12" height="12" rx="2" opacity=".5"/>'
-    '<rect x="31" y="31" width="12" height="12" rx="2"/>',
-  ),
-  'memory_match': _svg(
-    '<rect x="5" y="5" width="18" height="18" rx="4"/><rect x="25" y="5" width="18" height="18" rx="4" opacity=".4"/>'
-    '<rect x="5" y="25" width="18" height="18" rx="4" opacity=".4"/><rect x="25" y="25" width="18" height="18" rx="4"/>'
-    '<circle cx="14" cy="14" r="4" fill="#fff"/><circle cx="34" cy="34" r="4" fill="#fff"/>',
-  ),
-  'series_builder': _svg(
-    '<rect x="5" y="30" width="8" height="12" rx="2" opacity=".4"/>'
-    '<rect x="15" y="23" width="8" height="19" rx="2" opacity=".6"/>'
-    '<rect x="25" y="16" width="8" height="26" rx="2" opacity=".8"/>'
-    '<rect x="35" y="7" width="8" height="35" rx="2"/>',
-  ),
-  'word_builder': _svg(
-    '<rect x="3" y="16" width="12" height="16" rx="3"/><rect x="18" y="16" width="12" height="16" rx="3" opacity=".6"/>'
-    '<rect x="33" y="16" width="12" height="16" rx="3"/>'
-    '<rect x="3" y="36" width="42" height="3" rx="1.5" opacity=".4"/>',
-  ),
-  'sort_bins': _svg(
-    '<path d="M5 26h16l-2 16H7z"/><path d="M27 26h16l-2 16H29z" opacity=".5"/>'
-    '<circle cx="13" cy="14" r="5"/><circle cx="35" cy="14" r="5" opacity=".5"/>',
-  ),
-  // Hub games (Mind Ember, Mind Presto).
-  'block_puzzle': _svg(
-    '<rect x="5" y="5" width="12" height="12" rx="2"/><rect x="19" y="5" width="12" height="12" rx="2"/>'
-    '<rect x="5" y="19" width="12" height="12" rx="2"/><rect x="33" y="19" width="10" height="12" rx="2" opacity=".4"/>'
-    '<rect x="19" y="33" width="24" height="10" rx="2" opacity=".6"/>',
-  ),
-  'blockfall': _svg(
-    '<rect x="17" y="3" width="10" height="10" rx="2"/><rect x="17" y="15" width="10" height="10" rx="2" opacity=".5"/>'
-    '<rect x="27" y="15" width="10" height="10" rx="2" opacity=".5"/>'
-    '<rect x="5" y="31" width="10" height="12" rx="2"/><rect x="17" y="31" width="10" height="12" rx="2"/>'
-    '<rect x="29" y="31" width="14" height="12" rx="2" opacity=".7"/>',
-  ),
-  'sudoku': _svg(
-    '<rect x="5" y="5" width="38" height="38" rx="4" fill="none" stroke="currentColor" stroke-width="3"/>'
-    '<path d="M18 5v38M30 5v38M5 18h38M5 30h38" stroke="currentColor" stroke-width="2" opacity=".6"/>'
-    '<circle cx="12" cy="12" r="3"/><circle cx="24" cy="24" r="3"/><circle cx="36" cy="36" r="3"/>',
-  ),
-  'solitaire': _svg(
-    '<rect x="6" y="8" width="22" height="30" rx="4" opacity=".4" transform="rotate(-10 17 23)"/>'
-    '<rect x="16" y="8" width="22" height="30" rx="4"/>'
-    '<path d="M27 16l5 7-5 8-5-8z" fill="#fff"/>',
-  ),
-  'ball_sort': _svg(
-    '<path d="M6 8v30a4 4 0 0 0 4 4h6a4 4 0 0 0 4-4V8" fill="none" stroke="currentColor" stroke-width="3"/>'
-    '<path d="M28 8v30a4 4 0 0 0 4 4h6a4 4 0 0 0 4-4V8" fill="none" stroke="currentColor" stroke-width="3" opacity=".6"/>'
-    '<circle cx="13" cy="34" r="4"/><circle cx="13" cy="25" r="4" opacity=".5"/>'
-    '<circle cx="35" cy="34" r="4" opacity=".5"/>',
-  ),
-  'mahjong': _svg(
-    '<rect x="4" y="12" width="20" height="28" rx="4" opacity=".45"/>'
-    '<rect x="14" y="6" width="20" height="28" rx="4"/>'
-    '<circle cx="24" cy="20" r="6" fill="none" stroke="#fff" stroke-width="3"/>'
-    '<rect x="30" y="16" width="14" height="26" rx="4" opacity=".7"/>',
-  ),
-  'merge': _svg(
-    '<rect x="4" y="4" width="18" height="18" rx="4" opacity=".4"/><rect x="26" y="4" width="18" height="18" rx="4" opacity=".4"/>'
-    '<rect x="4" y="26" width="40" height="18" rx="4"/>'
-    '<path d="M13 22v-6M35 22v-6" stroke="currentColor" stroke-width="3" stroke-linecap="round"/>',
-  ),
-  'wingy': _svg(
-    '<rect x="2" y="2" width="9" height="18" rx="2" opacity=".5"/><rect x="2" y="30" width="9" height="16" rx="2" opacity=".5"/>'
-    '<path d="M15 26c4-10 14-14 26-12-4 4-6 8-6 10 4 0 6 2 8 4-12 2-20 2-28-2z"/>'
-    '<circle cx="34" cy="19" r="2" fill="#fff"/>',
-  ),
-  'snake': _svg(
-    '<path d="M8 38h20a8 8 0 0 0 0-16H20a4 4 0 0 1 0-8h16" fill="none" stroke="currentColor" stroke-width="6" stroke-linecap="round"/>'
-    '<circle cx="40" cy="14" r="4"/>',
-  ),
-  'bricks': _svg(
-    '<rect x="4" y="5" width="12" height="7" rx="2"/><rect x="18" y="5" width="12" height="7" rx="2" opacity=".5"/>'
-    '<rect x="32" y="5" width="12" height="7" rx="2"/><rect x="11" y="14" width="12" height="7" rx="2" opacity=".5"/>'
-    '<rect x="25" y="14" width="12" height="7" rx="2"/>'
-    '<circle cx="28" cy="31" r="3"/><rect x="14" y="40" width="20" height="4" rx="2"/>',
-  ),
-  'runner': _svg(
-    '<rect x="4" y="38" width="40" height="4" rx="2"/>'
-    '<rect x="28" y="28" width="9" height="10" rx="2" opacity=".6"/>'
-    '<circle cx="19" cy="20" r="8"/><path d="M13 17a8 8 0 0 1 8-4" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" opacity=".8"/>'
-    '<path d="M4 18h6M5 24h5M7 30h4" stroke="currentColor" stroke-width="2" stroke-linecap="round" opacity=".5"/>',
-  ),
-  'stack': _svg(
-    '<rect x="10" y="34" width="28" height="8" rx="2"/><rect x="13" y="25" width="24" height="8" rx="2" opacity=".75"/>'
-    '<rect x="14" y="16" width="20" height="8" rx="2" opacity=".55"/><rect x="21" y="7" width="20" height="8" rx="2" opacity=".35"/>',
-  ),
-};
+/// Game id to full-colour tile art, generated from `design/game_art/*.svg`.
+final Map<String, String> gameArt = gameArtData;
 
 /// Avatar id to a friendly shape (no people, no faces).
 final Map<String, String> avatarArt = {
@@ -197,20 +62,22 @@ final Map<String, String> avatarArt = {
 String _artFor(Map<String, String> m, String id, String fallback) =>
     m[id] ?? m[fallback]!;
 
-/// The tile art of the game [gameId].
+/// The tile art of the game [gameId]. Full colour, never tinted; [dimmed] fades it (locked game).
 class DsGameArt extends StatelessWidget {
-  const DsGameArt(this.gameId, {super.key, this.size, this.color});
+  const DsGameArt(this.gameId, {super.key, this.size, this.dimmed = false});
   final String gameId;
   final double? size;
-  final Color? color;
+  final bool dimmed;
 
   @override
-  Widget build(BuildContext context) => DsSvg.string(
-    _artFor(gameArt, gameId, fallbackGameArt),
-    key: TestIds.gameArt(gameId),
-    size: size,
-    color: color ?? DefaultTextStyle.of(context).style.color,
-  );
+  Widget build(BuildContext context) {
+    final art = DsSvg.string(
+      _artFor(gameArt, gameId, fallbackGameArt),
+      key: TestIds.gameArt(gameId),
+      size: size,
+    );
+    return dimmed ? Opacity(opacity: 0.45, child: art) : art;
+  }
 }
 
 /// The shape of the avatar [avatarId].

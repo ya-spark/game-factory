@@ -367,9 +367,7 @@ class _PlayTabState extends State<PlayTab> {
       child: DsGameTile(
         id: id,
         title: e.game.title,
-        art: Center(
-          child: DsGameArt(e.game.id, size: t.size('icon_lg'), color: t.text),
-        ),
+        art: Center(child: DsGameArt(e.game.id, size: 60, dimmed: locked)),
         badge: badge,
         stars: locked ? null : gameStars(stat, e.pool),
         progress: locked

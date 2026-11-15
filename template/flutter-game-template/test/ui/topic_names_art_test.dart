@@ -4,6 +4,8 @@ import 'package:flutter_game_template/engine/engine.dart';
 import 'package:flutter_game_template/ui/game_registry.dart';
 import 'package:flutter_game_template/ui/kit/ds_art.dart';
 import 'package:flutter_game_template/ui/tabs/tab_data.dart';
+import 'package:flutter_game_template/ui/test_ids.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 LoadedPack _pack(String topic, String title, {String? product}) => LoadedPack(
@@ -70,6 +72,38 @@ void main() {
       }
     });
 
+    testWidgets('every game art parses with flutter_svg', (tester) async {
+      await tester.runAsync(() async {
+        for (final e in gameArt.entries) {
+          expect(e.value, isNot(contains('currentColor')), reason: e.key);
+          // Throws on a parse error or an unsupported feature.
+          await vg.loadPicture(SvgStringLoader(e.value), null);
+        }
+      });
+    });
+
+    testWidgets('every game art renders untinted without error', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        MaterialApp(
+          home: SingleChildScrollView(
+            child: Wrap(
+              children: [
+                for (final id in gameArt.keys) DsGameArt(id, size: 60),
+              ],
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+      expect(tester.takeException(), isNull);
+      for (final id in gameArt.keys) {
+        expect(find.byKey(TestIds.gameArt(id)), findsOneWidget, reason: id);
+      }
+      expect(find.byType(ColorFiltered), findsNothing);
+    });
+
     test('tiles of different games are not the same picture', () {
       expect(gameArt.values.toSet().length, gameArt.length);
       expect(avatarArt.values.toSet().length, avatarArt.length);
@@ -85,7 +119,7 @@ void main() {
           home: SingleChildScrollView(
             child: Wrap(
               children: [
-                for (final id in gameArt.keys) DsGameArt(id, size: 48),
+                for (final id in gameArt.keys) DsGameArt(id, size: 60),
                 for (final id in avatarArt.keys) DsAvatarArt(id, size: 48),
               ],
             ),

@@ -618,6 +618,9 @@ def generate(
         check_registry(registry, game_id, package)
 
     shutil.copytree(template, out, ignore=_ignore, dirs_exist_ok=True)
+    # The tile art source stays with the game so scripts/gen_game_art.py works there too.
+    if (template / "design" / "game_art").is_dir():
+        shutil.copytree(template / "design" / "game_art", out / "tool" / "game_art", dirs_exist_ok=True)
     rewrite_config(out, game_id, name, package, color)
     rewrite_dart_package(out, game_id)
     rewrite_android(out, package)

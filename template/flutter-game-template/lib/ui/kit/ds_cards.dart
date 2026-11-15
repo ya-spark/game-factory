@@ -76,7 +76,7 @@ class DsGameTile extends StatelessWidget {
                   Positioned.fill(
                     child: ClipRRect(
                       borderRadius: BorderRadius.circular(t.cardRadius / 2),
-                      child: ColoredBox(color: t.surfaceAlt, child: art),
+                      child: art,
                     ),
                   ),
                   if (badge != null)
