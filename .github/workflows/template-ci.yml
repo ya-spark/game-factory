@@ -63,6 +63,8 @@ jobs:
         run: bash scripts/profile_check.sh
       - name: Profile check self-test (script must fail on violations)
         run: bash scripts/test_profile_check.sh
+      - name: Game art data is up to date
+        run: python3 scripts/gen_game_art.py --check
       - name: Network rules (INTERNET, no cleartext, https host; warns while signing is off)
         run: bash scripts/network_safety_check.sh
       - name: Assets license check

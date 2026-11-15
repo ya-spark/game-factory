@@ -51,6 +51,9 @@ jobs:
       - name: Profile check self-test (script must fail on violations)
         if: ${{ hashFiles('scripts/test_profile_check.sh') != '' }}
         run: bash scripts/test_profile_check.sh
+      - name: Game art data is up to date (gen_game_art.py --check)
+        if: ${{ hashFiles('scripts/gen_game_art.py') != '' }}
+        run: python3 scripts/gen_game_art.py --check
       - name: Network rules (INTERNET, no cleartext, https host; warns while signing is off)
         if: ${{ hashFiles('scripts/network_safety_check.sh') != '' }}
         run: bash scripts/network_safety_check.sh
