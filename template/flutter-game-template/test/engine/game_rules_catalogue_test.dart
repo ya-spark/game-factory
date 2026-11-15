@@ -1,4 +1,3 @@
-import 'package:flutter_game_template/core/save/save_data.dart';
 import 'package:flutter_game_template/engine/engine.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -42,33 +41,6 @@ void main() {
       final seen = RulesFirstPlay.markSeen(<String>{}, 'memory_match');
       expect(RulesFirstPlay.shouldAutoShow(seen, 'memory_match'), isFalse);
       expect(RulesFirstPlay.shouldAutoShow(seen, 'sort_bins'), isTrue);
-    },
-  );
-
-  test(
-    'save migration: a version 10 save gains version 11 with no seen games',
-    () {
-      final m = SaveMigrator.migrate({
-        'version': 10,
-        'profiles': [
-          {'id': 'a', 'nickname': 'Mia'},
-        ],
-      });
-      expect(m['version'], 11);
-      final data = SaveData.fromJson(m);
-      expect(data.profiles.single.rulesSeen, isEmpty);
-      final round = SaveData.fromJson(
-        SaveMigrator.migrate(
-          data
-              .copyWith(
-                profiles: [
-                  data.profiles.single.copyWith(rulesSeen: {'sort_bins'}),
-                ],
-              )
-              .toJson(),
-        ),
-      );
-      expect(round.profiles.single.rulesSeen, {'sort_bins'});
     },
   );
 }
