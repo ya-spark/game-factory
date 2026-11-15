@@ -167,6 +167,10 @@ void main() {
       await tester.tap(find.text('Start'));
       await tester.pumpAndSettle();
       expect(find.byKey(TestIds.mistakesRound), findsOneWidget);
+      // A review round is a normal first play: the how-to-play dialog opens once.
+      expect(find.byKey(TestIds.rulesDialog), findsOneWidget);
+      await tester.tap(find.byKey(TestIds.rulesGotIt));
+      await tester.pumpAndSettle();
       final kid = s.profile.children.first;
       if (flash) {
         expect(find.byKey(TestIds.mgScreen(flashReviewId)), findsOneWidget);

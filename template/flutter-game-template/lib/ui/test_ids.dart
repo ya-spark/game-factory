@@ -447,4 +447,10 @@ abstract final class TestIds {
   static const parentExtraTime = Key('parent.extraTime.section');
   static Key parentExtraTimeOption(String name) =>
       Key('parent.extraTime.$name');
+
+  // How-to-play dialog and Rules button (R1a)
+  static const rulesDialog = Key('rules.dialog');
+  static const rulesGotIt = Key('rules.gotIt');
+  static const rulesButton = Key('rules.button');
+  static Key rulesFor(String gameId) => Key('rules.$gameId');
 }

@@ -6,6 +6,7 @@ import '../core/profile/child_profile.dart';
 import '../core/services.dart';
 import '../engine/engine.dart';
 import 'quick_quiz_screen.dart';
+import 'rules_dialog.dart';
 import 'tabs/tab_data.dart';
 import 'test_ids.dart';
 
@@ -90,17 +91,21 @@ class _ChildReportState extends State<ChildReport> {
     if (session == null) return;
     await nav.push(
       MaterialPageRoute<void>(
-        builder: (_) => quickQuizGame.build(
-          MiniGameContext(
-            session: session,
-            mode: MiniGameMode.study,
-            onAnswered: (r, sess) async =>
-                s.profile.setChildProgress(id, sess.progress),
-            onExit: () {
-              if (nav.mounted) nav.pop();
-            },
-          ),
-        ) as Widget,
+        builder: (_) => RulesGate(
+          gameId: quickQuizId,
+          childId: id,
+          child: quickQuizGame.build(
+            MiniGameContext(
+              session: session,
+              mode: MiniGameMode.study,
+              onAnswered: (r, sess) async =>
+                  s.profile.setChildProgress(id, sess.progress),
+              onExit: () {
+                if (nav.mounted) nav.pop();
+              },
+            ),
+          ) as Widget,
+        ),
       ),
     );
   }

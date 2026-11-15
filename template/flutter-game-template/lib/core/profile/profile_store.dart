@@ -542,6 +542,7 @@ class ProfileStore extends ChangeNotifier {
       colorTheme: p.colorTheme,
       mode: p.mode,
       lockedMode: p.lockedMode,
+      rulesSeen: p.rulesSeen,
     ),
   );
 
@@ -648,6 +649,23 @@ class ProfileStore extends ChangeNotifier {
         activity: p.activity.recordChange(day, p.progress, progress),
       ),
     );
+  }
+
+  /// Marks the how-to-play dialog of [gameId] as seen for each child in [childIds] (R1a).
+  /// Nothing else changes, and an unknown child is ignored.
+  Future<void> markRulesSeen(Iterable<String> childIds, String gameId) async {
+    for (final id in childIds) {
+      final has = _data.profiles.any((p) => p.id == id);
+      if (!has) continue;
+      await _updateChild(
+        id,
+        (p) => p.rulesSeen.contains(gameId)
+            ? p
+            : p.copyWith(
+                rulesSeen: RulesFirstPlay.markSeen(p.rulesSeen, gameId),
+              ),
+      );
+    }
   }
 
   Future<void> setDownloadWifiOnly(bool v) =>

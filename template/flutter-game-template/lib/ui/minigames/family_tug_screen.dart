@@ -8,6 +8,7 @@ import '../../core/services.dart';
 import '../../engine/engine.dart';
 import '../game_registry.dart';
 import '../kit/ds_art.dart';
+import '../rules_dialog.dart';
 import '../tabs/tab_data.dart';
 import '../test_ids.dart';
 import 'choice_game.dart';
@@ -164,21 +165,29 @@ class _FamilyTugSetupState extends State<FamilyTugSetupScreen> {
     if (!nav.mounted) return;
     await nav.pushReplacement(
       MaterialPageRoute<void>(
-        builder: (_) => FamilyTugScreen(
-          players: [for (final p in players) FamilyPlayer.of(p)],
-          sessions: sessions,
-          level: level,
-          random: random,
-          onAnswered: (i, r, s) async {
-            await services.profile.setChildProgress(players[i].id, s.progress);
-            if (r.coins > 0) await services.profile.addCoins(r.coins);
-          },
-          onPlayed: (i, seconds) =>
-              services.profile.creditPlay(players[i].id, seconds),
-          onExit: () {
-            services.profile.releasePlay();
-            nav.pop();
-          },
+        builder: (_) => RulesGate(
+          gameId: tugOfWarId,
+          childId: widget.me.id,
+          alsoMark: [partner.id],
+          child: FamilyTugScreen(
+            players: [for (final p in players) FamilyPlayer.of(p)],
+            sessions: sessions,
+            level: level,
+            random: random,
+            onAnswered: (i, r, s) async {
+              await services.profile.setChildProgress(
+                players[i].id,
+                s.progress,
+              );
+              if (r.coins > 0) await services.profile.addCoins(r.coins);
+            },
+            onPlayed: (i, seconds) =>
+                services.profile.creditPlay(players[i].id, seconds),
+            onExit: () {
+              services.profile.releasePlay();
+              nav.pop();
+            },
+          ),
         ),
       ),
     );

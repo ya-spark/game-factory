@@ -14,7 +14,7 @@ void main() {
         ],
       }),
     );
-    expect(SaveData.currentVersion, 10);
+    expect(SaveData.currentVersion, 11);
     expect(d.profiles.single.exams.records, isEmpty);
     expect(d.profiles.single.extraTime, ExtraTime.none);
   });

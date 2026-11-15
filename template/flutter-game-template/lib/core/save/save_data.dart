@@ -46,7 +46,7 @@ class SaveData {
   });
 
   /// Bump when the JSON shape changes and add a step to [SaveMigrator].
-  static const int currentVersion = 10;
+  static const int currentVersion = 11;
 
   final int coins;
   final int bestScore;
@@ -316,6 +316,7 @@ abstract final class SaveMigrator {
         7 => _v7ToV8(j),
         8 => _v8ToV9(j),
         9 => _v9ToV10(j),
+        10 => _v10ToV11(j),
         _ => throw StateError('No migration from $v'),
       };
       v = (j['version'] as num).toInt();
@@ -373,6 +374,13 @@ abstract final class SaveMigrator {
       },
     };
   }
+
+  /// v11 added the per-child `rulesSeen` list (R1a). Old saves start with it empty; the
+  /// children's own JSON reads a missing list as empty, so nothing else changes.
+  static Map<String, Object?> _v10ToV11(Map<String, Object?> j) => {
+    ...j,
+    'version': 11,
+  };
 
   /// v10 added the per-game stats (`gameStats`, M2). Old saves start with empty stats; nothing
   /// else changes.

@@ -44,6 +44,7 @@ class ChildProfile {
     this.progress = const ChildProgress(),
     this.playTime = const PlayTimeLog(),
     this.activity = const ActivityLog(),
+    this.rulesSeen = const {},
   });
 
   final String id;
@@ -82,6 +83,10 @@ class ChildProfile {
   /// weekly report.
   final ActivityLog activity;
 
+  /// Ids of the games whose how-to-play dialog this child has closed once (R1a). The dialog
+  /// opens by itself only for a game not in this set.
+  final Set<String> rulesSeen;
+
   ChildProfile copyWith({
     String? nickname,
     String? avatar,
@@ -96,6 +101,7 @@ class ChildProfile {
     ChildProgress? progress,
     PlayTimeLog? playTime,
     ActivityLog? activity,
+    Set<String>? rulesSeen,
   }) => ChildProfile(
     id: id,
     nickname: nickname ?? this.nickname,
@@ -110,6 +116,7 @@ class ChildProfile {
     progress: progress ?? this.progress,
     playTime: playTime ?? this.playTime,
     activity: activity ?? this.activity,
+    rulesSeen: rulesSeen ?? this.rulesSeen,
   );
 
   Map<String, Object?> toJson() => {
@@ -126,6 +133,7 @@ class ChildProfile {
     'progress': progress.toJson(),
     'playTime': playTime.toJson(),
     'activity': activity.toJson(),
+    'rulesSeen': (rulesSeen.toList()..sort()),
   };
 
   factory ChildProfile.fromJson(Map<String, Object?> j) => ChildProfile(
@@ -144,6 +152,11 @@ class ChildProfile {
     ),
     playTime: PlayTimeLog.fromJson(j['playTime']),
     activity: ActivityLog.fromJson(j['activity']),
+    rulesSeen: {
+      if (j['rulesSeen'] is List)
+        for (final g in j['rulesSeen'] as List)
+          if (g is String) g,
+    },
   );
 }
 

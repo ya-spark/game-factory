@@ -37,6 +37,7 @@ export 'minigames/door_runner/rules/door_runner_rules.dart';
 export 'minigames/equation_builder/rules/equation_builder_rules.dart';
 export 'minigames/flash_review/rules/flash_review_rules.dart';
 export 'minigames/memory_match/rules/memory_match_rules.dart';
+export 'minigames/game_rules_catalogue.dart';
 export 'minigames/minigame.dart';
 export 'minigames/minigame_level.dart';
 export 'minigames/quick_quiz.dart';

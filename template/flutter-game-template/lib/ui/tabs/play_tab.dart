@@ -9,6 +9,7 @@ import '../kit/ds_art.dart';
 import '../kit/ds_cards.dart';
 import '../kit/ds_chips.dart';
 import '../mistakes_round.dart';
+import '../rules_dialog.dart';
 import '../test_ids.dart';
 import '../theme/app_theme.dart';
 import '../theme/design_scope.dart';
@@ -142,30 +143,34 @@ class _PlayTabState extends State<PlayTab> {
     int? gameScore;
     await nav.push(
       MaterialPageRoute<void>(
-        builder: (_) => e.game.build(
-          MiniGameContext(
-            session: session,
-            mode: MiniGameMode.game,
-            onAnswered: (r, sess) async {
-              await s.profile.setChildProgress(child.id, sess.progress);
-              if (r.coins > 0) await s.profile.addCoins(r.coins);
-            },
-            onScore: (v) => gameScore = v,
-            onExit: () async {
-              final cur = s.profile.children.firstWhere(
-                (c) => c.id == child.id,
-              );
-              await s.profile.setChildProgress(
-                child.id,
-                cur.progress.recordScore(
-                  e.game.id,
-                  gameScore ?? session.report.correct * 10,
-                ),
-              );
-              if (nav.mounted) nav.pop();
-            },
-          ),
-        ) as Widget,
+        builder: (_) => RulesGate(
+          gameId: e.game.id,
+          childId: child.id,
+          child: e.game.build(
+            MiniGameContext(
+              session: session,
+              mode: MiniGameMode.game,
+              onAnswered: (r, sess) async {
+                await s.profile.setChildProgress(child.id, sess.progress);
+                if (r.coins > 0) await s.profile.addCoins(r.coins);
+              },
+              onScore: (v) => gameScore = v,
+              onExit: () async {
+                final cur = s.profile.children.firstWhere(
+                  (c) => c.id == child.id,
+                );
+                await s.profile.setChildProgress(
+                  child.id,
+                  cur.progress.recordScore(
+                    e.game.id,
+                    gameScore ?? session.report.correct * 10,
+                  ),
+                );
+                if (nav.mounted) nav.pop();
+              },
+            ),
+          ) as Widget,
+        ),
       ),
     );
     if (mounted) _reload();

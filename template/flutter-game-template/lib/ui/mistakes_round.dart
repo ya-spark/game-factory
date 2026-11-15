@@ -5,6 +5,7 @@ import '../engine/engine.dart';
 import 'kit/ds_cards.dart';
 import 'minigames/flash_review_screen.dart';
 import 'quick_quiz_screen.dart';
+import 'rules_dialog.dart';
 import 'test_ids.dart';
 import 'theme/app_theme.dart';
 import 'theme/design_scope.dart';
@@ -116,21 +117,25 @@ Future<void> startMistakesRound(
     MaterialPageRoute<void>(
       builder: (_) => KeyedSubtree(
         key: TestIds.mistakesRound,
-        child: game.build(
-          MiniGameContext(
-            session: session,
-            mode: flash ? MiniGameMode.study : mode,
-            onAnswered: (r, sess) async {
-              await s.profile.setChildProgress(childId, sess.progress);
-              if (!flash && mode == MiniGameMode.game && r.coins > 0) {
-                await s.profile.addCoins(r.coins);
-              }
-            },
-            onExit: () {
-              if (nav.mounted) nav.pop();
-            },
-          ),
-        ) as Widget,
+        child: RulesGate(
+          gameId: game.id,
+          childId: childId,
+          child: game.build(
+            MiniGameContext(
+              session: session,
+              mode: flash ? MiniGameMode.study : mode,
+              onAnswered: (r, sess) async {
+                await s.profile.setChildProgress(childId, sess.progress);
+                if (!flash && mode == MiniGameMode.game && r.coins > 0) {
+                  await s.profile.addCoins(r.coins);
+                }
+              },
+              onExit: () {
+                if (nav.mounted) nav.pop();
+              },
+            ),
+          ) as Widget,
+        ),
       ),
     ),
   );

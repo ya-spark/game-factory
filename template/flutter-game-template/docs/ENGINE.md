@@ -293,3 +293,21 @@ sharing, no export, no backend.
 - **Save**: version 10 adds `gameStats`; older saves start with empty stats.
 - Tests: `test/engine/game_stats_test.dart`, `test/core/game_stats_save_test.dart`,
   `test/ui/game_stats_ui_test.dart`.
+
+## How to play and the Rules button (R1a, save version 11)
+
+- Text: `GameRulesCatalogue` (`lib/engine/minigames/game_rules_catalogue.dart`, pure Dart) holds 1 to 3 short rules and
+  2 or 3 tips for Quick quiz, Memory match, Sort into bins, Series builder, Word builder, True or false, Cloze fix,
+  Equation builder, Word grid, Balloon pop, Door runner, Tug of war and Flash review. A game registered in a Craft app
+  needs an entry (checked by `test/ui/rules_dialog_test.dart`). The same text is kept in each app's `docs/SPEC.md`
+  ("How to play").
+- Dialog and button: `lib/ui/rules_dialog.dart`. `RulesGate` wraps a minigame screen with a thin top bar (above the game,
+  never over its controls) holding a Rules button; `showGameRules` is the scrollable dialog with a "Got it" button.
+  Test IDs: `rules.dialog`, `rules.gotIt`, `rules.button`, `rules.<gameId>`. Every route that opens a game wraps it:
+  Play tab, Study tab (Quick quiz), the review round and the child report.
+- First play, per child: `ChildProfile.rulesSeen` (set of game ids, save version 11, old saves start empty;
+  `ProfileStore.markRulesSeen`). The dialog opens by itself when the game is not in the child's set; closing it marks
+  the game seen for that child. The Rules button always reopens it and never changes the flag. With no child profile the
+  game counts as unseen and nothing is stored (`RulesFirstPlay`). Family Tug of war marks both players seen. Review
+  rounds (C1, C2) open games as normal first plays. Reading rules earns no coins, stars or achievements. Resetting a
+  child's progress keeps `rulesSeen`.

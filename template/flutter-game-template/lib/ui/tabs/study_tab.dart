@@ -6,6 +6,7 @@ import '../../core/profile/child_profile.dart';
 import '../../core/services.dart';
 import '../../engine/engine.dart';
 import '../exam_practice.dart';
+import '../rules_dialog.dart';
 import '../kit/ds_bars.dart';
 import '../kit/ds_cards.dart';
 import '../kit/ds_buttons.dart';
@@ -116,17 +117,21 @@ class _StudyTabState extends State<StudyTab> {
     if (session == null) return;
     await nav.push(
       MaterialPageRoute<void>(
-        builder: (_) => quickQuizGame.build(
-          MiniGameContext(
-            session: session,
-            mode: MiniGameMode.study,
-            onAnswered: (r, sess) async =>
-                s.profile.setChildProgress(child.id, sess.progress),
-            onExit: () {
-              if (nav.mounted) nav.pop();
-            },
-          ),
-        ) as Widget,
+        builder: (_) => RulesGate(
+          gameId: quickQuizId,
+          childId: child.id,
+          child: quickQuizGame.build(
+            MiniGameContext(
+              session: session,
+              mode: MiniGameMode.study,
+              onAnswered: (r, sess) async =>
+                  s.profile.setChildProgress(child.id, sess.progress),
+              onExit: () {
+                if (nav.mounted) nav.pop();
+              },
+            ),
+          ) as Widget,
+        ),
       ),
     );
     if (mounted) _reload();
