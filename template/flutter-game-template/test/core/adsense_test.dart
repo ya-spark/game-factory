@@ -54,9 +54,12 @@ void main() {
       AgeTreatment of(String audience, String treatment) =>
           AppConfig.fromYamlString(
             src
-                .replaceFirst('audience: adult', 'audience: $audience')
                 .replaceFirst(
-                  'age_treatment: none',
+                  RegExp(r'^audience: \w+', multiLine: true),
+                  'audience: $audience',
+                )
+                .replaceFirst(
+                  RegExp(r'age_treatment: \w+'),
                   'age_treatment: $treatment',
                 ),
           ).adsense.ageTreatment;
