@@ -4,17 +4,22 @@ import '../core/profile/profile_store.dart';
 import '../engine/engine.dart';
 import 'test_ids.dart';
 
-/// The hook a game screen uses to say more about the run that just finished (M2): whether it was
-/// won, mistakes, hints, the variant. The hub wraps each standalone game in this scope and joins
-/// the extras with the score and the seconds it measured. Outside a scope (tests, a daily run)
-/// reporting does nothing. Call it right before the existing score call.
+/// The hook a hub-native game screen uses to report a finished run (M2): the score and what only
+/// the game knows (won, mistakes, hints, the variant). The hub wraps each standalone game in this
+/// scope, joins the report with the seconds it measured and records it. Call [finished] once per
+/// run, when the run ends, right before the existing `onScore` call. Outside a scope (tests, a
+/// daily run) reporting does nothing. Games that never call it (the copied games) are recorded
+/// from their `onScore` call alone: plays, best, average and time.
 class RunReportScope extends InheritedWidget {
   const RunReportScope({super.key, required this.sink, required super.child});
 
-  final void Function(RunExtras extras) sink;
+  final void Function(int score, RunExtras extras) sink;
 
-  static void report(BuildContext context, RunExtras extras) {
-    context.dependOnInheritedWidgetOfExactType<RunReportScope>()?.sink(extras);
+  static void finished(BuildContext context, int score, RunExtras extras) {
+    context.dependOnInheritedWidgetOfExactType<RunReportScope>()?.sink(
+      score,
+      extras,
+    );
   }
 
   @override
@@ -64,13 +69,13 @@ class _ActiveTimeScopeState extends State<ActiveTimeScope>
   Widget build(BuildContext context) => widget.child;
 }
 
-/// One play of a standalone game from the hub (M2): times the screen, collects the extras the
-/// game reports, builds the [RunReport] when the score arrives and, after the screen closes,
-/// shows the calm "New personal best" line. The hub's `_playStandalone` uses it like this:
+/// One play of a standalone game from the hub (M2): times the screen, takes the run reports,
+/// adds the seconds and records them, and after the screen closes shows the calm "New personal
+/// best" line. The hub's `_playStandalone` uses it like this:
 ///
 /// ```dart
 /// final run = StandaloneRun(profile: s.profile, gameId: id, title: title);
-/// // in onScore(score): await run.finish(score);  (before the tile best is updated)
+/// // in onScore(score): await run.onScore(score);   (before the tile best is updated)
 /// // push run.wrap(buildStandalone(onScore)), then: run.announce(messenger);
 /// ```
 class StandaloneRun {
@@ -84,19 +89,35 @@ class StandaloneRun {
   final String gameId;
   final String title;
   final ActiveTimer timer;
-  RunExtras? _extras;
+  bool _reports = false;
 
-  /// Wraps the game screen: foreground timing and the extras hook.
+  /// Wraps the game screen: foreground timing and the report hook.
   Widget wrap(Widget screen) => ActiveTimeScope(
     timer: timer,
-    child: RunReportScope(sink: (x) => _extras = x, child: screen),
+    child: RunReportScope(sink: _finished, child: screen),
   );
 
-  /// A run ended with [score]: report it with the extras and the seconds since the last run
-  /// (each run on a screen is timed on its own).
-  Future<void> finish(int score) {
-    final x = _extras;
-    _extras = null;
+  /// Test seam: runs [body] with the report sink and waits for the recording.
+  @visibleForTesting
+  Future<void> wrapForTest(
+    void Function(void Function(int, RunExtras) sink) body,
+  ) async {
+    body(_finished);
+    await Future<void>.delayed(Duration.zero);
+  }
+
+  Future<void> _finished(int score, RunExtras x) {
+    _reports = true;
+    return _record(score, x);
+  }
+
+  /// The game's plain score call. A game that reports through [RunReportScope] has already been
+  /// recorded; the others (the copied games) are recorded here, once per call.
+  Future<void> onScore(int score) =>
+      _reports ? Future.value() : _record(score, null);
+
+  /// Each run on a screen is timed on its own.
+  Future<void> _record(int score, RunExtras? x) {
     final seconds = timer.lap();
     return profile.recordRun(
       RunReport(
@@ -112,7 +133,7 @@ class StandaloneRun {
     );
   }
 
-  /// The screen is closed: show the "New personal best" line once, if the run set a record.
+  /// The screen is closed: show the "New personal best" line once, if a run set a record.
   void announce(ScaffoldMessengerState messenger) {
     final best = profile.takeNewBestMessage();
     if (best == null) return;

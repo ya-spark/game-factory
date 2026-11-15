@@ -278,11 +278,13 @@ sharing, no export, no backend.
 - **Timer rule**: `ActiveTimer` counts foreground seconds only (`ActiveTimeScope` pauses it when the app
   leaves the foreground); each run on a screen is timed on its own (`lap`); a clock moved back counts
   zero, never negative. A game that keeps its own seconds (a resumed puzzle) passes them in `RunExtras`.
-- **Report hook** (`lib/ui/run_report_scope.dart`): a game screen calls
-  `RunReportScope.report(context, RunExtras(won: ..., mistakes: ..., hints: ..., variant: ...))` right
-  before its existing `onScore(score)` call; the hub's `StandaloneRun` joins it with the score and the
-  measured seconds and calls `ProfileStore.recordRun` (before the tile best is updated). Outside a scope
-  it does nothing. Copied games report plays, best, average and time only, through their `host/` adapters.
+- **Report hook** (`lib/ui/run_report_scope.dart`): a hub-native game screen calls
+  `RunReportScope.finished(context, score, RunExtras(won: ..., mistakes: ..., hints: ..., variant: ...))`
+  once per finished run, right before its existing `onScore(score)` call (a game whose `onScore` fires on
+  every move, like Merge, calls it only when the run is over). The hub's `StandaloneRun` joins it with the
+  measured seconds and calls `ProfileStore.recordRun` (before the tile best is updated); `onScore` alone
+  records the games that never call the hook (the copied games: plays, best, average and time only,
+  through their `host/` adapters). Outside a scope the hook does nothing.
 - **Stats page** (`lib/ui/stats_screen.dart`): opened from a row on the Challenges tab (not a tab);
   overview plus one card per played game, with a trend line drawn in code and its text equivalent
   ("Scores trending up, last 5: ..."). `StatsScreen.extraOverview` lets a hub add lines (Ember: daily puzzles).
