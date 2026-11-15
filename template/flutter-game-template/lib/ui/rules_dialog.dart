@@ -4,10 +4,10 @@ import '../core/services.dart';
 import '../engine/engine.dart';
 import 'test_ids.dart';
 
-/// The how-to-play dialog (R1a): rules and tips from [GameRulesCatalogue], scrollable at large
+/// The how-to-play dialog (R1a): rules and tips from [HowToPlayCatalogue], scrollable at large
 /// text, one big "Got it" button. Does nothing for a game without an entry.
 Future<void> showGameRules(BuildContext context, String gameId) {
-  final rules = GameRulesCatalogue.forGame(gameId);
+  final rules = HowToPlayCatalogue.forGame(gameId);
   if (rules == null) return Future<void>.value();
   return showDialog<void>(
     context: context,
@@ -92,7 +92,7 @@ class _RulesGateState extends State<RulesGate> {
   @override
   void initState() {
     super.initState();
-    if (GameRulesCatalogue.forGame(widget.gameId) == null) return;
+    if (HowToPlayCatalogue.forGame(widget.gameId) == null) return;
     WidgetsBinding.instance.addPostFrameCallback((_) => _auto());
   }
 
@@ -108,7 +108,7 @@ class _RulesGateState extends State<RulesGate> {
         if (c.id == id) seen = c.rulesSeen;
       }
     }
-    if (!RulesFirstPlay.shouldAutoShow(seen, widget.gameId)) {
+    if (!HowToPlayFirstPlay.shouldAutoShow(seen, widget.gameId)) {
       // The first player already saw it: the other players count as having seen it too.
       if (services != null && widget.alsoMark.isNotEmpty) {
         await services.profile.markRulesSeen(widget.alsoMark, widget.gameId);
@@ -126,7 +126,7 @@ class _RulesGateState extends State<RulesGate> {
 
   @override
   Widget build(BuildContext context) {
-    if (GameRulesCatalogue.forGame(widget.gameId) == null) return widget.child;
+    if (HowToPlayCatalogue.forGame(widget.gameId) == null) return widget.child;
     return Column(
       children: [
         Material(

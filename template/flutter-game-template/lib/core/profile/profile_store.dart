@@ -662,7 +662,7 @@ class ProfileStore extends ChangeNotifier {
         (p) => p.rulesSeen.contains(gameId)
             ? p
             : p.copyWith(
-                rulesSeen: RulesFirstPlay.markSeen(p.rulesSeen, gameId),
+                rulesSeen: HowToPlayFirstPlay.markSeen(p.rulesSeen, gameId),
               ),
       );
     }

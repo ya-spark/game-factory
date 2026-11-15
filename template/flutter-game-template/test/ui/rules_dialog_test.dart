@@ -104,7 +104,7 @@ void main() {
   });
 
   testWidgets('every catalogue game gets a Rules button', (tester) async {
-    for (final g in GameRulesCatalogue.all) {
+    for (final g in HowToPlayCatalogue.all) {
       await _pump(tester, g.id, (_) => null);
       expect(find.byKey(TestIds.rulesButton), findsOneWidget, reason: g.id);
       await tester.tap(find.byKey(TestIds.rulesGotIt));
@@ -114,7 +114,7 @@ void main() {
 
   test('every game registered in this app has a catalogue entry', () {
     for (final e in appGames.entries) {
-      final r = GameRulesCatalogue.forGame(e.game.id);
+      final r = HowToPlayCatalogue.forGame(e.game.id);
       expect(r, isNotNull, reason: e.game.id);
       expect(r!.rules, isNotEmpty);
       expect(r.tips.length, inInclusiveRange(2, 3));

@@ -5,26 +5,26 @@
 library;
 
 /// Rules (1 to 3 short lines) and tips (2 or 3) of one game.
-class GameRules {
-  const GameRules(this.id, this.title, this.rules, this.tips);
+class HowToPlay {
+  const HowToPlay(this.id, this.title, this.rules, this.tips);
   final String id;
   final String title;
   final List<String> rules;
   final List<String> tips;
 }
 
-abstract final class GameRulesCatalogue {
-  static GameRules? forGame(String id) => _byId[id];
+abstract final class HowToPlayCatalogue {
+  static HowToPlay? forGame(String id) => _byId[id];
 
-  static List<GameRules> get all => _all;
+  static List<HowToPlay> get all => _all;
 
   /// The ids with an entry.
   static Set<String> get ids => _byId.keys.toSet();
 
-  static final Map<String, GameRules> _byId = {for (final g in _all) g.id: g};
+  static final Map<String, HowToPlay> _byId = {for (final g in _all) g.id: g};
 
-  static const List<GameRules> _all = [
-    GameRules(
+  static const List<HowToPlay> _all = [
+    HowToPlay(
       'quick_quiz',
       'Quick quiz',
       [
@@ -38,7 +38,7 @@ abstract final class GameRulesCatalogue {
         'Play the same topic again to get better at it.',
       ],
     ),
-    GameRules(
+    HowToPlay(
       'memory_match',
       'Memory match',
       [
@@ -50,7 +50,7 @@ abstract final class GameRulesCatalogue {
         'Younger levels have no timer. Older levels add a gentle clock.',
       ],
     ),
-    GameRules(
+    HowToPlay(
       'sort_bins',
       'Sort into bins',
       [
@@ -62,7 +62,7 @@ abstract final class GameRulesCatalogue {
         'Take your time. Every item gets as many tries as it needs.',
       ],
     ),
-    GameRules(
+    HowToPlay(
       'series_builder',
       'Series builder',
       [
@@ -74,7 +74,7 @@ abstract final class GameRulesCatalogue {
         'Older levels add a gentle timer.',
       ],
     ),
-    GameRules(
+    HowToPlay(
       'word_builder',
       'Word builder',
       [
@@ -86,7 +86,7 @@ abstract final class GameRulesCatalogue {
         'Older levels build the word and press Check.',
       ],
     ),
-    GameRules(
+    HowToPlay(
       'true_false',
       'True or false',
       [
@@ -98,7 +98,7 @@ abstract final class GameRulesCatalogue {
         'Look for words like always, never and only.',
       ],
     ),
-    GameRules(
+    HowToPlay(
       'cloze_fix',
       'Cloze and grammar fix',
       ['Choose the word that fills the gap, or the corrected sentence.'],
@@ -107,7 +107,7 @@ abstract final class GameRulesCatalogue {
         'Check the whole sentence, not just the gap.',
       ],
     ),
-    GameRules(
+    HowToPlay(
       'equation_builder',
       'Equation builder',
       [
@@ -119,7 +119,7 @@ abstract final class GameRulesCatalogue {
         'Try different tiles if you get stuck.',
       ],
     ),
-    GameRules(
+    HowToPlay(
       'word_grid',
       'Word search and crossword',
       [
@@ -128,7 +128,7 @@ abstract final class GameRulesCatalogue {
       ],
       ['Start with the words you know best.', 'There is no need to hurry.'],
     ),
-    GameRules(
+    HowToPlay(
       'balloon_pop',
       'Balloon pop',
       [
@@ -140,7 +140,7 @@ abstract final class GameRulesCatalogue {
         'Take a moment if the question is tricky.',
       ],
     ),
-    GameRules(
+    HowToPlay(
       'door_runner',
       'Door runner',
       [
@@ -152,7 +152,7 @@ abstract final class GameRulesCatalogue {
         'Take a moment if the question is tricky.',
       ],
     ),
-    GameRules(
+    HowToPlay(
       'tug_of_war',
       'Tug of war',
       [
@@ -166,7 +166,7 @@ abstract final class GameRulesCatalogue {
         'Take a breath between questions. A wrong answer is just a chance to learn.',
       ],
     ),
-    GameRules(
+    HowToPlay(
       'flash_review',
       'Flash review',
       [
@@ -182,7 +182,7 @@ abstract final class GameRulesCatalogue {
 }
 
 /// The first-play rule: the dialog opens by itself the first time a child opens a game.
-abstract final class RulesFirstPlay {
+abstract final class HowToPlayFirstPlay {
   /// True when the dialog should open by itself. With no child ([seen] null) nothing is
   /// stored, so the game counts as unseen.
   static bool shouldAutoShow(Set<String>? seen, String gameId) =>
