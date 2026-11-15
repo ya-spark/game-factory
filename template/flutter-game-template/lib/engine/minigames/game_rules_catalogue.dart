@@ -158,11 +158,11 @@ abstract final class GameRulesCatalogue {
       [
         'Answer a question. A right answer pulls the rope towards you; a wrong or slow one lets it slip back.',
         'Bring the rope all the way to your end to win the round.',
-        'With a sibling, take turns on one device: each player answers their own questions.',
+        'If you see Play with a sibling, two players can take turns on one device, each with their own questions.',
       ],
       [
         'Read every answer before you choose.',
-        'Younger levels never pull the rope back after a wrong answer.',
+        'On the youngest level a wrong answer never pulls the rope back.',
         'Take a breath between questions. A wrong answer is just a chance to learn.',
       ],
     ),
