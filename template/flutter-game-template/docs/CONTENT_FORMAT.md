@@ -245,6 +245,33 @@ in the full part; outline counts that differ from the full part; duplicate `seq`
 Warnings (do not fail): fewer than 20 or more than 50 items; US spellings from a word list
 (`colour`, `organise`, `maths` and similar; see `lib/engine/content/spelling.dart`).
 
+## Skills (the trail)
+
+An item belongs to one **skill**, a rung of the learner's trail. `skills.yaml` (beside `topics.yaml`, bundled
+at `assets/content/skills.yaml`) lists the rungs of each topic, easiest first:
+
+```yaml
+maths:
+  3:
+    times_tables:
+      - {id: times_tables_1, name: Getting started, seq: [1, 6]}
+      - {id: times_tables_2, name: Building up, seq: [7, 13]}
+      - {id: times_tables_3, name: Stretch, seq: [14, 20]}
+```
+
+- An item belongs to the rung whose `seq` range holds it, or to the rung named by its own optional `skill` field
+  (CSV column `skill`). Items are written easiest first, so the first rung is the easiest.
+- Prerequisites: a rung needs the rung before it in its topic; the first rung of a topic needs the first rung of
+  the topic before it (in `topics.yaml` order). `requires: [ids]` replaces that. The graph must have no cycle.
+- `scripts/gen_skills.py` in the content repo writes a first ladder (three rungs per topic, items 1 to 6, 7 to 13,
+  14 to 20). Finer, authored skills can replace a topic's rungs; give its items a `skill` field.
+- The validator (`content_cli validate`, with `--skills <file>` or `skills.yaml` beside the topics file) checks that
+  every item of a topic that has skills falls in a rung (`item_no_skill`, `unknown_skill`), that every rung has at
+  least 6 items (`skill_pool`), and warns when a rung has one format only (`skill_one_format`: it can reach
+  "secure" but a second format is needed for "mastered"). `content_cli pool` adds a "By skill and type" table.
+- Skill names are original wording and never mention a curriculum. Any mapping to a curriculum stays in the private
+  content repo and never ships in a pack, the apps or the website.
+
 ## Delivery, release and unlocks (issue 1B)
 
 Code: `lib/engine/content/` (`content_source.dart`, `repository.dart`, `progress.dart`), the glue in

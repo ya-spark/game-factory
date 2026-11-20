@@ -16,6 +16,7 @@ import '../quick_quiz_screen.dart';
 import '../test_ids.dart';
 import '../theme/app_theme.dart';
 import '../theme/design_scope.dart';
+import '../trail_screen.dart';
 import 'tab_data.dart';
 import 'topic_map_view.dart';
 
@@ -28,8 +29,12 @@ class StudyTab extends StatefulWidget {
     required this.child,
     required this.page,
     this.loaders,
+    this.registry,
   });
   final ChildProfile child;
+
+  /// The games the trail may start (Study mode).
+  final MiniGameRegistry? registry;
 
   /// `learn`, `map`, `progress` or `revise`.
   final String page;
@@ -298,6 +303,37 @@ class _StudyTabState extends State<StudyTab> {
     int? lastYear;
     return [
       _mistakesEntry(d),
+      Padding(
+        padding: EdgeInsets.only(bottom: t.sp('md')),
+        child: DsCard(
+          id: 'learn.trail',
+          semanticLabel: 'Your trail, the next steps to learn',
+          onTap: () async {
+            final reg = widget.registry;
+            await Navigator.of(context).push(
+              MaterialPageRoute<void>(
+                builder: (_) => TrailScreen(
+                  child: widget.child,
+                  registry: reg ?? const MiniGameRegistry([]),
+                  mode: MiniGameMode.study,
+                  showAccuracy: _showAccuracy,
+                ),
+              ),
+            );
+            if (mounted) _reload();
+          },
+          child: Row(
+            key: TestIds.trailEntry,
+            children: [
+              const DsIcon('chevron_right'),
+              SizedBox(width: t.sp('sm')),
+              Expanded(
+                child: Text('Your trail', style: t.styles['subheading']!),
+              ),
+            ],
+          ),
+        ),
+      ),
       Padding(
         padding: EdgeInsets.only(bottom: t.sp('md')),
         child: DsCard(

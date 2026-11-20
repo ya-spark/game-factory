@@ -4,6 +4,7 @@ library;
 
 import 'format_limits.dart';
 import 'models.dart';
+import 'skills.dart';
 
 class PoolReport {
   PoolReport._(this.total, this._rows);
@@ -12,12 +13,20 @@ class PoolReport {
   final List<_Row> _rows;
 
   /// Counts every item of [packs] (built-in and extra alike).
-  factory PoolReport.of(Iterable<ContentPack> packs) {
+  factory PoolReport.of(Iterable<ContentPack> packs, {SkillMap? skills}) {
     final rows = <_Row>[];
     for (final p in packs) {
       for (final i in p.items) {
+        final topic = i.topicOr(p.topic)!;
         rows.add(
-          _Row(i.type, p.subject, p.year, i.topicOr(p.topic)!, i.sizeClass),
+          _Row(
+            i.type,
+            p.subject,
+            p.year,
+            topic,
+            i.sizeClass,
+            skills?.skillOf(p.subject, p.year, topic, i)?.key,
+          ),
         );
       }
     }
@@ -81,6 +90,13 @@ class PoolReport {
   Map<String, int> get byTypeAndSize =>
       _group((r) => '${r.type.name}/${r.sizeClass.name}');
 
+  /// Items per skill rung and format (only when a skill map was given).
+  Map<String, int> get bySkillAndType => _group(
+    (r) => r.skill == null
+        ? '(no skill)/${r.type.name}'
+        : '${r.skill}/${r.type.name}',
+  );
+
   /// Items per topic and size class.
   Map<String, int> get byTopicAndSize => _group(
     (r) =>
@@ -108,15 +124,26 @@ class PoolReport {
     section('By subject, year and type', bySubjectYearType);
     section('By topic', byTopic);
     section('By topic and size class', byTopicAndSize);
+    if (_rows.any((r) => r.skill != null)) {
+      section('By skill and type', bySkillAndType);
+    }
     return b.toString();
   }
 }
 
 class _Row {
-  _Row(this.type, this.subject, this.year, this.topic, this.sizeClass);
+  _Row(
+    this.type,
+    this.subject,
+    this.year,
+    this.topic,
+    this.sizeClass,
+    this.skill,
+  );
   final ItemType type;
   final String subject;
   final int year;
   final String topic;
   final SizeClass sizeClass;
+  final String? skill;
 }

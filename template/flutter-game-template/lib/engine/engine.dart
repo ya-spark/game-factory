@@ -12,13 +12,16 @@ export 'content/csv_import.dart';
 export 'content/expression.dart';
 export 'content/format_limits.dart';
 export 'content/index.dart';
+export 'content/mastery.dart';
 export 'content/models.dart';
 export 'content/numeric.dart';
 export 'content/pool_report.dart';
 export 'content/progress.dart';
 export 'content/repository.dart';
+export 'content/skills.dart';
 export 'content/spelling.dart';
 export 'content/topic_map.dart';
+export 'content/trail.dart';
 export 'content/validator.dart';
 
 // Settings and the grown-ups' progress view (pure Dart).
@@ -29,6 +32,7 @@ export 'family/progress_report.dart';
 export 'family/reminder_plan.dart';
 export 'family/text_size.dart';
 export 'stats/game_stats.dart';
+export 'mind/cognitive_skills.dart';
 
 // Issue 1C1: minigames, rewards, AI tutor hook.
 export 'ai/ai_tutor.dart';
@@ -44,6 +48,8 @@ export 'minigames/minigame_level.dart';
 export 'minigames/quick_quiz.dart';
 export 'minigames/quiz_session.dart';
 export 'minigames/series_builder/rules/series_builder_rules.dart';
+export 'minigames/shooter/rules/shooter_rules.dart';
+export 'minigames/snake_series/rules/snake_series_rules.dart';
 export 'minigames/sort_bins/rules/sort_bins_rules.dart';
 export 'minigames/true_false/rules/true_false_rules.dart';
 export 'minigames/tug_of_war/rules/family_tug_rules.dart';

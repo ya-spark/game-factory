@@ -12,6 +12,7 @@ MiniGame doorRunnerGameFor({bool harder = false}) => MiniGame(
   id: doorRunnerId,
   title: 'Door runner',
   itemTypes: const {ItemType.mcq},
+  sizes: SizeAccept.shortOnly,
   minPool: 4,
   modes: const {MiniGameMode.game},
   build: (ctx) => DoorRunnerScreen(

@@ -39,6 +39,7 @@ const List<String> csvColumns = [
   'unit',
   'expression',
   'gaps',
+  'skill',
 ];
 
 const Set<String> _metaKeys = {
@@ -65,6 +66,7 @@ const Map<ItemType, Set<String>> _typeColumns = {
   ItemType.cloze: {'prompt', 'gaps'},
 };
 const Set<String> _commonColumns = {
+  'skill',
   'type',
   'seq',
   'difficulty',
@@ -238,7 +240,7 @@ CsvConversion convertCsv(String csvText, {String? previousIds}) {
     if (cells.containsKey('explanation')) {
       item['explanation'] = cells['explanation'];
     }
-    for (final k in ['image', 'image_alt', 'audio']) {
+    for (final k in ['image', 'image_alt', 'audio', 'skill']) {
       if (cells.containsKey(k)) item[k] = cells[k];
     }
     _typeFields(type, cells, item, line, problems);

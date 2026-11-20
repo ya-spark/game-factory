@@ -13,6 +13,7 @@ MiniGame equationBuilderGameFor({bool harder = false}) => MiniGame(
   id: equationBuilderId,
   title: 'Equation builder',
   itemTypes: const {ItemType.numeric},
+  accepts: (p) => equationTarget(p.item) != null,
   minPool: 4,
   build: (ctx) => EquationBuilderScreen(
     session: ctx.session,

@@ -1,6 +1,7 @@
 /// The minigame interface, the per-app registry and the access rule. Pure Dart.
 library;
 
+import '../content/format_limits.dart';
 import '../content/models.dart';
 import '../content/progress.dart';
 import 'quiz_session.dart';
@@ -17,6 +18,10 @@ enum GameAccess {
   static GameAccess parse(Object? v) =>
       v == 'coins' ? GameAccess.coins : GameAccess.freeWithAds;
 }
+
+/// How much text a game can show. Action games take `short` items only; card-style games take
+/// both size classes (see `docs/FORMAT-CONSTRAINTS.md`).
+enum SizeAccept { any, shortOnly }
 
 /// What a minigame gets when it is built.
 class MiniGameContext {
@@ -56,6 +61,8 @@ class MiniGame {
     required this.itemTypes,
     required this.build,
     this.minPool = 4,
+    this.sizes = SizeAccept.any,
+    this.accepts,
     this.modes = const {MiniGameMode.game, MiniGameMode.study},
     this.access = GameAccess.freeWithAds,
     this.coinPrice = 0,
@@ -69,8 +76,22 @@ class MiniGame {
   /// Item types the game can play. Only these count towards [minPool].
   final Set<ItemType> itemTypes;
 
-  /// Open items of the child's subject and year needed before the game appears.
+  /// Open items of the child's subject and year needed before the game appears. Only items the
+  /// game [canPlay] count.
   final int minPool;
+
+  /// The size classes the game can show.
+  final SizeAccept sizes;
+
+  /// A limit beyond format and size class (a value range, a letter count). Null: none.
+  final bool Function(PoolItem item)? accepts;
+
+  /// Whether the game can play [p]: a format it supports, a size class it can show, and its own
+  /// limit. The matcher, the pool counts and the round all use this one rule.
+  bool canPlay(PoolItem p) =>
+      itemTypes.contains(p.item.type) &&
+      (sizes == SizeAccept.any || p.item.sizeClass == SizeClass.short) &&
+      (accepts?.call(p) ?? true);
   final Set<MiniGameMode> modes;
   final GameAccess access;
 
@@ -103,6 +124,8 @@ class MiniGame {
     itemTypes: itemTypes,
     build: build,
     minPool: minPool,
+    sizes: sizes,
+    accepts: accepts,
     modes: modes,
     access: access,
     coinPrice: coinPrice,
@@ -178,12 +201,7 @@ class MiniGameRegistry {
         continue;
       }
       final pool = open
-          .where(
-            (p) =>
-                p.subject == subject &&
-                p.year == year &&
-                g.itemTypes.contains(p.item.type),
-          )
+          .where((p) => p.subject == subject && p.year == year && g.canPlay(p))
           .length;
       if (pool < g.minPool) continue;
       out.add(MiniGameOffer(g, locked: !isPlayable(g, unlocked)));

@@ -23,6 +23,8 @@ void main() {
         equationBuilderId,
         wordGridId,
         balloonPopId,
+        shooterId,
+        snakeSeriesId,
         doorRunnerId,
         tugOfWarId,
         flashReviewId,

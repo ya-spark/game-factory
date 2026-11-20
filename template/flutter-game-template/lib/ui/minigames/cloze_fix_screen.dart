@@ -13,6 +13,7 @@ MiniGame clozeFixGameFor({bool harder = false}) => MiniGame(
   id: clozeFixId,
   title: 'Fill the gap',
   itemTypes: const {ItemType.cloze, ItemType.mcq},
+  accepts: clozeFixPlays,
   minPool: 4,
   build: (ctx) => ClozeFixScreen(
     session: ctx.session,

@@ -12,6 +12,7 @@ MiniGame balloonPopGameFor({bool harder = false}) => MiniGame(
   id: balloonPopId,
   title: 'Balloon pop',
   itemTypes: const {ItemType.mcq, ItemType.numeric},
+  sizes: SizeAccept.shortOnly,
   minPool: 4,
   modes: const {MiniGameMode.game},
   build: (ctx) => BalloonPopScreen(

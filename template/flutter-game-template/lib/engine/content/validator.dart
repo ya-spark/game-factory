@@ -5,6 +5,7 @@ import 'expression.dart';
 import 'format_limits.dart';
 import 'models.dart';
 import 'numeric.dart';
+import 'skills.dart';
 import 'spelling.dart';
 
 /// Answers "does this asset exist" and "is it listed in assets/LICENSES.md".
@@ -32,6 +33,7 @@ const _commonKeys = {
   'image_alt',
   'audio',
   'expression',
+  'skill',
 };
 const Map<ItemType, Set<String>> _typeKeys = {
   ItemType.mcq: {'prompt', 'options', 'correct'},
@@ -78,6 +80,7 @@ ValidationResult validatePacks(
   List<MapEntry<String, Object?>> packs, {
   required Topics topics,
   AssetChecker? assets,
+  SkillMap? skills,
 }) {
   final issues = <ContentIssue>[];
   final packIds = <String, String>{};
@@ -128,6 +131,7 @@ ValidationResult validatePacks(
       }
     }
   }
+  if (skills != null) issues.addAll(validateSkillCoverage(packs, skills));
   return ValidationResult(issues);
 }
 
@@ -482,6 +486,9 @@ class _PackValidator {
     final d = it['difficulty'];
     if (d is! int || d < 1 || d > 5) {
       _err('schema', w, '"difficulty" must be 1 to 5');
+    }
+    if (it.containsKey('skill') && !_text(it['skill'])) {
+      _err('schema', w, '"skill" must name a rung of the topic');
     }
 
     final itemTopic = it.containsKey('topic') ? it['topic'] : packTopic;

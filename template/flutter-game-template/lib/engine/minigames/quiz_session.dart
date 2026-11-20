@@ -4,6 +4,7 @@ library;
 
 import 'dart:math';
 
+import '../content/mastery.dart';
 import '../content/models.dart';
 import '../content/progress.dart';
 import '../rewards/rewards.dart';
@@ -53,6 +54,7 @@ class QuizSession {
     required this.today,
     this.streakDays = 0,
     this.gameId,
+    this.rules = SkillRules.ranger,
   }) : _topicSizes = _sizes(packs);
 
   /// Starts a round, or returns null when fewer than [minPool] matching items are open.
@@ -66,6 +68,9 @@ class QuizSession {
     required int today,
     required Random random,
     Set<ItemType>? types,
+    bool Function(PoolItem item)? accepts,
+    String? skillKey,
+    SkillRules? rules,
     String? topic,
     int count = 10,
     int minPool = 4,
@@ -77,7 +82,9 @@ class QuizSession {
         if (p.subject == subject &&
             p.year == year &&
             (topic == null || p.topic == topic) &&
-            (types == null || types.contains(p.item.type)))
+            (types == null || types.contains(p.item.type)) &&
+            (accepts == null || accepts(p)) &&
+            (skillKey == null || p.skillKey == skillKey))
           p,
     ];
     if (matching.length < minPool) return null;
@@ -98,8 +105,12 @@ class QuizSession {
       today: today,
       streakDays: streakDays,
       gameId: gameId,
+      rules: rules ?? SkillRules.forYear(year),
     );
   }
+
+  /// The advance rule of the app, used for skill evidence.
+  final SkillRules rules;
 
   /// The minigame being played, for its per-game stats.
   final String? gameId;
@@ -138,7 +149,14 @@ class QuizSession {
   PoolItem? get current => finished ? null : items[_index];
 
   /// Records the answer to the current item and moves on. Throws when [finished].
-  AnswerResult answer({required bool correct}) {
+  /// [truth] is whether the child really knew the answer, when the game scores something else
+  /// (a younger level that never loses a round): skill evidence uses it, never the game's score.
+  AnswerResult answer({
+    required bool correct,
+    bool? truth,
+    bool hinted = false,
+    bool timedOut = false,
+  }) {
     final p = current;
     if (p == null) throw StateError('The round is finished');
     final firstPass = correct && !(progress.items[p.id]?.passed ?? false);
@@ -149,7 +167,32 @@ class QuizSession {
         correct &&
         earlier != null &&
         (!earlier.lastCorrect || earlier.isDue(today));
-    var next = progress.record(p, correct: correct, gameId: gameId, day: today);
+    var next = progress.record(
+      p,
+      correct: correct,
+      gameId: gameId,
+      day: today,
+      rules: rules,
+      hinted: hinted,
+      timedOut: timedOut,
+    );
+    if (truth != null && truth != correct) {
+      // The item record and topic counts follow what the game scored, as before; the skill
+      // evidence follows what the child really knew.
+      next = next.copyWith(
+        skills: progress
+            .record(
+              p,
+              correct: truth,
+              gameId: gameId,
+              day: today,
+              rules: rules,
+              hinted: hinted,
+              timedOut: timedOut,
+            )
+            .skills,
+      );
+    }
     var stars = 0;
     var coins = 0;
     var topicDone = false;

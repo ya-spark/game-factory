@@ -54,10 +54,7 @@ List<PlayEntry> playEntries({
       if (!seen.add(o.game.id)) continue;
       final pool = open
           .where(
-            (p) =>
-                p.subject == subject &&
-                p.year == year &&
-                o.game.itemTypes.contains(p.item.type),
+            (p) => p.subject == subject && p.year == year && o.game.canPlay(p),
           )
           .length;
       out.add(PlayEntry(o, subject, pool));
@@ -134,6 +131,7 @@ class _PlayTabState extends State<PlayTab> {
       today: s.profile.today,
       random: Random(),
       types: e.game.itemTypes,
+      accepts: e.game.canPlay,
       topic: topic,
       minPool: e.game.minPool,
       streakDays: s.profile.displayStreak,

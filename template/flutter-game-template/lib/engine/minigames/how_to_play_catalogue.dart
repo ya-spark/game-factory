@@ -129,6 +129,30 @@ abstract final class HowToPlayCatalogue {
       ['Start with the words you know best.', 'There is no need to hurry.'],
     ),
     HowToPlay(
+      'shooter',
+      'Shooter',
+      [
+        'Read the question, then tap the target with the right answer to shoot it.',
+        'Targets sway from side to side. Younger levels have no timer and let you try another target.',
+      ],
+      [
+        'Read every target before you shoot.',
+        'Take a moment if the question is tricky.',
+      ],
+    ),
+    HowToPlay(
+      'snake_series',
+      'Snake',
+      [
+        'Steer the snake with the arrow buttons or by swiping, and eat the items in the right order.',
+        'Eating a wrong item counts against you. The walls wrap around, and bumping into yourself only makes you shorter.',
+      ],
+      [
+        'Work out the whole order before you start to move.',
+        'There is no need to hurry. Younger levels never run out of tries.',
+      ],
+    ),
+    HowToPlay(
       'balloon_pop',
       'Balloon pop',
       [

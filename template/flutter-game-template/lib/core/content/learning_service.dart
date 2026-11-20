@@ -1,3 +1,5 @@
+import 'package:flutter/services.dart' show rootBundle;
+
 import '../../engine/engine.dart';
 import '../clock.dart';
 import '../config/app_config.dart';
@@ -81,13 +83,61 @@ class LearningService {
   /// Every pack ready to play (a round needs them for the topic bonus).
   Future<List<LoadedPack>> loadedPacks() => _loaded();
 
-  /// Items this child can open now.
+  SkillMap? _skills;
+
+  /// The rungs of the trail, from the bundled `assets/content/skills.yaml` with the topic order
+  /// from `topics.yaml`. Empty when the app bundles neither (the app then has no trail).
+  Future<SkillMap> skills() async {
+    final cached = _skills;
+    if (cached != null) return cached;
+    SkillMap map;
+    try {
+      final topics = Topics.parse(
+        await rootBundle.loadString('assets/content/topics.yaml'),
+      );
+      map = SkillMap.parse(
+        await rootBundle.loadString('assets/content/skills.yaml'),
+        topics,
+      );
+    } on Object {
+      map = SkillMap.empty;
+    }
+    return _skills = map;
+  }
+
+  /// The advance rule for a child of [year] (see [SkillRules.forYear]).
+  SkillRules rulesFor(int? year) => SkillRules.forYear(year);
+
+  /// Items this child can open now. Each carries its skill key when the app has skills. A child
+  /// whose progress predates skills gets starting evidence from the saved item results, once.
   Future<List<PoolItem>> openItems(String childId) async {
     final child = profile.children.firstWhere((c) => c.id == childId);
+    final map = await skills();
+    final packs = await _loaded();
+    if (!map.isEmpty &&
+        child.progress.skills.isEmpty &&
+        child.progress.items.isNotEmpty) {
+      final everything = OpenItems.compute(
+        packs,
+        child.progress,
+        fullUnlock: true,
+        skills: map,
+      );
+      final moved = migrateToSkills(
+        child.progress,
+        everything,
+        rulesFor(child.year),
+      );
+      if (!identical(moved, child.progress)) {
+        await profile.setChildProgress(childId, moved);
+        return openItems(childId);
+      }
+    }
     return OpenItems.compute(
-      await _loaded(),
+      packs,
       child.progress,
       fullUnlock: profile.data.fullUnlock,
+      skills: map,
     );
   }
 
@@ -100,7 +150,11 @@ class LearningService {
     final child = profile.children.firstWhere((c) => c.id == childId);
     await profile.setChildProgress(
       childId,
-      child.progress.record(item, correct: correct),
+      child.progress.record(
+        item,
+        correct: correct,
+        rules: rulesFor(child.year),
+      ),
     );
   }
 

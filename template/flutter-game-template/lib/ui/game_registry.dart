@@ -4,6 +4,8 @@ import 'minigames/cloze_fix_screen.dart';
 import 'minigames/door_runner_screen.dart';
 import 'minigames/equation_builder_screen.dart';
 import 'minigames/flash_review_screen.dart';
+import 'minigames/shooter_screen.dart';
+import 'minigames/snake_series_screen.dart';
 import 'minigames/true_false_screen.dart';
 import 'minigames/tug_of_war_screen.dart';
 import 'minigames/word_grid_screen.dart';
@@ -17,6 +19,9 @@ final MiniGameRegistry appGames = MiniGameRegistry([
   // `doorRunnerGameFor(harder: true)` and `balloonPopGameFor(harder: true)`.
   RegistryEntry(doorRunnerGame),
   RegistryEntry(balloonPopGame),
+  // Shooter and Snake (Game mode): action games that play short items only.
+  RegistryEntry(shooterGame),
+  RegistryEntry(snakeSeriesGame),
   // Tug of war is coin-locked (Game mode), True or false is free (both modes), Flash review is
   // Study mode only and free. Champion uses the `...For(harder: true)` builders.
   RegistryEntry(tugOfWarGame),

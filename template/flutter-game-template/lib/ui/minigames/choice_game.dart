@@ -244,7 +244,10 @@ class _ChoiceGameScreenState extends State<ChoiceGameScreen>
   void _finishAnswer({required bool correct}) {
     _timer.stop();
     _reader?.stop();
-    final r = _s.answer(correct: correct && _wrongTries == 0);
+    final r = _s.answer(
+      correct: correct && _wrongTries == 0,
+      timedOut: _timedOut,
+    );
     widget.onAnswered?.call(r, _s);
     setState(() {
       if (correct) {

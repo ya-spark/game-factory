@@ -486,12 +486,13 @@ void main() {
       expect(ids([for (var i = 0; i < 4; i++) pool(_cloze(i, 'a$i'))]), {
         clozeFixId,
       });
-      expect(
-        ids([for (var i = 0; i < 3; i++) pool(_word(i, 'cats'))]),
-        isEmpty,
-      );
+      // Snake plays words too (the letters in order) and needs 3; Word search needs 4.
+      expect(ids([for (var i = 0; i < 3; i++) pool(_word(i, 'cats'))]), {
+        snakeSeriesId,
+      });
       expect(ids([for (var i = 0; i < 4; i++) pool(_word(i, 'cats'))]), {
         wordGridId,
+        snakeSeriesId,
       });
     });
 

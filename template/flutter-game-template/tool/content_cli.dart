@@ -30,7 +30,7 @@ Usage: dart run tool/content_cli.dart <command> [options]
                                        sign with the key file named in CONTENT_SIGNING_KEY_FILE
   public-key                           print the public key for CONTENT_SIGNING_KEY_FILE
 
-Common options: --catalogue <file> (default content/catalogue.json), --topics <file> (default content/topics.yaml), --root <dir> (project root
+Common options: --catalogue <file> (default content/catalogue.json), --topics <file> (default content/topics.yaml), --skills <file> (default skills.yaml beside the topics file, used when present), --root <dir> (project root
 for asset paths and assets/LICENSES.md, default .)
 ''';
 
@@ -74,6 +74,7 @@ Future<int> runCli(
   }
   final root = o.named['root'] ?? '.';
   final topicsPath = o.named['topics'] ?? '$root/content/topics.yaml';
+  _skillsOverride = o.named['skills'];
   try {
     switch (args.first) {
       case 'from-csv':
@@ -107,6 +108,21 @@ Future<int> runCli(
     err.writeln('error: ${e.message}');
     return 1;
   }
+}
+
+String? _skillsOverride;
+
+/// `--skills <file>`, else `skills.yaml` beside the topics file when it exists, else none.
+SkillMap? _skills(String topicsPath) {
+  final path = _skillsOverride ?? '${File(topicsPath).parent.path}/skills.yaml';
+  final f = File(path);
+  if (!f.existsSync()) {
+    if (_skillsOverride != null) {
+      throw FormatException('skills file not found: $path');
+    }
+    return null;
+  }
+  return SkillMap.parse(f.readAsStringSync(), _topics(topicsPath));
 }
 
 Topics _topics(String path) {
@@ -183,6 +199,7 @@ int _validate(
     _decode(files, err),
     topics: _topics(topicsPath),
     assets: _assets(root),
+    skills: _skills(topicsPath),
   );
   _print(r, out);
   out.writeln(
@@ -200,7 +217,8 @@ int _pool(
 ) {
   final files = _packFiles(o.positional.isEmpty ? ['.'] : o.positional);
   final decoded = _decode(files, err);
-  final r = validatePacks(decoded, topics: _topics(topicsPath));
+  final skills = _skills(topicsPath);
+  final r = validatePacks(decoded, topics: _topics(topicsPath), skills: skills);
   if (!r.ok) {
     _print(ValidationResult(r.errors), err);
     err.writeln('fix the errors first (run validate)');
@@ -209,7 +227,7 @@ int _pool(
   out.write(
     PoolReport.of([
       for (final d in decoded) ContentPack(d.value as Map<String, dynamic>),
-    ]).format(),
+    ], skills: skills).format(),
   );
   return 0;
 }
@@ -286,6 +304,7 @@ int _buildIndex(
     decoded,
     topics: _topics(topicsPath),
     assets: _assets(root),
+    skills: _skills(topicsPath),
   );
   if (!r.ok) {
     _print(ValidationResult(r.errors), err);
@@ -390,6 +409,7 @@ Future<int> _publish(
     decoded,
     topics: _topics(topicsPath),
     assets: _assets(root),
+    skills: _skills(topicsPath),
   );
   _print(r, out);
   if (!r.ok) {

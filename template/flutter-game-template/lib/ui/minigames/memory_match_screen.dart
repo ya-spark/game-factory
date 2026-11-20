@@ -13,6 +13,7 @@ final MiniGame memoryMatchGame = MiniGame(
   id: memoryMatchId,
   title: 'Memory match',
   itemTypes: const {ItemType.pairs},
+  sizes: SizeAccept.shortOnly,
   minPool: 3,
   build: (ctx) => MemoryMatchScreen(
     session: ctx.session,

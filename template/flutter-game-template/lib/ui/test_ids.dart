@@ -453,4 +453,18 @@ abstract final class TestIds {
   static const rulesGotIt = Key('rules.gotIt');
   static const rulesButton = Key('rules.button');
   static Key rulesFor(String gameId) => Key('rules.$gameId');
+
+  // The skill trail (T5): the screen, the Continue button, a rung, its stars and its sheet.
+  static const trailEntry = Key('learn.trailEntry');
+  static const trailScreen = Key('trail.screen');
+  static const trailEmpty = Key('trail.empty');
+  static const trailContinue = Key('trail.continue');
+  static const trailSheet = Key('trail.sheet');
+  static const trailPractise = Key('trail.sheet.practise');
+  static const trailSkip = Key('trail.sheet.skip');
+  static const trailCheckResult = Key('trail.check.result');
+  static Key trailSubject(String s) => Key('trail.subject.$s');
+  static Key trailNode(String key) => Key('trail.node.$key');
+  static Key trailStars(String key) => Key('trail.stars.$key');
+  static Key trailGame(String id) => Key('trail.game.$id');
 }

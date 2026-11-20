@@ -5,7 +5,9 @@ library;
 import 'dart:math';
 
 import '../rewards/rewards.dart';
+import 'mastery.dart';
 import 'models.dart';
+import 'skills.dart';
 
 /// A pack ready to play: [previewOnly] is true for the free part of an extra pack.
 class LoadedPack {
@@ -22,13 +24,32 @@ class PoolItem {
     required this.subject,
     required this.year,
     required this.topic,
+    this.skillKey,
   });
   final ContentItem item;
   final String packId;
   final String subject;
   final int year;
   final String topic;
+
+  /// Key of the skill (rung) this item belongs to, when the app has skills.
+  final String? skillKey;
   String get id => item.id;
+
+  /// The same item with its skill looked up in [skills] (unchanged when it has none).
+  PoolItem withSkill(SkillMap skills) {
+    final s = skills.skillOf(subject, year, topic, item);
+    return s == null
+        ? this
+        : PoolItem(
+            item: item,
+            packId: packId,
+            subject: subject,
+            year: year,
+            topic: topic,
+            skillKey: s.key,
+          );
+  }
 }
 
 /// `content.daily_release` in `app.config.yaml`.
@@ -229,7 +250,11 @@ class ChildProgress {
     this.recent = const [],
     this.rewards = const RewardState(),
     this.games = const {},
+    this.skills = const {},
   });
+
+  /// What this child has done on each skill, by skill key (`subject/year/id`).
+  final Map<String, SkillProgress> skills;
 
   /// Per-minigame stats, by game id.
   final Map<String, GameStat> games;
@@ -265,7 +290,9 @@ class ChildProgress {
     List<String>? recent,
     RewardState? rewards,
     Map<String, GameStat>? games,
+    Map<String, SkillProgress>? skills,
   }) => ChildProgress(
+    skills: skills ?? this.skills,
     games: games ?? this.games,
     items: items ?? this.items,
     topics: topics ?? this.topics,
@@ -280,6 +307,9 @@ class ChildProgress {
     required bool correct,
     String? gameId,
     int? day,
+    SkillRules rules = SkillRules.ranger,
+    bool hinted = false,
+    bool timedOut = false,
   }) {
     final before = items[p.id];
     // The clock went back: nothing moves and the last day stays.
@@ -312,7 +342,28 @@ class ChildProgress {
     );
     final gs = gameId == null ? null : (games[gameId] ?? const GameStat());
     final rec = [...recent.where((i) => i != p.id), p.id];
+    // Skill evidence: only the answer counts, never a game's own score. A clock that went back
+    // adds none.
+    Map<String, SkillProgress>? newSkills;
+    final sk = p.skillKey;
+    if (sk != null && !clockBack && day != null) {
+      final ev = evidenceFor(
+        p,
+        correct: correct,
+        day: day,
+        rules: rules,
+        hinted: hinted,
+        timedOut: timedOut,
+      );
+      if (ev != null) {
+        newSkills = {
+          ...skills,
+          sk: (skills[sk] ?? const SkillProgress()).add(ev, rules),
+        };
+      }
+    }
     return copyWith(
+      skills: newSkills,
       games: gs == null
           ? null
           : {
@@ -408,6 +459,8 @@ class ChildProgress {
     'release': {for (final e in release.entries) e.key: e.value.toJson()},
     'recent': recent,
     'rewards': rewards.toJson(),
+    if (skills.isNotEmpty)
+      'skills': {for (final e in skills.entries) e.key: e.value.toJson()},
   };
 
   factory ChildProgress.fromJson(Map<String, Object?>? j) {
@@ -422,6 +475,7 @@ class ChildProgress {
       topics: read(j['topics'], TopicResult.fromJson),
       release: read(j['release'], ReleaseState.fromJson),
       games: read(j['games'], GameStat.fromJson),
+      skills: read(j['skills'], SkillProgress.fromJson),
       recent: [...?(j['recent'] as List?)?.cast<String>()],
       rewards: RewardState.fromJson(
         (j['rewards'] as Map?)?.cast<String, Object?>(),
@@ -553,6 +607,7 @@ abstract final class OpenItems {
     Iterable<LoadedPack> packs,
     ChildProgress progress, {
     required bool fullUnlock,
+    SkillMap? skills,
   }) {
     final open = <String>{
       for (final r in progress.release.values) ...r.openIds,
@@ -565,7 +620,10 @@ abstract final class OpenItems {
         final ok = p.isExtra
             ? (!lp.previewOnly || preview.contains(it.id))
             : (fullUnlock || open.contains(it.id));
-        if (ok) out.add(ReleaseEngine._pool(p, it));
+        if (ok) {
+          final pi = ReleaseEngine._pool(p, it);
+          out.add(skills == null || skills.isEmpty ? pi : pi.withSkill(skills));
+        }
       }
     }
     return out;

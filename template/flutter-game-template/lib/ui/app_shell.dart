@@ -131,6 +131,7 @@ class _AppShellState extends State<AppShell> with WidgetsBindingObserver {
             child: child,
             page: id,
             loaders: widget.loaders,
+            registry: registry,
           ),
         };
         return Scaffold(

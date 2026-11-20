@@ -46,7 +46,7 @@ class SaveData {
   });
 
   /// Bump when the JSON shape changes and add a step to [SaveMigrator].
-  static const int currentVersion = 11;
+  static const int currentVersion = 12;
 
   final int coins;
   final int bestScore;
@@ -317,6 +317,7 @@ abstract final class SaveMigrator {
         8 => _v8ToV9(j),
         9 => _v9ToV10(j),
         10 => _v10ToV11(j),
+        11 => _v11ToV12(j),
         _ => throw StateError('No migration from $v'),
       };
       v = (j['version'] as num).toInt();
@@ -377,6 +378,15 @@ abstract final class SaveMigrator {
 
   /// v11 added the per-child `rulesSeen` list (R1a). Old saves start with it empty; the
   /// children's own JSON reads a missing list as empty, so nothing else changes.
+  /// v12 added per-skill evidence to each child's progress (`progress.skills`, the trail). Old
+  /// saves have none; the engine builds starting evidence from the saved item results the first
+  /// time it has the skill map (`migrateToSkills`). This step only moves the version, so an older
+  /// app cannot open the newer save and silently drop skill evidence.
+  static Map<String, Object?> _v11ToV12(Map<String, Object?> j) => {
+    ...j,
+    'version': 12,
+  };
+
   static Map<String, Object?> _v10ToV11(Map<String, Object?> j) => {
     ...j,
     'version': 11,

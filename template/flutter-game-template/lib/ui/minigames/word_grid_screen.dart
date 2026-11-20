@@ -16,6 +16,7 @@ MiniGame wordGridGameFor({bool harder = false}) => MiniGame(
   id: wordGridId,
   title: 'Word search and crossword',
   itemTypes: const {ItemType.word},
+  accepts: (p) => gridWordFromItem(p.item) != null,
   minPool: 4,
   build: (ctx) => WordGridScreen(
     session: ctx.session,
