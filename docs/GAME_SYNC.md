@@ -1,6 +1,6 @@
 # Game sync: standalone games inside the Mind hubs
 
-Decision (owner, 2026-11-11, `game-studio/docs/DECISIONS.md`): Block Puzzle, Blockfall and Wingy stay
+Decision (owner, 2026-11-11, `game-studio/docs/decisions/operations.md`): Block Puzzle, Blockfall and Wingy stay
 standalone apps and are **copied** into the Mind hubs (Ember: Block Puzzle, Blockfall; Presto: Wingy).
 The standalone app is the source of truth.
 
