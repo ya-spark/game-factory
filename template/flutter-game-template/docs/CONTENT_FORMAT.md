@@ -121,7 +121,7 @@ Each example shows the CSV cells (only the used columns) and the JSON.
 
 ### mcq (also true or false)
 
-`prompt`, `options` (at least 2), `correct` (index or list of indexes). True or false is an `mcq`
+`prompt`, `options` (2 to 4), `correct` (the index of the one right option; a list is allowed only with one entry). True or false is an `mcq`
 with two options. A maths `mcq` may add `expression`; the single correct option must equal it.
 
 ```
@@ -133,7 +133,7 @@ type=mcq | prompt=What is 3 × 4? | options=10|11|12|13 | correct=3
 
 ### series
 
-`prompt`, ordered `steps` (the app shuffles them).
+`prompt`, ordered `steps` (3 to 8, all different; the app shuffles them).
 
 ```
 type=series | prompt=Put the multiples of 3 in order. | steps=3|6|9|12
@@ -144,7 +144,7 @@ type=series | prompt=Put the multiples of 3 in order. | steps=3|6|9|12
 
 ### pairs
 
-`pairs`: a list of `left` and `right`, at least 2; each `left` once.
+`pairs`: a list of `left` and `right`, 3 to 6; each `left` once and each `right` once.
 
 ```
 type=pairs | pairs=2×3=6|3×3=9|4×3=12
@@ -155,7 +155,7 @@ type=pairs | pairs=2×3=6|3×3=9|4×3=12
 
 ### word
 
-`answer`, `hint`, optional `letters` (the letters offered; must contain every letter of the answer).
+`answer` (one word of letters only, 3 to 14), `hint`, optional `letters` (at most 20; must contain every letter of the answer).
 
 ```
 type=word | answer=product | hint=The answer to a multiplication | letters=pdorutcqz
@@ -166,7 +166,7 @@ type=word | answer=product | hint=The answer to a multiplication | letters=pdoru
 
 ### category
 
-`categories` (at least 2) and `items`, each with its `category`. Every category needs an item.
+`categories` (2 to 4) and `items` (3 to 12), each with its `category`. Every category needs at least one item.
 
 ```
 type=category | categories=Even|Odd | items=2=Even|7=Odd|10=Even|13=Odd
@@ -179,7 +179,7 @@ type=category | categories=Even|Odd | items=2=Even|7=Odd|10=Even|13=Odd
 ### numeric
 
 `prompt`, `answer`, optional `tolerance` (0 or more), optional `unit`, optional `expression`. The
-answer is a number: integers and decimals only. When `expression` is given it must evaluate to the
+answer is a number: integers and decimals only, at most 8 digits and 3 decimals. When `expression` is given it must evaluate to the
 answer (`+ - * / ^`, brackets, `×`, `÷`).
 
 Equivalent forms count as the same answer: `0.5`, `.5` and `0.50`; `1000`, `1,000` and `1 000`.
@@ -198,7 +198,7 @@ whose answer is a fraction uses `mcq` with the fractions as options, for example
 
 ### cloze
 
-`text` with gaps `{{1}}`, `{{2}}`, and `gaps`: the accepted words for each gap. Every gap in the text
+`text` with 1 to 3 gaps `{{1}}`, `{{2}}`, and `gaps`: 1 to 6 accepted words for each gap. Every gap in the text
 needs a non-empty list, and no list may be for a gap that is not in the text. In the CSV the text
 goes in `prompt` and the gaps in `gaps` as `1=word/other|2=word`.
 
@@ -210,9 +210,32 @@ type=cloze | prompt={{1}} × 3 = 12 and 3 × {{2}} = 15. | gaps=1=4/four|2=5/fiv
   "gaps": { "1": ["4","four"], "2": ["5","five"] } }
 ```
 
+## Limits (the envelope) and size class
+
+Games rely on these limits, so the validator rejects an item outside them (code `format_limit`). The numbers
+live in `lib/engine/content/format_limits.dart`; the reasons and the per-game limits are in the studio's
+`docs/FORMAT-CONSTRAINTS.md`.
+
+| Format | Limits |
+|--------|--------|
+| All | `prompt` 1 to 300 characters; `explanation` 1 to 250; plain text only (no markup; emoji are fine as simple pictures, never people); no leading or trailing spaces; `image_alt` 1 to 120 |
+| `mcq` | 2 to 4 distinct options of 1 to 150 characters; exactly one correct |
+| `series` | 3 to 8 distinct steps of 1 to 80 characters |
+| `pairs` | 3 to 6 pairs; every left and every right distinct; each side 1 to 60 |
+| `category` | 2 to 4 categories (names 1 to 30); 3 to 12 items (1 to 80); every category has at least one item |
+| `word` | one word of letters only, 3 to 14; `hint` 1 to 100; `letters` at most 20 |
+| `numeric` | at most 8 digits and 3 decimals; `unit` at most 20 |
+| `cloze` | 1 to 3 gaps; 1 to 6 accepted forms of 1 to 20 characters each; text at most 200 |
+
+**Size class.** Each item is `short` or `long`, worked out by the tool (`ContentItem.sizeClass`), never written
+in a pack. `short`: prompt at most 150 characters, every `mcq` option at most 30, every tile (series step, pair
+side, category item) at most 24. Everything else inside the envelope is `long`. Write `short` items by
+default: action games take only `short`, card-style games take both. `content_cli pool` counts items per type
+and size class.
+
 ## What the validator checks
 
-Errors (the pack is rejected): schema and unknown fields; unknown subject or topic; missing
+Errors (the pack is rejected): any limit above (`format_limit`); schema and unknown fields; unknown subject or topic; missing
 `explanation`; missing `image_alt`; duplicate item ids (across all packs) and pack ids; the declared
 correct answers (mcq indexes, category membership, word letters, cloze gaps); maths items whose
 `expression` does not give the stated answer; numeric answers that are not numbers; empty text;

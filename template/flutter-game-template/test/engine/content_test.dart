@@ -127,9 +127,9 @@ void main() {
       expect(check(p).errors, isEmpty);
     });
 
-    test('multiple correct answers and numeric strings are fine', () {
+    test('one correct answer as a list and numeric strings are fine', () {
       final p = samplePack();
-      itemOfType(p, 'mcq')['correct'] = [0, 2];
+      itemOfType(p, 'mcq')['correct'] = [2];
       itemOfType(p, 'numeric')['answer'] = '1,000';
       itemOfType(p, 'numeric')['expression'] = '500*2';
       expect(check(p).errors, isEmpty, reason: '${check(p).issues}');

@@ -2,6 +2,7 @@
 /// minigame's minimum playable pool can be checked.
 library;
 
+import 'format_limits.dart';
 import 'models.dart';
 
 class PoolReport {
@@ -15,20 +16,29 @@ class PoolReport {
     final rows = <_Row>[];
     for (final p in packs) {
       for (final i in p.items) {
-        rows.add(_Row(i.type, p.subject, p.year, i.topicOr(p.topic)!));
+        rows.add(
+          _Row(i.type, p.subject, p.year, i.topicOr(p.topic)!, i.sizeClass),
+        );
       }
     }
     return PoolReport._(rows.length, rows);
   }
 
   /// Items matching every given filter.
-  int count({ItemType? type, String? subject, int? year, String? topic}) {
+  int count({
+    ItemType? type,
+    String? subject,
+    int? year,
+    String? topic,
+    SizeClass? sizeClass,
+  }) {
     var n = 0;
     for (final r in _rows) {
       if (type != null && r.type != type) continue;
       if (subject != null && r.subject != subject) continue;
       if (year != null && r.year != year) continue;
       if (topic != null && r.topic != topic) continue;
+      if (sizeClass != null && r.sizeClass != sizeClass) continue;
       n++;
     }
     return n;
@@ -67,6 +77,16 @@ class PoolReport {
     (r) => '${r.subject}/${r.year.toString().padLeft(2, '0')}/${r.topic}',
   );
 
+  /// Items per type and size class (`short` or `long`).
+  Map<String, int> get byTypeAndSize =>
+      _group((r) => '${r.type.name}/${r.sizeClass.name}');
+
+  /// Items per topic and size class.
+  Map<String, int> get byTopicAndSize => _group(
+    (r) =>
+        '${r.subject}/${r.year.toString().padLeft(2, '0')}/${r.topic}/${r.sizeClass.name}',
+  );
+
   /// Subject, year and type together: the cut a minigame cares about.
   Map<String, int> get bySubjectYearType => _group(
     (r) => '${r.subject}/${r.year.toString().padLeft(2, '0')}/${r.type.name}',
@@ -82,18 +102,21 @@ class PoolReport {
     }
 
     section('By type', byType);
+    section('By type and size class', byTypeAndSize);
     section('By subject', bySubject);
     section('By year (00 = Foundation)', byYear);
     section('By subject, year and type', bySubjectYearType);
     section('By topic', byTopic);
+    section('By topic and size class', byTopicAndSize);
     return b.toString();
   }
 }
 
 class _Row {
-  _Row(this.type, this.subject, this.year, this.topic);
+  _Row(this.type, this.subject, this.year, this.topic, this.sizeClass);
   final ItemType type;
   final String subject;
   final int year;
   final String topic;
+  final SizeClass sizeClass;
 }

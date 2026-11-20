@@ -2,6 +2,7 @@
 library;
 
 import 'expression.dart';
+import 'format_limits.dart';
 import 'models.dart';
 import 'numeric.dart';
 import 'spelling.dart';
@@ -17,6 +18,8 @@ class AssetChecker {
 
 final RegExp _idForm = RegExp(r'^[a-z0-9][a-z0-9_.-]*$');
 final RegExp _gapForm = RegExp(r'\{\{(\d+)\}\}');
+final RegExp _markupForm = RegExp(r'</?[A-Za-z][^>]*>|&[A-Za-z]+;|&#\d+;');
+final RegExp _lettersOnly = RegExp(r'^\p{L}+$', unicode: true);
 
 const _commonKeys = {
   'id',
@@ -143,6 +146,58 @@ class _PackValidator {
       issues.add(ContentIssue(Severity.warning, code, where, msg));
 
   bool _text(Object? v) => v is String && v.trim().isNotEmpty;
+
+  /// A breach of the format envelope (`docs/FORMAT-CONSTRAINTS.md`); games rely on these limits.
+  void _limit(String where, String msg) => _err('format_limit', where, msg);
+
+  void _len(String? s, int max, String label, String w) {
+    if (s != null && textLength(s) > max) {
+      _limit(w, '$label is ${textLength(s)} characters; the limit is $max');
+    }
+  }
+
+  void _count(int n, int min, int max, String label, String w) {
+    if (n < min || n > max) {
+      _limit(w, '$label has $n; it needs $min to $max');
+    }
+  }
+
+  /// Prompt of a format that requires one, within the common limit.
+  void _prompt(Map it, String w) {
+    _len(_reqText(it, 'prompt', w), CommonLimits.promptMax, 'prompt', w);
+  }
+
+  /// Plain text only: no markup, no leading or trailing spaces. Emoji are allowed: Foundation items
+  /// use them as simple pictures. Reported once per item.
+  void _plainText(Map it, String w) {
+    var space = false, markup = false;
+    void scan(Object? v) {
+      if (v is String) {
+        if (v != v.trim()) space = true;
+        if (_markupForm.hasMatch(v)) markup = true;
+      } else if (v is List) {
+        v.forEach(scan);
+      } else if (v is Map) {
+        for (final e in v.entries) {
+          if (const {
+            'id',
+            'image',
+            'audio',
+            'type',
+            'topic',
+            'expression',
+          }.contains(e.key)) {
+            continue;
+          }
+          scan(e.value);
+        }
+      }
+    }
+
+    scan(it);
+    if (space) _limit(w, 'text has a leading or trailing space');
+    if (markup) _limit(w, 'text must be plain: no markup');
+  }
 
   /// Requires a non-empty string field.
   String? _reqText(Map m, String key, String where, {String? code}) {
@@ -447,6 +502,13 @@ class _PackValidator {
       _err('missing_explanation', w, 'every item needs an "explanation"');
     } else if (!_text(it['explanation'])) {
       _err('missing_explanation', w, '"explanation" is empty');
+    } else if (it['explanation'] is String) {
+      _len(
+        it['explanation'] as String,
+        CommonLimits.explanationMax,
+        'explanation',
+        w,
+      );
     }
 
     final type = ItemType.parse(it['type']);
@@ -460,13 +522,13 @@ class _PackValidator {
     }
     _unknownKeys(it, {..._commonKeys, ..._typeKeys[type]!}, w);
     _assets(it, w);
+    _plainText(it, w);
 
     switch (type) {
       case ItemType.mcq:
         _mcq(it, w);
       case ItemType.series:
-        _reqText(it, 'prompt', w);
-        _textList(it, 'steps', w, min: 2);
+        _series(it, w);
       case ItemType.pairs:
         _pairs(it, w);
       case ItemType.word:
@@ -490,6 +552,13 @@ class _PackValidator {
         _asset(image as String, w);
         if (!_text(it['image_alt'])) {
           _err('missing_image_alt', w, 'an image needs "image_alt" text');
+        } else {
+          _len(
+            it['image_alt'] as String,
+            CommonLimits.imageAltMax,
+            'image_alt',
+            w,
+          );
         }
       }
     } else if (it.containsKey('image_alt') && !_text(it['image_alt'])) {
@@ -524,8 +593,22 @@ class _PackValidator {
   }
 
   void _mcq(Map it, String w) {
-    _reqText(it, 'prompt', w);
+    _prompt(it, w);
     final options = _textList(it, 'options', w, min: 2);
+    if (options != null) {
+      if (options.length > McqLimits.optionsMax) {
+        _count(
+          options.length,
+          McqLimits.optionsMin,
+          McqLimits.optionsMax,
+          'options',
+          w,
+        );
+      }
+      for (final o in options) {
+        _len(o, McqLimits.optionMax, 'option "$o"', w);
+      }
+    }
     final correct = it['correct'];
     final idx = <int>[];
     if (correct is int) {
@@ -553,6 +636,9 @@ class _PackValidator {
       _err('bad_correct', w, '"correct" lists an index twice');
       good = false;
     }
+    if (idx.length > 1) {
+      _limit(w, '"correct" must name exactly one option, not ${idx.length}');
+    }
     if (options.toSet().length != options.length) {
       _err('schema', w, 'two options have the same text');
     }
@@ -564,14 +650,41 @@ class _PackValidator {
     }
   }
 
+  void _series(Map it, String w) {
+    _prompt(it, w);
+    final steps = _textList(it, 'steps', w, min: 0);
+    if (steps == null) return;
+    _count(
+      steps.length,
+      SeriesLimits.stepsMin,
+      SeriesLimits.stepsMax,
+      'steps',
+      w,
+    );
+    if (steps.toSet().length != steps.length) {
+      _limit(w, 'two steps have the same text');
+    }
+    for (final t in steps) {
+      _len(t, SeriesLimits.stepMax, 'step "$t"', w);
+    }
+  }
+
   void _pairs(Map it, String w) {
-    if (it.containsKey('prompt')) _reqText(it, 'prompt', w);
+    if (it.containsKey('prompt')) _prompt(it, w);
     final pairs = it['pairs'];
-    if (pairs is! List || pairs.length < 2) {
-      _err('schema', w, '"pairs" needs at least 2 pairs');
+    if (pairs is! List) {
+      _err('schema', w, '"pairs" must be a list of left and right');
       return;
     }
+    _count(
+      pairs.length,
+      PairsLimits.pairsMin,
+      PairsLimits.pairsMax,
+      'pairs',
+      w,
+    );
     final lefts = <String>{};
+    final rights = <String>{};
     for (var i = 0; i < pairs.length; i++) {
       final p = pairs[i];
       if (p is! Map) {
@@ -580,16 +693,34 @@ class _PackValidator {
       }
       _unknownKeys(p, {'left', 'right'}, '$w pair ${i + 1}');
       final l = _reqText(p, 'left', '$w pair ${i + 1}');
-      _reqText(p, 'right', '$w pair ${i + 1}');
+      final r = _reqText(p, 'right', '$w pair ${i + 1}');
       if (l != null && !lefts.add(l)) {
         _err('schema', w, 'left "$l" appears twice');
       }
+      if (r != null && !rights.add(r)) {
+        _limit(w, 'right "$r" appears twice, so matching would be ambiguous');
+      }
+      _len(l, PairsLimits.sideMax, 'left "$l"', w);
+      _len(r, PairsLimits.sideMax, 'right "$r"', w);
     }
   }
 
   void _word(Map it, String w) {
     final answer = _reqText(it, 'answer', w);
-    _reqText(it, 'hint', w);
+    final hint = _reqText(it, 'hint', w);
+    _len(hint, WordLimits.hintMax, 'hint', w);
+    if (answer != null) {
+      final n = textLength(answer);
+      if (!_lettersOnly.hasMatch(answer)) {
+        _limit(w, 'answer "$answer" must be one word of letters only');
+      } else if (n < WordLimits.lettersMin || n > WordLimits.lettersMax) {
+        _limit(
+          w,
+          'answer "$answer" has $n letters; it needs '
+          '${WordLimits.lettersMin} to ${WordLimits.lettersMax}',
+        );
+      }
+    }
     if (it.containsKey('letters')) {
       final l = it['letters'];
       final letters = l is String
@@ -601,6 +732,12 @@ class _PackValidator {
         _err('schema', w, '"letters" must be text or a list of letters');
       } else if (answer != null) {
         final pool = [...letters.expand((e) => e.toLowerCase().split(''))];
+        if (pool.length > WordLimits.poolMax) {
+          _limit(
+            w,
+            '"letters" has ${pool.length} letters; the limit is ${WordLimits.poolMax}',
+          );
+        }
         for (final ch in answer.toLowerCase().split('')) {
           if (!pool.remove(ch)) {
             _err(
@@ -616,13 +753,34 @@ class _PackValidator {
   }
 
   void _category(Map it, String w) {
-    if (it.containsKey('prompt')) _reqText(it, 'prompt', w);
+    if (it.containsKey('prompt')) _prompt(it, w);
     final cats = _textList(it, 'categories', w, min: 2);
+    if (cats != null) {
+      if (cats.length > CategoryLimits.categoriesMax) {
+        _count(
+          cats.length,
+          CategoryLimits.categoriesMin,
+          CategoryLimits.categoriesMax,
+          'categories',
+          w,
+        );
+      }
+      for (final c in cats) {
+        _len(c, CategoryLimits.categoryNameMax, 'category "$c"', w);
+      }
+    }
     final items = it['items'];
     if (items is! List || items.isEmpty) {
       _err('schema', w, '"items" needs entries with "text" and "category"');
       return;
     }
+    _count(
+      items.length,
+      CategoryLimits.itemsMin,
+      CategoryLimits.itemsMax,
+      'items',
+      w,
+    );
     final used = <String>{};
     for (var i = 0; i < items.length; i++) {
       final x = items[i];
@@ -631,7 +789,8 @@ class _PackValidator {
         continue;
       }
       _unknownKeys(x, {'text', 'category'}, '$w entry ${i + 1}');
-      _reqText(x, 'text', '$w entry ${i + 1}');
+      final t = _reqText(x, 'text', '$w entry ${i + 1}');
+      _len(t, CategoryLimits.itemMax, 'item "$t"', w);
       final c = _reqText(x, 'category', '$w entry ${i + 1}');
       if (c != null && cats != null) {
         if (!cats.contains(c)) {
@@ -651,7 +810,7 @@ class _PackValidator {
   }
 
   void _numeric(Map it, String w) {
-    _reqText(it, 'prompt', w);
+    _prompt(it, w);
     final raw = it['answer'];
     double? answer;
     if (raw == null) {
@@ -664,6 +823,19 @@ class _PackValidator {
           w,
           'answer "$raw" is not a number (integers and decimals only; use mcq for fractions)',
         );
+      } else {
+        final s = '$raw'.replaceAll(RegExp(r'[,\s-]'), '');
+        final parts = s.split('.');
+        final decimals = parts.length > 1 ? parts[1].length : 0;
+        final digits = parts[0].length + decimals;
+        if (digits > NumericLimits.digitsMax ||
+            decimals > NumericLimits.decimalsMax) {
+          _limit(
+            w,
+            'answer "$raw" has $digits digits and $decimals decimals; the limits are '
+            '${NumericLimits.digitsMax} and ${NumericLimits.decimalsMax}',
+          );
+        }
       }
     }
     if (it.containsKey('tolerance')) {
@@ -674,6 +846,8 @@ class _PackValidator {
     }
     if (it.containsKey('unit') && !_text(it['unit'])) {
       _err('empty_text', w, '"unit" is empty');
+    } else if (it['unit'] is String) {
+      _len(it['unit'] as String, NumericLimits.unitMax, 'unit', w);
     }
     if (it.containsKey('expression')) _expression(it, w, answer);
   }
@@ -712,6 +886,7 @@ class _PackValidator {
 
   void _cloze(Map it, String w) {
     final text = _reqText(it, 'text', w);
+    _len(text, ClozeLimits.textMax, 'text', w);
     final gaps = it['gaps'];
     final inText = <String>{};
     if (text != null) {
@@ -741,6 +916,7 @@ class _PackValidator {
         _err('cloze_gap', w, 'gaps lists "$g" but the text has no {{$g}}');
       }
     }
+    _count(gaps.length, ClozeLimits.gapsMin, ClozeLimits.gapsMax, 'gaps', w);
     for (final e in gaps.entries) {
       final v = e.value;
       if (v is! List || v.isEmpty || v.any((x) => !_text(x))) {
@@ -749,6 +925,17 @@ class _PackValidator {
           w,
           'gap ${e.key} needs a non-empty list of accepted words',
         );
+      } else {
+        _count(
+          v.length,
+          ClozeLimits.formsMin,
+          ClozeLimits.formsMax,
+          'gap ${e.key} accepted forms',
+          w,
+        );
+        for (final f in v) {
+          _len(f as String, ClozeLimits.formMax, 'gap ${e.key} form "$f"', w);
+        }
       }
     }
   }

@@ -10,6 +10,7 @@ export 'content/content_source.dart';
 export 'content/csv.dart';
 export 'content/csv_import.dart';
 export 'content/expression.dart';
+export 'content/format_limits.dart';
 export 'content/index.dart';
 export 'content/models.dart';
 export 'content/numeric.dart';
