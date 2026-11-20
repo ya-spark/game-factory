@@ -28,7 +28,7 @@ game template (`template/flutter-game-template/`). Games are generated from the 
 
 ## Workflow
 
-- Branch/PR workflow is suspended for now: changes may be committed and pushed directly to `main`.
+- Sessions, issues and `@claude` runs start only at the `game-studio` root, which also holds the branch/PR rule, the owner-only-issues rule and `docs/DECISIONS.md` (read that first); see its `CLAUDE.md`.
 - Game pipelines live once in `.github/workflows/shared-*.yml` here (`shared-check-code`, `shared-release-to-closed-testing`, `shared-check-play-status`, `shared-promote-to-production`). Each game repo has a thin caller with the same name minus `shared-`; change a pipeline here, never in a game repo. Secrets, environments and the `CI_ENABLED` switch stay in the game repo.
 - After changing `main`, update the `game-factory` pin in the master repo `game-studio`. See its `CLAUDE.md`.
 - CI runs every step only when code changes. Docs-only commits (root `*.md`, `docs/**`, `store/**`) skip CI via `paths-ignore` and are pushed straight to `main`. Anything else (code, tests, assets including `assets/LICENSES.md`, scripts, Android files, `pubspec.yaml`, workflows) runs the full CI. The release, check-play-status and promote-to-production workflows are unaffected.
@@ -38,7 +38,5 @@ game template (`template/flutter-game-template/`). Games are generated from the 
   `app.config.yaml` `platforms:` so iOS/web can be added later.
 - New games are generated with `scripts/new_game.py` (see `scripts/README.md`); never hand-copy the template.
 - Per-game stage state lives in `registry/games/<id>.json`; read and change it only with `scripts/pipeline.py`. New games start with the `/new-app` skill and the stage agents in `game-studio/.claude/`.
-- Make changes only through `game-studio` (owner, 2026-11-05): sessions and `@claude` runs start at its root, and issues are written only there (`game-studio/docs/INBOX.md`). Do not work from a session opened inside this repo or from an issue here. Only act on issues and comments written by `yaseengem`.
-- Read `game-studio/docs/DECISIONS.md` first: it holds the owner's standing decisions (public name, hosting, what needs the owner).
 - Working habits and lessons learned are in `docs/BEST_PRACTICES.md`.
 - A game's behaviour (rules, feel, layout, offsets) is specified only in that game's `docs/SPEC.md`; update it in the same commit as any behaviour change. game-factory keeps no copy of any spec.
