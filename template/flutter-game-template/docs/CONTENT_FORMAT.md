@@ -1,6 +1,6 @@
 # Content format
 
-How learning content is written down, checked and shipped. The code is in `lib/engine/content/`
+How learning content is written down, checked and shipped. The code is in `game_core/lib/engine/content/`
 (pure Dart, vendored into each game) and the tool is `tool/content_cli.dart`.
 
 Authors write one **CSV per pack** in a spreadsheet. The tool turns it into a **pack JSON**, assigns
@@ -36,7 +36,7 @@ ignored). The owner creates it and keeps it off every repo. Tests use the clearl
 
 ## Topics file
 
-The order of topics in each year is the teaching order: the Study Map (`lib/engine/content/topic_map.dart`) shows
+The order of topics in each year is the teaching order: the Study Map (`game_core/lib/engine/content/topic_map.dart`) shows
 the topics in file order, so reorder the file to reorder the path. A bundled copy at `assets/content/topics.yaml`
 supplies the order to the app (without it, topics fall back to id order).
 
@@ -213,7 +213,7 @@ type=cloze | prompt={{1}} × 3 = 12 and 3 × {{2}} = 15. | gaps=1=4/four|2=5/fiv
 ## Limits (the envelope) and size class
 
 Games rely on these limits, so the validator rejects an item outside them (code `format_limit`). The numbers
-live in `lib/engine/content/format_limits.dart`; the reasons and the per-game limits are in the studio's
+live in `game_core/lib/engine/content/format_limits.dart`; the reasons and the per-game limits are in the studio's
 `docs/FORMAT-CONSTRAINTS.md`.
 
 | Format | Limits |
@@ -243,7 +243,7 @@ assets that are missing, unsafe paths or not listed in `assets/LICENSES.md`; pre
 in the full part; outline counts that differ from the full part; duplicate `seq`.
 
 Warnings (do not fail): fewer than 20 or more than 50 items; US spellings from a word list
-(`colour`, `organise`, `maths` and similar; see `lib/engine/content/spelling.dart`).
+(`colour`, `organise`, `maths` and similar; see `game_core/lib/engine/content/spelling.dart`).
 
 ## Skills (the trail)
 
@@ -274,7 +274,7 @@ maths:
 
 ## Delivery, release and unlocks (issue 1B)
 
-Code: `lib/engine/content/` (`content_source.dart`, `repository.dart`, `progress.dart`), the glue in
+Code: `game_core/lib/engine/content/` (`content_source.dart`, `repository.dart`, `progress.dart`), the glue in
 `lib/core/content/`, the screens `lib/ui/profile_picker_screen.dart` and `lib/ui/parent_area_screen.dart`.
 Switched on per game with `content.enabled: true` in `app.config.yaml`.
 

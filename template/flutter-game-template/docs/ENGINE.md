@@ -2,7 +2,7 @@
 
 > Also see "Shared minigames: Equation builder, Cloze fix, Word grid (issue M4b)" at the end.
 
-Code lives in `lib/engine/` (pure Dart, no Flutter except the screens in `lib/ui/`). Content, release
+Code lives in `game_core/lib/engine/` (SH1: the engine is a package; the games below are packages in `games/`) (pure Dart, no Flutter except the screens in `lib/ui/`). Content, release
 and the item selector are described in `CONTENT_FORMAT.md`.
 
 ## Minigame framework (`lib/engine/minigames/`)
@@ -153,32 +153,32 @@ placement, no interstitial).
 config, AI tutor) and `test/ui/quick_quiz_test.dart` (both modes, 150 percent text, screen-reader
 labels).
 
-## Generator profiles and the engine in each game (issue 1C3)
-`scripts/new_game.py --profile puzzle|craft|mind` (factory repo). `puzzle` is the plain template
-(the Block Puzzle game). `craft` and `mind` generate without the puzzle game: Home shows a hub
-placeholder (`home.hub`), `content.enabled` is true, and `audience:` and the ad switches follow
-`--audience` (craft: `child` or `teen`; mind: `adult`). Mind also sets `rewards.stars.enabled: false`
-and `minigames.coin_price: 300`. A new repo's `check-code.yml` only runs when the repository variable
-`CI_ENABLED` is `true` (`--ci on` leaves it unguarded); the owner turns it on after the first
-working build.
+## Generator profiles and the engine (issue 1C3, SH1 2026-11-21 replaced the vendored copy)
+`scripts/new_game.py --profile puzzle|craft|mind [--games a,b]` (factory repo). The template is a
+container skeleton: services, theme, shop, settings, Study and Play shell, CI and store files. It holds
+no engine and no game. `puzzle` (default) is the plain shell with no design; `craft` and `mind` pick a
+design and set `content.enabled` to true; `audience:` and the ad switches follow `--audience` (craft:
+`child` or `teen`; mind: `adult`). Home shows a hub placeholder (`home.hub`) until games are listed. Mind
+also sets `rewards.stars.enabled: false` and `minigames.coin_price: 300`. A new repo's `check-code.yml`
+only runs when the repository variable `CI_ENABLED` is `true` (`--ci on` leaves it unguarded); the owner
+turns it on after the first working build.
 
-### The engine is vendored
-The engine is `lib/engine`, `test/engine`, `test/fixtures` and `tool/content_cli.dart`. Every
-game holds its own copy with `package:<game>/` imports. **Never edit it in a game**: change it in
-the factory template, then sync. `engine.lock` holds a SHA-256 of those files (names and bytes,
-package name normalised); `python3 scripts/engine_lock.py check` (a CI step) fails when a game's
-engine differs from its lock.
-
-### Running a sync (one `[change]` issue per sync)
-1. In `game-factory`, change the engine in `template/flutter-game-template`; format, analyze, test.
-2. Push the factory `main`; update its pin in `game-studio`.
-3. Open one `[change]` issue in `game-studio` listing the games, e.g. "Sync the engine into
-   craft_lowteen, craft_preteen".
-4. The run does, per game: `python3 game-factory/scripts/sync_engine.py apps/game-<id>`; then in
-   that repo `dart format --set-exit-if-changed .`, `flutter analyze`, `flutter test`; pushes the
-   game's `main` and moves the pin. A game that fails its checks is left alone and reported.
-5. `python3 game-factory/scripts/sync_engine.py --check apps/game-<id> ...` lists games behind the
-   template or edited locally (exit 1). Run it before and after.
+### Where the engine and the games live
+- The engine (content, quiz session, minigame framework, rewards, family rules, stats, AI tutor) is the
+  package `game_core` (`game_core/lib/engine`, with its tests and `content_cli`). Code in this
+  template imports `package:game_core/engine/engine.dart`. **Never copy it into an app.**
+- Each game is a package in `games/<id>/` (rules, UI, assets, tests, its own `docs/SPEC.md`). The
+  generated app pins `game_core` and each listed game by git at ONE `game-factory` commit and overrides
+  `game_core` with the same pin (`dependency_overrides`). `--games a,b` writes those pins and the
+  `RegistryEntry` lines in `lib/ui/game_registry.dart`; Flash review is always listed (Study mode and the
+  mistakes round use it). `--ref <sha>` pins another commit (default: this checkout's HEAD, which must be
+  pushed to `main` before the app builds).
+- `--games` lists quiz games (the ones that export `<id>Game`). Arcade games (Wingy, Block Puzzle,
+  Blockfall, Snake, ...) bring their own host interface and need adapter code in the container; they are
+  refused until that is generated too.
+- A new game package: `python3 scripts/new_game_package.py --id my_game --name "My Game"`.
+- To change the engine or a game: edit it in `game-factory`, push `main`, then move the `ref` in each
+  container (and the `game-studio` pins). There is no sync step and no engine lock any more.
 
 ## Modes, shell and card data (issue 2B1)
 
