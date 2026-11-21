@@ -64,6 +64,6 @@ class _BlockfallHostState extends State<BlockfallHost> {
     if (s == null) {
       return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
-    return BlockfallServicesScope(services: s, child: const GameScreen());
+    return BlockfallServicesScope(services: s, child: const GameScreen(offerVersus: true));
   }
 }
