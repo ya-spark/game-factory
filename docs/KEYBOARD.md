@@ -24,3 +24,19 @@ One key map for every game and app, in `game_core` (`lib/kit/keys/`, import `pac
 - Escape (exit), Tab, Shift, Ctrl, Alt, Meta and Caps Lock cannot be bound. Ctrl, Alt and Meta shortcuts pass through to the browser.
 - Saved on the device only (`game_keys_v1`); a damaged save falls back to the defaults; going back to the defaults clears it.
 - The look of the Controls screen and the game frame follows the Figma board (`docs/art-prompts/r2-layout-figma-prompt.md` in game-studio).
+
+## Esc, Space and the frame (rolled out to the four two-player games)
+- **Esc pauses a round** (the pause screen has Resume and Leave; Esc or Space again resumes); on the start and results screens Esc leaves. The shared `exit` action is bound to Esc and cannot be remapped.
+- **No title bar.** A game draws `GameTopBar` (exit, name, pause) over the stage and `PauseOverlay` (Resume, Leave); both are in `game_core` (`kit/layout/game_chrome.dart`).
+- **Frame.** A game's screen is `GameFrame(showAds: <not in play>, phoneBanner: null, child: ...)` inside `GameKeyboard`; key hints (`KeyHints`) show on windows 600 dp and wider.
+- **Flame games:** pass `autofocus: false` to `GameWidget`, otherwise Flame's own focus node swallows every key before `GameKeyboard` sees it.
+
+| Game | Keys (player 1; the left hand also plays in a one-player game) |
+|---|---|
+| Choose-one games (Tug of war, True or false, Cloze fix, Equation builder, Balloon pop, Shooter shell) | 1 to 4 answer, Enter start / next, Q read the question, Space pause, Esc pause or leave |
+| Memory match | arrows over the cards, Enter turns a card (or goes on), Q reads, Space pause, Esc pause or leave |
+| Door runner | left and right steer, up zaps, down slows while held, 1 to 4 pick a door, Enter or Q the question, Space or Esc pause |
+| Blockfall | left and right move (held keys repeat), up rotates, down soft-drops while held, Enter hard-drops, Q holds, 1 to 3 power-ups, Space or Esc pause |
+
+The two-player modes themselves (Tug of war head to head, Memory match turns, Door runner race, Blockfall two boards) are not built yet; the key map already gives player 2 its left-hand keys.
+
