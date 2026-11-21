@@ -514,6 +514,119 @@ def game_entry_name(game_id: str, games_dir: Path = GAMES_DIR) -> str | None:
     return None
 
 
+ADAPTERS_DIR = REPO_ROOT / "scripts" / "arcade_adapters"
+# Games that are not quiz MiniGames. `host` games (Wingy, Block Puzzle, Blockfall) need services from their
+# container: `scripts/arcade_adapters/<id>/` holds the adapter (profile, ads, services, host widget) written
+# into `lib/host/<id>/`. The others are plain screens that only need the `GameHost` the app provides.
+# Fields: registry id, title, Pascal class, access, coin price, star scores, widget (None: `<Class>Screen`).
+ARCADE: dict[str, dict] = {
+    "wingy": dict(rid="wingy", title="Wingy", cls="Wingy", access="freeWithAds", stars="const [10, 25, 50]", host=True),
+    "block_puzzle": dict(rid="block_puzzle", title="Block Puzzle", cls="BlockPuzzle", access="freeWithAds",
+                         stars="const [500, 2000, 5000]", host=True),
+    "blockfall": dict(rid="blockfall", title="Blockfall", cls="Blockfall", access="coins", coin=300,
+                      stars="const [1000, 5000, 15000]", host=True),
+    "snake": dict(rid="snake", title="Snake", cls="Snake", access="freeWithAds", stars="snakeStarScores"),
+    "brick_breaker": dict(rid="bricks", title="Brick breaker", cls="BrickBreaker", access="freeWithAds",
+                          stars="brickStarScores"),
+    "stack_tower": dict(rid="stack", title="Stack tower", cls="StackTower", access="coins", coin=300,
+                        stars="stackStarScores"),
+    "runner": dict(rid="runner", title="Runner", cls="Runner", access="coins", coin=300, stars="runnerStarScores"),
+    "sudoku": dict(rid="sudoku", title="Sudoku", cls="Sudoku", access="freeWithAds", stars="sudokuStarScores"),
+    "solitaire": dict(rid="solitaire", title="Solitaire", cls="Solitaire", access="freeWithAds",
+                      stars="solitaireStarScores"),
+    "ball_sort": dict(rid="ball_sort", title="Ball sort", cls="BallSort", access="coins", coin=300,
+                      stars="ballSortStarScores"),
+    "mahjong": dict(rid="mahjong", title="Mahjong solitaire", cls="Mahjong", access=None, stars="mahjongStarScores"),
+    "merge": dict(rid="merge", title="Merge", cls="Merge", access="coins", coin=300, stars="mergeStarScores"),
+}
+
+
+def arcade_entry(game_id: str) -> str:
+    """The `RegistryEntry` of an arcade or hub game, as the hubs write it (standalone builder)."""
+    a = ARCADE[game_id]
+    widget = f"{a['cls']}Host" if a.get("host") else f"{a['cls']}Screen"
+    lines = [
+        "  RegistryEntry(",
+        "    MiniGame(",
+        f"      id: '{a['rid']}',",
+        f"      title: '{a['title']}',",
+        "      itemTypes: const {},",
+        "      minPool: 0,",
+        "      modes: const {MiniGameMode.game},",
+    ]
+    if a["access"]:
+        lines.append(f"      access: GameAccess.{a['access']},")
+    if a.get("coin"):
+        lines.append(f"      coinPrice: {a['coin']},")
+    lines += [
+        f"      starScores: {a['stars']},",
+        f"      build: (_) => throw UnsupportedError('{a['title']} is a standalone game'),",
+        f"      buildStandalone: (onScore) => {widget}(onScore: onScore),",
+        "    ),",
+        "  ),",
+    ]
+    return "\n".join(lines) + "\n"
+
+
+def write_adapter(out: Path, game_id: str, app_package: str) -> None:
+    """Writes lib/host/<id>/ from scripts/arcade_adapters/<id>/ for an app package."""
+    src = ADAPTERS_DIR / game_id
+    if not src.is_dir():
+        raise GenError(f"generator bug: no adapter templates for {game_id} in {src}")
+    dest = out / "lib" / "host" / game_id
+    dest.mkdir(parents=True, exist_ok=True)
+    for f in sorted(src.glob("*.tmpl")):
+        text = f.read_text(encoding="utf-8").replace("__APP__", app_package)
+        (dest / f.name[: -len(".tmpl")]).write_text(text, encoding="utf-8")
+
+
+def write_host_smoke_test(out: Path, hosts: list[str], app_package: str) -> None:
+    """test/host/arcade_hosts_test.dart: each listed host game opens over the app's fake services."""
+    imports = "".join(
+        f"import 'package:{app_package}/host/{g}/{g}_host.dart';\n" for g in sorted(hosts)
+    )
+    cases = "".join(f"    '{g}': () => const {ARCADE[g]['cls']}Host(),\n" for g in hosts)
+    text = f"""import 'package:{app_package}/core/services.dart';
+{imports}import 'package:flutter/material.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:game_core/game_core.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+
+import '../helpers/fake_services.dart';
+
+void main() {{
+  for (final entry in <String, Widget Function()>{{
+{cases}  }}.entries) {{
+    testWidgets('${{entry.key}} host opens the game over the app services', (
+      tester,
+    ) async {{
+      SharedPreferences.setMockInitialValues({{}});
+      tester.view.physicalSize = const Size(900, 1600);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.reset);
+      final s = await buildFakeServices();
+      await tester.pumpWidget(
+        MaterialApp(
+          home: ServicesScope(
+            services: s,
+            child: GameHostScope(host: const NoGameHost(), child: entry.value()),
+          ),
+        ),
+      );
+      for (var i = 0; i < 6; i++) {{
+        await tester.pump(const Duration(milliseconds: 100));
+      }}
+      expect(find.byType(CircularProgressIndicator), findsNothing);
+      expect(tester.takeException(), isNull);
+    }});
+  }}
+}}
+"""
+    f = out / "test" / "host" / "arcade_hosts_test.dart"
+    f.parent.mkdir(parents=True, exist_ok=True)
+    f.write_text(text, encoding="utf-8")
+
+
 def parse_games(value: str | None, games_dir: Path = GAMES_DIR) -> list[str]:
     """Game ids for --games: each must be a package in games/ that a container can list."""
     ids = [g for g in (value or "").split(",") if g]
@@ -521,11 +634,8 @@ def parse_games(value: str | None, games_dir: Path = GAMES_DIR) -> list[str]:
         if not ID_RE.match(g) or not (games_dir / g / "pubspec.yaml").is_file():
             known = sorted(d.name for d in games_dir.iterdir() if (d / "pubspec.yaml").is_file()) if games_dir.is_dir() else []
             raise GenError(f"unknown game {g!r} in --games: one of {', '.join(known)}")
-        if game_entry_name(g, games_dir) is None:
-            raise GenError(
-                f"game {g!r} is an arcade game with its own host interface: it needs an adapter in the "
-                "container (see games/{g}/README.md), so --games cannot list it yet".replace("{g}", g)
-            )
+        if game_entry_name(g, games_dir) is None and g not in ARCADE:
+            raise GenError(f"game {g!r} has no `{camel(g)}Game` and no entry in ARCADE (new_game.py): add one")
     return list(dict.fromkeys([*ALWAYS_GAMES, *ids]))
 
 
@@ -542,7 +652,7 @@ def _git_dep(name: str, path: str, ref: str) -> str:
     return f"  {name}:\n    git:\n      url: {FACTORY_URL}\n      path: {path}\n      ref: {ref}\n"
 
 
-def apply_games(out: Path, games: list[str], ref: str, games_dir: Path = GAMES_DIR) -> None:
+def apply_games(out: Path, games: list[str], ref: str, app_package: str, games_dir: Path = GAMES_DIR) -> None:
     """Pins game_core and each game package by git at `ref` (one game-factory commit), and lists
     every game in the registry. The template itself uses path dependencies inside this repo."""
     if not SHA_RE.match(ref):
@@ -561,11 +671,34 @@ def apply_games(out: Path, games: list[str], ref: str, games_dir: Path = GAMES_D
     pub.write_text(text, encoding="utf-8")
     reg = out / "lib" / "ui" / "game_registry.dart"
     rtext = reg.read_text(encoding="utf-8")
-    imports = "".join(f"import 'package:game_{g}/{g}.dart';\n" for g in sorted(games))
-    entries = "".join(f"  RegistryEntry({game_entry_name(g, games_dir)}),\n" for g in games if g != "flash_review")
+    # Quiz games import their package; host games import their adapter; screen games import their package.
+    imports = "".join(
+        f"import 'package:game_{g}/{g}.dart';\n"
+        for g in sorted(games)
+        if not (g in ARCADE and ARCADE[g].get("host"))
+    )
+    imports += "".join(
+        f"import '../host/{g}/{g}_host.dart';\n" for g in sorted(games) if g in ARCADE and ARCADE[g].get("host")
+    )
+    entries = "".join(
+        arcade_entry(g) if g in ARCADE else f"  RegistryEntry({game_entry_name(g, games_dir)}),\n"
+        for g in games
+        if g != "flash_review"
+    )
+    hosts = [g for g in games if g in ARCADE and ARCADE[g].get("host")]
+    for g in hosts:
+        write_adapter(out, g, app_package)
+    if hosts:
+        write_host_smoke_test(out, hosts, app_package)
     rtext = rtext.replace("import 'package:game_flash_review/flash_review.dart';\n", imports, 1)
     rtext = rtext.replace("  RegistryEntry(flashReviewGame),\n", "  RegistryEntry(flashReviewGame),\n" + entries, 1)
     reg.write_text(rtext, encoding="utf-8")
+    # Line breaks depend on the games listed, so format what was written (when dart is installed).
+    if shutil.which("dart"):
+        targets = ["lib/ui/game_registry.dart"] + (
+            ["lib/host", "test/host"] if (out / "lib" / "host").is_dir() else []
+        )
+        subprocess.run(["dart", "format", *targets], cwd=out, capture_output=True, check=False)
 
 
 # Tests written for one app's design (they load its tokens): a generated app keeps them only when
@@ -638,7 +771,7 @@ def generate(
     rewrite_web(out)
     move_workflows(out)
     rewrite_docs(out, name)
-    apply_games(out, game_ids, ref, games_dir)
+    apply_games(out, game_ids, ref, game_id, games_dir)
     apply_profile_config(out, profile, audience)
     if profile == "craft":
         apply_content_packs(out)

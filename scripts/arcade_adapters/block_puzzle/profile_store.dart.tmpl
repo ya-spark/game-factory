@@ -1,0 +1,198 @@
+import 'package:game_block_puzzle/block_puzzle.dart';
+
+import 'dart:convert';
+
+import 'package:flutter/foundation.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+
+import 'package:__APP__/core/profile/profile_store.dart' as core;
+
+/// Where the game's own progress (best score, boosts, theme, autosave, stats) is kept.
+abstract interface class GameSaveStore {
+  Future<Map<String, Object?>?> load();
+  Future<void> save(Map<String, Object?> json);
+}
+
+class MemoryGameSaveStore implements GameSaveStore {
+  Map<String, Object?>? json;
+  @override
+  Future<Map<String, Object?>?> load() async => json;
+  @override
+  Future<void> save(Map<String, Object?> j) async => json = j;
+}
+
+class PrefsGameSaveStore implements GameSaveStore {
+  PrefsGameSaveStore(this._prefs, {this.key = 'game.block_puzzle.save'});
+  final SharedPreferences _prefs;
+  final String key;
+
+  @override
+  Future<Map<String, Object?>?> load() async {
+    final raw = _prefs.getString(key);
+    if (raw == null) return null;
+    try {
+      final j = jsonDecode(raw);
+      return j is Map ? Map<String, Object?>.from(j) : null;
+    } on FormatException {
+      return null;
+    }
+  }
+
+  @override
+  Future<void> save(Map<String, Object?> json) async {
+    await _prefs.setString(key, jsonEncode(json));
+  }
+}
+
+/// The game's view of the player. It keeps only what belongs to Block Puzzle (best score, boost
+/// stock, theme rotation, the unfinished game, stats, achievements) and reads or writes the rest
+/// through the hub's profile: **coins, Remove Ads, sound, volume, ambience, voice, vibration,
+/// left-handed mode and the day streak are the hub's**, so the balance is shared by every game.
+class ProfileStore extends ChangeNotifier implements BlockPuzzleProfileStore {
+  ProfileStore({required this.hub, required this._store, this.onScore});
+
+  final core.ProfileStore hub;
+
+  /// Told the score of every finished game (the hub keeps it as the tile's best score).
+  final void Function(int score)? onScore;
+  final GameSaveStore _store;
+  SaveData _own = const SaveData();
+
+  Future<void> init() async {
+    final j = await _store.load();
+    if (j != null) _own = SaveData.fromJson(SaveMigrator.migrate(j));
+    hub.addListener(notifyListeners);
+  }
+
+  @override
+  void dispose() {
+    hub.removeListener(notifyListeners);
+    super.dispose();
+  }
+
+  /// The game's save with the hub's shared values laid over it.
+  @override
+  SaveData get data {
+    final h = hub.data;
+    return _own.copyWith(
+      coins: h.coins,
+      adsRemoved: h.adsRemoved,
+      soundOn: h.soundOn,
+      masterVolume: h.masterVolume,
+      ambience: h.ambience,
+      voiceOn: h.voiceOn,
+      vibrationOn: h.vibrationOn,
+      leftHanded: h.leftHanded,
+      tipsOff: h.tipsOff,
+    );
+  }
+
+  @override
+  int get displayStreak => hub.displayStreak;
+
+  Future<void> _commit(SaveData d) async {
+    _own = d;
+    notifyListeners();
+    await _store.save(d.toJson());
+  }
+
+  /// Autosave of the running game (null clears it). Skips the write when nothing changed.
+  @override
+  Future<void> saveGame(Map<String, Object?>? game) {
+    if (game == null && _own.game == null) return Future.value();
+    return _commit(
+      game == null ? _own.copyWith(clearGame: true) : _own.copyWith(game: game),
+    );
+  }
+
+  @override
+  Future<List<AchievementDef>> recordGameFinished(GameSummary g) async {
+    final stats = _own.stats.copyWith(
+      gamesPlayed: _own.stats.gamesPlayed + 1,
+      totalLines: _own.stats.totalLines + g.linesCleared,
+      piecesPlaced: _own.stats.piecesPlaced + g.piecesPlaced,
+      bestScore: g.score > _own.stats.bestScore ? g.score : null,
+      maxCombo: g.maxCombo > _own.stats.maxCombo ? g.maxCombo : null,
+    );
+    var d = _own.copyWith(
+      stats: stats,
+      bestScore: g.score > _own.bestScore ? g.score : null,
+    );
+    var unlocked = const <AchievementDef>[];
+    if (hub.retention.achievements) {
+      unlocked = AchievementEngine.newlyUnlocked(
+        d.stats,
+        d.unlockedAchievements,
+      );
+      if (unlocked.isNotEmpty) {
+        d = d.copyWith(
+          unlockedAchievements: {
+            ...d.unlockedAchievements,
+            for (final a in unlocked) a.id,
+          },
+        );
+      }
+    }
+    await _commit(d);
+    onScore?.call(g.score);
+    final reward = unlocked.fold<int>(0, (s, a) => s + a.reward);
+    if (reward > 0) await hub.addCoins(reward);
+    return unlocked;
+  }
+
+  // ---- coins (the hub's balance) ------------------------------------------
+
+  @override
+  Future<void> addCoins(int n) => hub.addCoins(n);
+
+  @override
+  Future<bool> spendCoins(int n) => hub.spendCoins(n);
+
+  /// Takes back up to [n] coins (never below 0). Used by Undo for gem coins.
+  @override
+  Future<void> removeCoins(int n) async {
+    if (n <= 0) return;
+    final have = hub.data.coins;
+    await hub.spendCoins(n > have ? have : n);
+  }
+
+  // ---- boosts (the game's own stock) --------------------------------------
+
+  @override
+  int itemCount(String key) => _own.itemCount(key);
+
+  Future<void> _setItem(String key, int n) =>
+      _commit(_own.copyWith(items: {..._own.items, key: n < 0 ? 0 : n}));
+
+  @override
+  Future<bool> useItem(String key) async {
+    final n = _own.itemCount(key);
+    if (n <= 0) return false;
+    await _setItem(key, n - 1);
+    return true;
+  }
+
+  @override
+  Future<void> addItem(String key, [int n = 1]) =>
+      _setItem(key, _own.itemCount(key) + n);
+
+  /// Buys one boost with the hub's coins. False (nothing changes) when the coins are short.
+  @override
+  Future<bool> buyItem(String key) async {
+    final def = Boosts.byKey(key);
+    if (def == null || !await hub.spendCoins(def.price)) return false;
+    await _setItem(key, _own.itemCount(key) + 1);
+    return true;
+  }
+
+  @override
+  Future<void> setThemeIndex(int v) {
+    if (v == _own.themeIndex) return Future.value();
+    return _commit(_own.copyWith(themeIndex: v));
+  }
+
+  @override
+  bool get tipsEnabled => hub.tipsEnabled;
+  @override
+  Future<void> setTipsEnabled(bool v) => hub.setTipsEnabled(v);
+}

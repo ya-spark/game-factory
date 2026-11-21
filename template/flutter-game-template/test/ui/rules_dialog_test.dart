@@ -112,8 +112,9 @@ void main() {
     }
   });
 
-  test('every game registered in this app has a catalogue entry', () {
-    for (final e in appGames.entries) {
+  test('every quiz game registered in this app has a catalogue entry', () {
+    // Standalone games (Wingy, Sudoku, ...) bring their own screens and rules; only quiz games use this.
+    for (final e in appGames.entries.where((e) => !e.game.standalone)) {
       final r = HowToPlayCatalogue.forGame(e.game.id);
       expect(r, isNotNull, reason: e.game.id);
       expect(r!.rules, isNotEmpty);

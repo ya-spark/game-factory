@@ -1,0 +1,79 @@
+import 'dart:typed_data';
+
+import 'package:game_wingy/wingy.dart';
+
+import 'package:__APP__/core/analytics/analytics_service.dart';
+import 'package:__APP__/core/services.dart' as core;
+import 'package:__APP__/core/share/share_service.dart';
+import 'package:__APP__/host/wingy/ad_service.dart';
+import 'package:__APP__/host/wingy/profile_store.dart';
+
+/// The few config values the copied screens read.
+class HostConfig implements WingyConfig {
+  const HostConfig({required this.displayName});
+  @override
+  final String displayName;
+  @override
+  final String leaderboardHighScore = '';
+}
+
+/// Wingy scores and achievements are not sent to a leaderboard from the hub.
+class HostLeaderboard implements WingyLeaderboard {
+  const HostLeaderboard();
+  @override
+  Future<void> submitScore(String leaderboardId, int score) async {}
+  @override
+  Future<void> unlockAchievement(String achievementId) async {}
+}
+
+/// What the copied Wingy screens call "Services": a small adapter over the hub's own services.
+/// Coins, Remove Ads, ad pacing, share and analytics are the hub's.
+class Services implements WingyServices {
+  Services({required this.hub, required this.profile, String? displayName})
+    : config = HostConfig(displayName: displayName ?? 'Wingy'),
+      ads = HostAds(hub.ads);
+
+  /// The hub's services.
+  final core.Services hub;
+  @override
+  final ProfileStore profile;
+  @override
+  final HostConfig config;
+  @override
+  final HostAds ads;
+  @override
+  final HostLeaderboard leaderboard = const HostLeaderboard();
+
+  @override
+  WingyAnalytics get analytics => _HubAnalytics(hub.analytics);
+  @override
+  WingyShare get share => _HubShare(hub.share);
+
+  /// True while the game screen is on the navigator.
+  @override
+  bool inRun = false;
+
+  /// Shows a rewarded ad and returns true when the reward is earned. With Remove Ads owned there
+  /// are no ads at all: the reward is granted instantly (the standalone's own rule).
+  @override
+  Future<bool> rewarded(WingyAdPlacement placement) async {
+    if (profile.data.adsRemoved) return true;
+    return ads.showRewarded(placement);
+  }
+}
+
+class _HubAnalytics implements WingyAnalytics {
+  _HubAnalytics(this._a);
+  final AnalyticsService _a;
+  @override
+  void logEvent(String name, [Map<String, Object?> params = const {}]) =>
+      _a.logEvent(name, params);
+}
+
+class _HubShare implements WingyShare {
+  _HubShare(this._s);
+  final ShareService _s;
+  @override
+  Future<void> shareScore({required int score, Uint8List? image}) =>
+      _s.shareScore(score: score, image: image);
+}

@@ -443,11 +443,42 @@ class ProfileTest(unittest.TestCase):
     def test_bad_games_refused(self):
         with self.assertRaises(new_game.GenError):
             new_game.parse_games("not_a_game")
-        with self.assertRaises(new_game.GenError):  # arcade game: needs its own adapter
-            new_game.parse_games("wingy")
         with self.assertRaises(new_game.GenError):
             self.gen(games="true_false", ref="abc")
 
+    def test_every_arcade_game_is_a_package_with_its_screen_and_stars(self):
+        import re
+        for gid, a in new_game.ARCADE.items():
+            lib = new_game.GAMES_DIR / gid / "lib"
+            self.assertTrue(lib.is_dir(), gid)
+            text = "".join(f.read_text() for f in lib.rglob("*.dart"))
+            if a.get("host"):
+                self.assertTrue((new_game.ADAPTERS_DIR / gid / f"{gid}_host.dart.tmpl").is_file(), gid)
+            else:
+                self.assertRegex(text, rf"class {a['cls']}Screen\b", gid)
+            if not a["stars"].startswith("const"):
+                self.assertRegex(text, rf"\b{a['stars']}\b", gid)
+
+    def test_arcade_games_get_entries_and_host_adapters(self):
+        out = self.gen(games="wingy,snake,blockfall", ref=REF, profile="mind", audience="adult")
+        reg = (out / "lib/ui/game_registry.dart").read_text()
+        self.assertIn("buildStandalone: (onScore) => WingyHost(onScore: onScore)", reg)
+        self.assertIn("buildStandalone: (onScore) => SnakeScreen(onScore: onScore)", reg)
+        self.assertIn("coinPrice: 300", reg)
+        self.assertIn("import '../host/wingy/wingy_host.dart';", reg)
+        self.assertIn("import 'package:game_snake/snake.dart';", reg)
+        self.assertNotIn("package:game_wingy", reg)
+        for f in ("wingy_host", "services", "profile_store", "ad_service"):
+            text = (out / f"lib/host/wingy/{f}.dart").read_text()
+            self.assertNotIn("__APP__", text)
+        self.assertIn("package:my_game/core/services.dart", (out / "lib/host/wingy/services.dart").read_text())
+        self.assertTrue((out / "lib/host/blockfall/blockfall_host.dart").is_file())
+        self.assertFalse((out / "lib/host/snake").exists())
+        smoke = (out / "test/host/arcade_hosts_test.dart").read_text()
+        self.assertIn("'wingy': () => const WingyHost()", smoke)
+        self.assertIn("'blockfall': () => const BlockfallHost()", smoke)
+        self.assertNotIn("BlockPuzzleHost", smoke)
+        self.assertIn("  game_wingy:\n    git:", (out / "pubspec.yaml").read_text())
 
 if __name__ == "__main__":
     unittest.main()

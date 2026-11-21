@@ -173,9 +173,9 @@ turns it on after the first working build.
   `RegistryEntry` lines in `lib/ui/game_registry.dart`; Flash review is always listed (Study mode and the
   mistakes round use it). `--ref <sha>` pins another commit (default: this checkout's HEAD, which must be
   pushed to `main` before the app builds).
-- `--games` lists quiz games (the ones that export `<id>Game`). Arcade games (Wingy, Block Puzzle,
-  Blockfall, Snake, ...) bring their own host interface and need adapter code in the container; they are
-  refused until that is generated too.
+- `--games` lists quiz games (they export `<id>Game`) and the arcade or hub games in `ARCADE` (`new_game.py`).
+  Wingy, Block Puzzle and Blockfall get a host adapter in `lib/host/<id>/` (from `scripts/arcade_adapters/`);
+  the other screen games need only the app's `GameHost`. A game in neither list is refused.
 - A new game package: `python3 scripts/new_game_package.py --id my_game --name "My Game"`.
 - To change the engine or a game: edit it in `game-factory`, push `main`, then move the `ref` in each
   container (and the `game-studio` pins). There is no sync step and no engine lock any more.

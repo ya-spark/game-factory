@@ -1,0 +1,27 @@
+import 'package:game_block_puzzle/block_puzzle.dart';
+import 'package:flutter/widgets.dart';
+
+import 'package:__APP__/core/ads/ad_service.dart' as hub;
+
+/// The Block Puzzle view of the hub's ad service: the hub's ad pacing rules stay in charge.
+///
+/// - Rewarded: only [BlockPuzzleAdPlacement.revive] (hub `RewardedPlacement.revive`, adult profile only, never
+///   when Remove Ads is owned). Anything else answers "no ad", so no coins or boosts come from ads.
+/// - Interstitial: none (the hub has no interstitials anywhere).
+/// - Banner: none during play. The hub shows its banners on the menu and results only.
+class HostAds implements BlockPuzzleAds {
+  HostAds(this._ads);
+  final hub.AdService _ads;
+
+  @override
+  Future<bool> showRewarded(BlockPuzzleAdPlacement placement) async {
+    if (placement != BlockPuzzleAdPlacement.revive) return false;
+    return _ads.showRewarded(hub.RewardedPlacement.revive);
+  }
+
+  @override
+  Future<void> maybeShowInterstitialAfterGameOver() async {}
+
+  @override
+  Widget buildBanner() => const SizedBox.shrink();
+}

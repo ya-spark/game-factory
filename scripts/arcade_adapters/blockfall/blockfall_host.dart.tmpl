@@ -1,0 +1,69 @@
+import 'package:game_blockfall/blockfall.dart';
+import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+
+import 'package:__APP__/core/services.dart' as core;
+import 'package:__APP__/host/blockfall/profile_store.dart';
+import 'package:__APP__/host/blockfall/services.dart';
+
+/// Blockfall as a hub screen: builds the host adapter over the hub's services and shows the
+/// copied game screen. The hub opens this from the Games tab.
+class BlockfallHost extends StatefulWidget {
+  const BlockfallHost({super.key, this.store, this.onScore});
+
+  /// Told the score of each finished game (the Games tab keeps the best one).
+  final void Function(int score)? onScore;
+
+  /// Injectable for tests; the default keeps the game's own progress in shared preferences.
+  final GameSaveStore? store;
+
+  @override
+  State<BlockfallHost> createState() => _BlockfallHostState();
+}
+
+class _BlockfallHostState extends State<BlockfallHost> {
+  Services? _services;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (!_opened) {
+      _opened = true;
+      _open(core.ServicesScope.of(context));
+    }
+  }
+
+  bool _opened = false;
+
+  Future<void> _open(core.Services hub) async {
+    final store =
+        widget.store ??
+        PrefsGameSaveStore(await SharedPreferences.getInstance());
+    final profile = ProfileStore(
+      hub: hub.profile,
+      store: store,
+      onScore: widget.onScore,
+    );
+    await profile.init();
+    if (!mounted) {
+      profile.dispose();
+      return;
+    }
+    setState(() => _services = Services(hub: hub, profile: profile));
+  }
+
+  @override
+  void dispose() {
+    _services?.profile.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final s = _services;
+    if (s == null) {
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
+    }
+    return BlockfallServicesScope(services: s, child: const GameScreen());
+  }
+}

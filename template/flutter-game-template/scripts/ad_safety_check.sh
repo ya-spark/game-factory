@@ -96,7 +96,10 @@ case "$audience" in
     ;;
 esac
 if [ -d lib ]; then
-  hits="$(grep -rnE 'InterstitialAd|InterstitialAdLoadCallback|maybeShowInterstitial|showInterstitial' lib || true)"
+  # The game packages (game-factory/games/<game>) call maybeShowInterstitialAfterGameOver; a host adapter
+  # (lib/host/<game>/ad_service.dart, written by new_game.py --games) answers with a no-op. That one name is
+  # allowed there and nowhere else.
+  hits="$(grep -rnE 'InterstitialAd|InterstitialAdLoadCallback|maybeShowInterstitial|showInterstitial' lib | grep -vE '^lib/host/[a-z_]+/ad_service\.dart:[0-9]+:.*maybeShowInterstitialAfterGameOver' || true)"
   [ -z "$hits" ] || err "interstitial code found (no interstitials anywhere): $(echo "$hits" | head -3 | tr '\n' ' ')"
   hits="$(grep -rnE 'BannerAd\(|AdWidget\(' lib | grep -v 'lib/core/ads/admob_ad_service.dart' || true)"
   [ -z "$hits" ] || err "banner ads must be built only by AdService.buildBanner(placement): $(echo "$hits" | head -3 | tr '\n' ' ')"

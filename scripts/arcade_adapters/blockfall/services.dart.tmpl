@@ -1,0 +1,82 @@
+import 'dart:typed_data';
+
+import 'package:game_blockfall/blockfall.dart';
+
+import 'package:__APP__/core/analytics/analytics_service.dart';
+import 'package:__APP__/core/services.dart' as core;
+import 'package:__APP__/core/share/share_service.dart';
+import 'package:__APP__/host/blockfall/ad_service.dart';
+import 'package:__APP__/host/blockfall/profile_store.dart';
+
+/// The few config values the Blockfall screens read.
+class HostConfig implements BlockfallConfig {
+  const HostConfig({required this.displayName, required this.retention});
+  @override
+  final String displayName;
+  final HostRetention retention;
+  @override
+  final String leaderboardHighScore = '';
+  @override
+  bool get streaksEnabled => retention.streaks;
+}
+
+class HostRetention {
+  const HostRetention({required this.streaks});
+  final bool streaks;
+}
+
+/// Blockfall scores and achievements are not sent to a leaderboard from the hub.
+class HostLeaderboard implements BlockfallLeaderboard {
+  const HostLeaderboard();
+  @override
+  Future<void> submitScore(String leaderboardId, int score) async {}
+  @override
+  Future<void> unlockAchievement(String achievementId) async {}
+}
+
+/// What the copied Blockfall screens call "Services": a small adapter over the hub's own
+/// services. Coins, Remove Ads, ad pacing, share and analytics are the hub's.
+class Services implements BlockfallServices {
+  Services({required this.hub, required this.profile, String? displayName})
+    : config = HostConfig(
+        displayName: displayName ?? 'Blockfall',
+        retention: HostRetention(streaks: hub.config.retention.streaks),
+      ),
+      ads = HostAds(hub.ads);
+
+  /// The hub's services.
+  final core.Services hub;
+  @override
+  final ProfileStore profile;
+  @override
+  final HostConfig config;
+  @override
+  final HostAds ads;
+  @override
+  final HostLeaderboard leaderboard = const HostLeaderboard();
+
+  @override
+  BlockfallAnalytics get analytics => _HubAnalytics(hub.analytics);
+  @override
+  BlockfallShare get share => _HubShare(hub.share);
+
+  /// True while the game screen is on the navigator.
+  @override
+  bool inRun = false;
+}
+
+class _HubAnalytics implements BlockfallAnalytics {
+  _HubAnalytics(this._a);
+  final AnalyticsService _a;
+  @override
+  void logEvent(String name, [Map<String, Object?> params = const {}]) =>
+      _a.logEvent(name, params);
+}
+
+class _HubShare implements BlockfallShare {
+  _HubShare(this._s);
+  final ShareService _s;
+  @override
+  Future<void> shareScore({required int score, Uint8List? image}) =>
+      _s.shareScore(score: score, image: image);
+}

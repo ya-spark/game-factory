@@ -1,0 +1,30 @@
+import 'package:game_blockfall/blockfall.dart';
+import 'package:flutter/widgets.dart';
+
+import 'package:__APP__/core/ads/ad_service.dart' as hub;
+
+/// The synced test harness passes "an AdService" to the fake services; in the hub that is the
+/// hub's own fake, so a test can count rewarded ads and force their result.
+typedef AdService = hub.FakeAdService;
+
+/// The Blockfall view of the hub's ad service: the hub's ad pacing rules stay in charge.
+///
+/// - Rewarded: only [BlockfallAdPlacement.revive] (hub `RewardedPlacement.revive`, adult profile only, never
+///   when Remove Ads is owned). Anything else answers "no ad", so no coins or boosts come from ads.
+/// - Interstitial: none (the hub has no interstitials anywhere).
+/// - Banner: none during play. The hub shows its banners on the menu and results only.
+class HostAds implements BlockfallAds {
+  HostAds(this._ads);
+  final hub.AdService _ads;
+
+  @override
+  Future<bool> showRewarded(BlockfallAdPlacement placement) async {
+    if (placement != BlockfallAdPlacement.revive) return false;
+    return _ads.showRewarded(hub.RewardedPlacement.revive);
+  }
+
+  @override
+  Future<void> maybeShowInterstitialAfterGameOver() async {}
+
+  Widget buildBanner() => const SizedBox.shrink();
+}

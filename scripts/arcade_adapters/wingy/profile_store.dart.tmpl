@@ -1,0 +1,230 @@
+import 'dart:convert';
+
+import 'package:game_wingy/wingy.dart';
+import 'package:flutter/foundation.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+
+import 'package:__APP__/core/profile/profile_store.dart' as core;
+
+/// Where the game's own progress (best score, Dash Refills, skin, autosave, stats) is kept.
+abstract interface class GameSaveStore {
+  Future<Map<String, Object?>?> load();
+  Future<void> save(Map<String, Object?> json);
+}
+
+class MemoryGameSaveStore implements GameSaveStore {
+  Map<String, Object?>? json;
+  @override
+  Future<Map<String, Object?>?> load() async => json;
+  @override
+  Future<void> save(Map<String, Object?> j) async => json = j;
+}
+
+class PrefsGameSaveStore implements GameSaveStore {
+  PrefsGameSaveStore(this._prefs, {this.key = 'game.wingy.save'});
+  final SharedPreferences _prefs;
+  final String key;
+
+  @override
+  Future<Map<String, Object?>?> load() async {
+    final raw = _prefs.getString(key);
+    if (raw == null) return null;
+    try {
+      final j = jsonDecode(raw);
+      return j is Map ? Map<String, Object?>.from(j) : null;
+    } on FormatException {
+      return null;
+    }
+  }
+
+  @override
+  Future<void> save(Map<String, Object?> json) async {
+    await _prefs.setString(key, jsonEncode(json));
+  }
+}
+
+/// The game's view of the player. It keeps only what belongs to Wingy (best score, Dash Refill
+/// stock, palette, skin, effects switch, reduce motion, the unfinished run, stats, achievements)
+/// and reads or writes the rest through the hub's profile: **coins, Remove Ads, sound, volume,
+/// ambience, voice, vibration, left-handed mode, tips and the day streak are the hub's**, so the
+/// balance is shared by every game.
+class ProfileStore extends ChangeNotifier implements WingyProfileStore {
+  ProfileStore({required this.hub, required this._store, this.onScore});
+
+  final core.ProfileStore hub;
+
+  /// Told the score of every finished run (the hub keeps it as the tile's best score).
+  final void Function(int score)? onScore;
+  final GameSaveStore _store;
+  SaveData _own = const SaveData();
+
+  Future<void> init() async {
+    final j = await _store.load();
+    if (j != null) _own = SaveData.fromJson(SaveMigrator.migrate(j));
+    hub.addListener(notifyListeners);
+  }
+
+  @override
+  void dispose() {
+    hub.removeListener(notifyListeners);
+    super.dispose();
+  }
+
+  /// The game's save with the hub's shared values laid over it.
+  @override
+  SaveData get data {
+    final h = hub.data;
+    return _own.copyWith(
+      coins: h.coins,
+      adsRemoved: h.adsRemoved,
+      soundOn: h.soundOn,
+      masterVolume: h.masterVolume,
+      ambience: h.ambience,
+      voiceOn: h.voiceOn,
+      vibrationOn: h.vibrationOn,
+      leftHanded: h.leftHanded,
+      tipsOff: h.tipsOff,
+    );
+  }
+
+  @override
+  int get displayStreak => hub.displayStreak;
+
+  Future<void> _commit(SaveData d) async {
+    _own = d;
+    notifyListeners();
+    await _store.save(d.toJson());
+  }
+
+  /// Autosave of the running game (null clears it). Skips the write when nothing changed.
+  @override
+  Future<void> saveGame(Map<String, Object?>? game) {
+    if (game == null && _own.game == null) return Future.value();
+    return _commit(
+      game == null ? _own.copyWith(clearGame: true) : _own.copyWith(game: game),
+    );
+  }
+
+  /// Records a finished run. Returns achievements unlocked by it. The run's coins and the
+  /// achievement rewards go to the hub's balance.
+  @override
+  Future<List<AchievementDef>> recordGameFinished(GameSummary g) async {
+    final stats = _own.stats.copyWith(
+      gamesPlayed: _own.stats.gamesPlayed + 1,
+      totalPairs: _own.stats.totalPairs + g.pairsPassed,
+      totalOrbs: _own.stats.totalOrbs + g.orbs,
+      totalShattered: _own.stats.totalShattered + g.dashShattered,
+      totalDashUses: _own.stats.totalDashUses + g.dashUses,
+      bestScore: g.score > _own.stats.bestScore ? g.score : null,
+      maxPerfectStreak: g.perfectStreak > _own.stats.maxPerfectStreak
+          ? g.perfectStreak
+          : null,
+    );
+    var d = _own.copyWith(
+      stats: stats,
+      bestScore: g.score > _own.bestScore ? g.score : null,
+      paletteStart: nextPaletteStart(_own.paletteStart, g.score),
+    );
+    var unlocked = const <AchievementDef>[];
+    if (hub.retention.achievements) {
+      unlocked = AchievementEngine.newlyUnlocked(
+        d.stats,
+        d.unlockedAchievements,
+      );
+      if (unlocked.isNotEmpty) {
+        d = d.copyWith(
+          unlockedAchievements: {
+            ...d.unlockedAchievements,
+            for (final a in unlocked) a.id,
+          },
+        );
+      }
+    }
+    await _commit(d);
+    onScore?.call(g.score);
+    final reward = g.coins + unlocked.fold<int>(0, (s, a) => s + a.reward);
+    if (reward > 0) await hub.addCoins(reward);
+    return unlocked;
+  }
+
+  // ---- coins (the hub's balance) ------------------------------------------
+
+  @override
+  Future<void> addCoins(int n) => hub.addCoins(n);
+
+  @override
+  Future<bool> spendCoins(int n) => hub.spendCoins(n);
+
+  // ---- flyer skin (only the free Moth is owned in the hub: it has no Wingy shop) ----
+
+  @override
+  bool ownsSkin(String id) => _own.ownedSkins.contains(id);
+  @override
+  String get equippedSkin => _own.equippedSkin;
+
+  @override
+  Future<bool> equipSkin(String id) async {
+    if (!ownsSkin(id) || FlyerSkins.byId(id) == null) return false;
+    await _commit(_own.copyWith(equippedSkin: id));
+    return true;
+  }
+
+  // ---- Dash Refill (the game's own stock, bought with the hub's coins) ----------
+
+  static const int dashRefillCoinCost = 40;
+  static const int maxAdRefillsPerDay = 3;
+
+  @override
+  int get dashRefills => _own.dashRefills;
+
+  /// Rewarded refills still available today (only taken when Remove Ads is owned: the hub
+  /// shows no ad for a refill).
+  @override
+  int get adRefillsLeft => _own.adRefillDay == hub.today
+      ? maxAdRefillsPerDay - _own.adRefillsToday
+      : maxAdRefillsPerDay;
+
+  /// Uses one Dash Refill from stock (the next run starts with a full meter).
+  @override
+  Future<bool> consumeDashRefill() async {
+    if (_own.dashRefills <= 0) return false;
+    await _commit(_own.copyWith(dashRefills: _own.dashRefills - 1));
+    return true;
+  }
+
+  @override
+  Future<bool> buyDashRefillWithCoins() async {
+    if (!await hub.spendCoins(dashRefillCoinCost)) return false;
+    await _commit(_own.copyWith(dashRefills: _own.dashRefills + 1));
+    return true;
+  }
+
+  /// Grants a Dash Refill earned without coins. False when today's cap is used up.
+  @override
+  Future<bool> grantAdDashRefill() async {
+    if (adRefillsLeft <= 0) return false;
+    final used = _own.adRefillDay == hub.today ? _own.adRefillsToday : 0;
+    await _commit(
+      _own.copyWith(
+        dashRefills: _own.dashRefills + 1,
+        adRefillDay: hub.today,
+        adRefillsToday: used + 1,
+      ),
+    );
+    return true;
+  }
+
+  // ---- the game's own settings ----------------------------------------------
+
+  @override
+  Future<void> setReduceMotion(bool v) =>
+      _commit(_own.copyWith(reduceMotion: v));
+  @override
+  Future<void> setSfx(bool v) => _commit(_own.copyWith(sfxOn: v));
+
+  /// Tips on or off is the hub's setting, shared by every game.
+  @override
+  bool get tipsEnabled => hub.tipsEnabled;
+  @override
+  Future<void> setTipsEnabled(bool v) => hub.setTipsEnabled(v);
+}
