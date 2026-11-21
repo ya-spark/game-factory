@@ -4,7 +4,7 @@ import 'dart:math';
 import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/foundation.dart';
 
-import 'voice_arbiter.dart';
+import 'package:game_core/kit/audio/voice_arbiter.dart';
 
 /// Blockfall's sounds are package assets: the bundle key carries `packages/game_blockfall/`, so its players
 /// use an AudioCache with no `assets/` prefix (the default cache looks in the app's assets).

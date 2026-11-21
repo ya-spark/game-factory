@@ -4,7 +4,9 @@
 library;
 
 export 'src/core/audio/audio_service.dart';
-export 'src/core/audio/voice_arbiter.dart';
+
+export 'package:game_core/kit/audio/voice_arbiter.dart';
+
 export 'src/core/clock.dart';
 export 'src/core/retention/achievements.dart';
 export 'src/core/retention/daily_challenges.dart';
