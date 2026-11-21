@@ -1,55 +1,11 @@
-/// Door runner rules: the player chooses the door with the right answer. Pure Dart.
+/// Door runner door choice and score: one right door among wrong ones, seeded. Pure Dart.
 library;
 
 import 'dart:math';
 
-import '../../../content/models.dart';
-import '../../minigame_level.dart';
-import '../../quick_quiz.dart';
+import 'package:game_core/engine/engine.dart';
 
 const String doorRunnerId = 'door_runner';
-
-class DoorRunnerSettings {
-  const DoorRunnerSettings({
-    required this.doors,
-    required this.secondsPerQuestion,
-    required this.runSeconds,
-    required this.retry,
-    required this.streaks,
-  });
-
-  /// Doors per question.
-  final int doors;
-
-  /// Time to choose; 0 means no timer.
-  final int secondsPerQuestion;
-
-  /// Seconds the runner takes to reach the doors (the run animation).
-  final double runSeconds;
-
-  /// A wrong door can be tried again without the child failing the round.
-  final bool retry;
-  final bool streaks;
-
-  factory DoorRunnerSettings.forLevel(MiniGameLevel l) {
-    if (!l.older) {
-      return const DoorRunnerSettings(
-        doors: 2,
-        secondsPerQuestion: 0,
-        runSeconds: 3,
-        retry: true,
-        streaks: false,
-      );
-    }
-    return DoorRunnerSettings(
-      doors: l.harder ? 4 : 3,
-      secondsPerQuestion: l.harder ? 12 : 20,
-      runSeconds: l.harder ? 1.2 : 2,
-      retry: false,
-      streaks: true,
-    );
-  }
-}
 
 class Door {
   const Door(this.label, this.correct);

@@ -44,79 +44,6 @@ PoolItem pool(String id, ItemType type) => PoolItem(
 );
 
 void main() {
-  group('Door runner rules', () {
-    test('settings: younger is gentle, older is timed, harder is tighter', () {
-      final y = DoorRunnerSettings.forLevel(const MiniGameLevel.younger());
-      final o = DoorRunnerSettings.forLevel(const MiniGameLevel.older());
-      final h = DoorRunnerSettings.forLevel(
-        const MiniGameLevel.older(harder: true),
-      );
-      expect(y.secondsPerQuestion, 0);
-      expect(y.retry, isTrue);
-      expect(y.doors, lessThan(o.doors));
-      expect(o.secondsPerQuestion, greaterThan(0));
-      expect(o.retry, isFalse);
-      expect(h.secondsPerQuestion, lessThan(o.secondsPerQuestion));
-      expect(h.runSeconds, lessThan(o.runSeconds));
-      expect(h.doors, greaterThan(o.doors));
-    });
-
-    test('layout has exactly one correct door and no repeats', () {
-      for (var seed = 0; seed < 20; seed++) {
-        final d = layoutDoors(mcq(), 3, Random(seed))!;
-        expect(d, hasLength(3));
-        expect(d.where((x) => x.correct), hasLength(1));
-        expect(d.firstWhere((x) => x.correct).label, 'b');
-        expect({for (final x in d) x.label}, hasLength(3));
-      }
-    });
-
-    test('layout is repeatable for one seed and varies between seeds', () {
-      List<String> labels(int s) => [
-        for (final d in layoutDoors(mcq(), 4, Random(s))!) d.label,
-      ];
-      expect(labels(1), labels(1));
-      expect(
-        {for (var s = 0; s < 20; s++) labels(s).join()}.length,
-        greaterThan(1),
-      );
-    });
-
-    test('an item with several correct options shows one of them', () {
-      final d = layoutDoors(mcq(correct: [0, 2]), 3, Random(3))!;
-      expect(d.where((x) => x.correct), hasLength(1));
-      expect(['a', 'c'], contains(d.firstWhere((x) => x.correct).label));
-    });
-
-    test('fewer options than doors: uses what there is; one option: null', () {
-      expect(layoutDoors(mcq(options: ['x', 'y']), 4, Random(1)), hasLength(2));
-      expect(
-        layoutDoors(mcq(correct: 0, options: ['x']), 3, Random(1)),
-        isNull,
-      );
-    });
-
-    test(
-      'score and streak: bonus for older only, a miss resets the streak',
-      () {
-        final young = DoorRunnerRun(const MiniGameLevel.younger())
-          ..right()
-          ..right();
-        expect(young.score, 20);
-        final old = DoorRunnerRun(const MiniGameLevel.older())
-          ..right()
-          ..right()
-          ..right();
-        expect(old.score, 10 + 12 + 14);
-        old.miss();
-        expect(old.streak, 0);
-        expect(old.bestStreak, 3);
-        expect(old.score, 36); // never taken away
-        expect(old.passed, 3);
-      },
-    );
-  });
-
   group('Balloon pop rules', () {
     test('settings by level', () {
       final y = BalloonPopSettings.forLevel(const MiniGameLevel.younger());
@@ -187,7 +114,7 @@ void main() {
 
   group('Registry', () {
     final door = MiniGame(
-      id: doorRunnerId,
+      id: 'door_runner',
       title: 'Door runner',
       itemTypes: const {ItemType.mcq},
       build: (_) => Object(),
@@ -222,7 +149,7 @@ void main() {
         isEmpty,
       );
       expect(ids([for (var i = 0; i < 4; i++) pool('a$i', ItemType.mcq)]), [
-        doorRunnerId,
+        'door_runner',
         balloonPopId,
       ]);
     });

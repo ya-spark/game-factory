@@ -38,7 +38,6 @@ export 'mind/cognitive_skills.dart';
 export 'ai/ai_tutor.dart';
 export 'minigames/balloon_pop/rules/balloon_pop_rules.dart';
 export 'minigames/cloze_fix/rules/cloze_fix_rules.dart';
-export 'minigames/door_runner/rules/door_runner_rules.dart';
 export 'minigames/equation_builder/rules/equation_builder_rules.dart';
 export 'minigames/flash_review/rules/flash_review_rules.dart';
 export 'minigames/memory_match/rules/memory_match_rules.dart';
