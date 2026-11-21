@@ -73,8 +73,9 @@ abstract class GameHost {
   /// A note about achievements just earned (a shrunk box when there is none).
   Widget achievementNote(BuildContext context) => const SizedBox.shrink();
 
-  /// Offers a rewarded "Continue": true when the player earned it (or Remove Ads makes it free).
-  Future<bool> rewardedContinue(BuildContext context) async => false;
+  /// Offers a rewarded "Continue": true when the player earned it. With no ads to show (no host, or
+  /// Remove Ads) the Continue is free: an ad must never trap the player.
+  Future<bool> rewardedContinue(BuildContext context) async => true;
 
   /// Pays [n] coins into the container's balance.
   Future<void> addCoins(BuildContext context, int n) async {}
