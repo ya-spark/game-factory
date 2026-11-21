@@ -791,6 +791,8 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
       child: GameWidget<BlockfallFlameGame>(
         key: TestIds.gameWidget,
         game: flame,
+        // Flame's own focus would swallow every key; the game's keys go through GameKeyboard.
+        autofocus: false,
       ),
     );
     well = _WellInput(
