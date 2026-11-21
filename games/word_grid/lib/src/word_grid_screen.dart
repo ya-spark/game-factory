@@ -8,22 +8,26 @@ import 'word_grid_ids.dart';
 import 'rules/word_grid_rules.dart';
 
 /// Word search and crossword from the open `word` items: free with ads, Game and Study mode.
-/// The child picks which to play on the start screen. [harder] is for Champion.
-MiniGame wordGridGameFor({bool harder = false}) => MiniGame(
-  id: wordGridId,
-  title: 'Word search and crossword',
-  itemTypes: const {ItemType.word},
-  accepts: (p) => gridWordFromItem(p.item) != null,
-  minPool: 4,
-  build: (ctx) => WordGridScreen(
-    session: ctx.session,
-    onExit: ctx.onExit,
-    onAnswered: ctx.onAnswered,
-    onScore: ctx.onScore,
-    level: levelForSession(ctx.session, harder: harder),
-    study: ctx.mode == MiniGameMode.study,
-  ),
-);
+/// The child picks which to play on the start screen. [harder] is for Champion;
+/// [coinLocked] makes it a 200-coin permanent unlock instead of free with ads.
+MiniGame wordGridGameFor({bool harder = false, bool coinLocked = false}) =>
+    MiniGame(
+      id: wordGridId,
+      title: 'Word search and crossword',
+      itemTypes: const {ItemType.word},
+      accepts: (p) => gridWordFromItem(p.item) != null,
+      minPool: 4,
+      access: coinLocked ? GameAccess.coins : GameAccess.freeWithAds,
+      coinPrice: coinLocked ? 200 : 0,
+      build: (ctx) => WordGridScreen(
+        session: ctx.session,
+        onExit: ctx.onExit,
+        onAnswered: ctx.onAnswered,
+        onScore: ctx.onScore,
+        level: levelForSession(ctx.session, harder: harder),
+        study: ctx.mode == MiniGameMode.study,
+      ),
+    );
 
 final MiniGame wordGridGame = wordGridGameFor();
 

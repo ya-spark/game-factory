@@ -206,4 +206,11 @@ void main() {
       expect(log.every((r) => r.correct), isTrue);
     });
   });
+
+  test('coinLocked makes Word grid a 200-coin unlock; by default it is free with ads', () {
+    expect(wordGridGame.access, GameAccess.freeWithAds);
+    final locked = wordGridGameFor(harder: true, coinLocked: true);
+    expect(locked.access, GameAccess.coins);
+    expect(locked.coinPrice, 200);
+  });
 }
