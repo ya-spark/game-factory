@@ -36,8 +36,9 @@ The hard rules stay in `CLAUDE.md`; owner decisions are in `game-studio/docs/DEC
   set in the spec; a failed ad must never trap the player (covered by an ads-fail test).
 - **Policy and data-safety answers must match the code.** Re-check them against the SDKs in
   `pubspec.yaml` and the manifest permissions before every release.
-- **Assets:** every asset is listed in `assets/LICENSES.md` (source, license). Prefer assets
-  drawn or synthesised in code.
+- **Assets:** every asset is listed in `assets/LICENSES.md` (source, license). How a game's visuals
+  are made (Figma design with exported assets, or Flutter code such as `CustomPainter`) is the owner's
+  choice each time: ask before the UI step, never assume (owner, 2026-11-21).
 
 ## Git and CI
 - **Commit directly to `main`.** The branch/PR workflow is suspended for now. Run the fast checks

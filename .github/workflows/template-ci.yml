@@ -29,6 +29,27 @@ env:
   FLUTTER_VERSION: "3.47.8"
 
 jobs:
+  packages:
+    # game_core and every game in games/ (SH1): format, analyze and tests. A new game folder is picked up
+    # automatically. Apps pin one commit of this repo, so a red run here means no app should move its pin.
+    if: ${{ vars.CI_ENABLED == 'true' || github.event_name == 'workflow_dispatch' }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: stable
+          cache: true
+      - name: game_core and every game
+        run: |
+          set -e
+          for d in game_core games/*/; do
+            echo "::group::$d"
+            (cd "$d" && flutter pub get && dart format --output=none --set-exit-if-changed . && flutter analyze && flutter test)
+            echo "::endgroup::"
+          done
+
   template:
     # Required check: analyze, format, tests, safety scripts, debug APK build.
     if: ${{ vars.CI_ENABLED == 'true' || github.event_name == 'workflow_dispatch' }}
