@@ -1,0 +1,66 @@
+{
+  "pack": "sample_times_tables",
+  "next": 11,
+  "rows": [
+    {
+      "id": "sample_times_tables.0001",
+      "hash": "{\"difficulty\":1,\"type\":\"mcq\",\"topic\":\"times_tables\",\"explanation\":\"Three groups of four make twelve.\",\"prompt\":\"What is 3 × 4?\",\"options\":[\"10\",\"11\",\"12\",\"13\"],\"correct\":2}",
+      "key": "mcq:what is 3 × 4?",
+      "row": 0
+    },
+    {
+      "id": "sample_times_tables.0002",
+      "hash": "{\"difficulty\":2,\"type\":\"mcq\",\"topic\":\"times_tables\",\"explanation\":\"Six fours are twenty-four.\",\"prompt\":\"What is 6 × 4?\",\"options\":[\"18\",\"20\",\"24\",\"21\"],\"correct\":2,\"expression\":\"6*4\"}",
+      "key": "mcq:what is 6 × 4?",
+      "row": 1
+    },
+    {
+      "id": "sample_times_tables.0003",
+      "hash": "{\"difficulty\":1,\"type\":\"mcq\",\"topic\":\"times_tables\",\"explanation\":\"Five fives are twenty-five.\",\"prompt\":\"True or false: 5 × 5 is 25.\",\"options\":[\"True\",\"False\"],\"correct\":0}",
+      "key": "mcq:true or false: 5 × 5 is 25.",
+      "row": 2
+    },
+    {
+      "id": "sample_times_tables.0004",
+      "hash": "{\"difficulty\":2,\"type\":\"series\",\"topic\":\"times_tables\",\"explanation\":\"Count up in threes.\",\"prompt\":\"Put the multiples of 3 in order from smallest.\",\"steps\":[\"3\",\"6\",\"9\",\"12\"]}",
+      "key": "series:put the multiples of 3 in order from smallest.",
+      "row": 3
+    },
+    {
+      "id": "sample_times_tables.0005",
+      "hash": "{\"difficulty\":2,\"type\":\"pairs\",\"topic\":\"times_tables\",\"explanation\":\"Work out each product.\",\"prompt\":\"Match each product to its answer.\",\"pairs\":[{\"left\":\"2×3\",\"right\":\"6\"},{\"left\":\"3×3\",\"right\":\"9\"},{\"left\":\"4×3\",\"right\":\"12\"}]}",
+      "key": "pairs:match each product to its answer.",
+      "row": 4
+    },
+    {
+      "id": "sample_times_tables.0006",
+      "hash": "{\"difficulty\":3,\"type\":\"word\",\"topic\":\"times_tables\",\"explanation\":\"A product is the result of multiplying.\",\"answer\":\"product\",\"hint\":\"The answer to a multiplication\",\"letters\":\"pdorutcqz\"}",
+      "key": "word:product",
+      "row": 5
+    },
+    {
+      "id": "sample_times_tables.0007",
+      "hash": "{\"difficulty\":2,\"type\":\"category\",\"topic\":\"times_tables\",\"explanation\":\"Even numbers end in 0, 2, 4, 6 or 8.\",\"prompt\":\"Sort the numbers.\",\"categories\":[\"Even\",\"Odd\"],\"items\":[{\"text\":\"2\",\"category\":\"Even\"},{\"text\":\"7\",\"category\":\"Odd\"},{\"text\":\"10\",\"category\":\"Even\"},{\"text\":\"13\",\"category\":\"Odd\"}]}",
+      "key": "category:sort the numbers.",
+      "row": 6
+    },
+    {
+      "id": "sample_times_tables.0008",
+      "hash": "{\"difficulty\":2,\"type\":\"numeric\",\"topic\":\"times_tables\",\"explanation\":\"Spiders have eight legs so 7 × 8 = 56.\",\"prompt\":\"How many legs do 7 spiders have?\",\"answer\":56,\"unit\":\"legs\",\"expression\":\"7*8\"}",
+      "key": "numeric:how many legs do 7 spiders have?",
+      "row": 7
+    },
+    {
+      "id": "sample_times_tables.0009",
+      "hash": "{\"difficulty\":3,\"type\":\"numeric\",\"topic\":\"times_tables\",\"explanation\":\"Half of three is one and a half.\",\"prompt\":\"What is 0.5 × 3?\",\"answer\":1.5,\"expression\":\"0.5*3\"}",
+      "key": "numeric:what is 0.5 × 3?",
+      "row": 8
+    },
+    {
+      "id": "sample_times_tables.0010",
+      "hash": "{\"difficulty\":2,\"type\":\"cloze\",\"topic\":\"times_tables\",\"explanation\":\"Divide to find the missing number.\",\"text\":\"{{1}} × 3 = 12 and 3 × {{2}} = 15.\",\"gaps\":{\"1\":[\"4\",\"four\"],\"2\":[\"5\",\"five\"]}}",
+      "key": "cloze:{{1}} × 3 = 12 and 3 × {{2}} = 15.",
+      "row": 9
+    }
+  ]
+}

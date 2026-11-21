@@ -1,0 +1,19 @@
+#meta,id,sample_times_tables
+#meta,version,1
+#meta,subject,maths
+#meta,year,3
+#meta,topic,times_tables
+#meta,title,Times tables (sample)
+#meta,product_id,pack_sample_times_tables
+#meta,preview_description,A short sample of the times tables pack.
+type,difficulty,topic,prompt,explanation,preview,options,correct,steps,pairs,answer,hint,letters,categories,items,tolerance,unit,expression,gaps
+mcq,1,times_tables,What is 3 × 4?,Three groups of four make twelve.,yes,10|11|12|13,3,,,,,,,,,,,
+mcq,2,times_tables,What is 6 × 4?,Six fours are twenty-four.,,18|20|24|21,3,,,,,,,,,,6*4,
+mcq,1,times_tables,True or false: 5 × 5 is 25.,Five fives are twenty-five.,,True|False,1,,,,,,,,,,,
+series,2,times_tables,Put the multiples of 3 in order from smallest.,Count up in threes.,,,,3|6|9|12,,,,,,,,,,
+pairs,2,times_tables,Match each product to its answer.,Work out each product.,,,,,2×3=6|3×3=9|4×3=12,,,,,,,,,
+word,3,times_tables,,A product is the result of multiplying.,,,,,,product,The answer to a multiplication,pdorutcqz,,,,
+category,2,times_tables,Sort the numbers.,"Even numbers end in 0, 2, 4, 6 or 8.",,,,,,,,,Even|Odd,2=Even|7=Odd|10=Even|13=Odd,,,
+numeric,2,times_tables,How many legs do 7 spiders have?,Spiders have eight legs so 7 × 8 = 56.,,,,,,56,,,,,,legs,7*8,
+numeric,3,times_tables,What is 0.5 × 3?,Half of three is one and a half.,yes,,,,,1.5,,,,,,,0.5*3,
+cloze,2,times_tables,{{1}} × 3 = 12 and 3 × {{2}} = 15.,Divide to find the missing number.,,,,,,,,,,,,,,1=4/four|2=5/five
