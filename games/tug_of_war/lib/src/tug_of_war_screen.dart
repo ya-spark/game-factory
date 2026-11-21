@@ -5,6 +5,8 @@ import 'package:flutter/material.dart';
 import 'package:game_core/game_core.dart';
 
 import 'rules/tug_of_war_rules.dart';
+import 'tug_head_to_head_screen.dart';
+import 'tug_of_war_ids.dart';
 
 /// Tug-of-war quiz: coin-locked (200 coins) in the Craft apps, Game mode only, plays `mcq`
 /// items. [harder] is for Champion.
@@ -28,6 +30,8 @@ MiniGame tugOfWarGameFor({
     level: levelForSession(ctx.session, harder: harder),
     harder: harder,
     introExtra: introExtra,
+    // Head to head: two players race on one keyboard (docs/SPEC.md); needs a window 600 dp wide.
+    offerHeadToHead: true,
   ),
 );
 
@@ -44,8 +48,12 @@ class TugOfWarScreen extends StatefulWidget {
     this.random,
     this.harder = false,
     this.introExtra,
+    this.offerHeadToHead = false,
   });
   final QuizSession session;
+
+  /// Adds the Head to head button to the start screen (windows 600 dp and wider).
+  final bool offerHeadToHead;
   final VoidCallback onExit;
   final MiniGameLevel level;
   final void Function(AnswerResult, QuizSession)? onAnswered;
@@ -64,6 +72,27 @@ class TugOfWarScreen extends StatefulWidget {
 
 class _TugOfWarScreenState extends State<TugOfWarScreen> {
   late final TugOfWarRun _run = TugOfWarRun(widget.level);
+  bool _head = false;
+
+  /// The start screen's extras: Head to head (this package) and the container's sibling button.
+  Widget? _extras(BuildContext context) {
+    final sibling = widget.introExtra?.call(context);
+    final head =
+        widget.offerHeadToHead &&
+            WindowClass.ofContext(context) != WindowClass.compact
+        ? OutlinedButton(
+            key: TugIds.modeHeadToHead,
+            onPressed: () => setState(() => _head = true),
+            child: const Text('Head to head (2 players)'),
+          )
+        : null;
+    if (sibling == null && head == null) return null;
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      spacing: 12,
+      children: [?head, ?sibling],
+    );
+  }
 
   void _answered(AnswerResult r, QuizSession s) {
     // Younger: the child keeps trying until right, so the rope only ever moves their way.
@@ -73,6 +102,14 @@ class _TugOfWarScreenState extends State<TugOfWarScreen> {
 
   @override
   Widget build(BuildContext context) {
+    if (_head) {
+      return TugOfWarHeadToHeadScreen(
+        items: widget.session.items,
+        level: widget.level,
+        onExit: widget.onExit,
+        random: widget.random,
+      );
+    }
     final st = _run.settings;
     final older = widget.level.older;
     return ChoiceGameScreen(
@@ -97,7 +134,7 @@ class _TugOfWarScreenState extends State<TugOfWarScreen> {
             : [for (final x in o) ChoiceOption(x.label, x.correct)];
       },
       fieldBuilder: (context, f) => _TugField(field: f, run: _run),
-      introExtra: widget.introExtra?.call(context),
+      introExtra: _extras(context),
     );
   }
 }
