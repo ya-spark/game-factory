@@ -1,7 +1,8 @@
 import 'dart:typed_data';
 
 import 'package:flutter/widgets.dart';
-import 'package:game_block_puzzle/block_puzzle.dart';
+
+import '../../block_puzzle.dart';
 
 /// Counts rewarded ads and lets a test force their result (like the standalone's fake).
 class FakeBlockPuzzleAds implements BlockPuzzleAds {
@@ -144,12 +145,6 @@ class FakeBlockPuzzleServices implements BlockPuzzleServices {
   BlockPuzzleShare get share => _Share();
   @override
   bool inRun = false;
-
-  @override
-  Future<bool> rewarded(BlockPuzzleAdPlacement placement) async {
-    if (profile.data.adsRemoved) return true;
-    return ads.showRewarded(placement);
-  }
 }
 
 /// The package tests' stand-in for the standalone's `buildFakeServices`.

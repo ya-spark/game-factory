@@ -1,6 +1,7 @@
 import 'dart:math';
 
-import 'package:game_blockfall/src/ui/test_ids.dart';
+import '../ui/test_ids.dart';
+
 import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
 

@@ -1,6 +1,7 @@
-import 'package:game_blockfall/src/host/services.dart';
-import 'package:game_blockfall/src/game/rules/blockfall_game.dart';
-import 'package:game_blockfall/src/ui/test_ids.dart';
+import '../host/services.dart';
+import '../game/rules/blockfall_game.dart';
+import '../ui/test_ids.dart';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 

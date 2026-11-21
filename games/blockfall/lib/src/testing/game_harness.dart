@@ -1,14 +1,15 @@
 import 'dart:math';
 
-import 'package:game_blockfall/src/core/save/save_data.dart';
-import 'package:game_blockfall/src/host/services.dart';
-import 'package:game_blockfall/src/game/rules/bag.dart';
-import 'package:game_blockfall/src/game/rules/blockfall_game.dart';
-import 'package:game_blockfall/src/game/rules/piece_type.dart';
-import 'package:game_blockfall/src/game/rules/powerups.dart';
-import 'package:game_blockfall/src/game/rules/well.dart';
-import 'package:game_blockfall/src/ui/game_screen.dart';
-import 'package:game_blockfall/src/ui/test_ids.dart';
+import '../core/save/save_data.dart';
+import '../host/services.dart';
+import '../game/rules/bag.dart';
+import '../game/rules/blockfall_game.dart';
+import '../game/rules/piece_type.dart';
+import '../game/rules/powerups.dart';
+import '../game/rules/well.dart';
+import '../ui/game_screen.dart';
+import '../ui/test_ids.dart';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -44,7 +45,7 @@ Future<BlockfallServices> openGame(
   WidgetTester tester,
   BlockfallGame game, {
   bool buttons = false,
-  AdService? ads,
+  FakeBlockfallAds? ads,
   BlockfallServices? services,
 }) async {
   tester.view.physicalSize = const Size(400, 800);

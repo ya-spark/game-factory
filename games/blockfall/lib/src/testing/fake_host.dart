@@ -1,6 +1,6 @@
 import 'package:flutter/foundation.dart';
 
-import 'package:game_blockfall/blockfall.dart';
+import '../../blockfall.dart';
 
 /// Counts rewarded ads and lets a test force their result (like the standalone's fake).
 class FakeBlockfallAds implements BlockfallAds {
@@ -20,9 +20,6 @@ class FakeBlockfallAds implements BlockfallAds {
     interstitialsShown++;
   }
 }
-
-/// The tests' name for "an ad service" (the standalone's tests used its `AdService`).
-typedef AdService = FakeBlockfallAds;
 
 /// An in-memory profile: enough for the game screens (the container owns the real one).
 class FakeBlockfallProfile extends ChangeNotifier
@@ -121,12 +118,6 @@ class FakeBlockfallServices implements BlockfallServices {
   BlockfallShare get share => _Share();
   @override
   bool inRun = false;
-
-  @override
-  Future<bool> rewarded(BlockfallAdPlacement placement) async {
-    if (profile.data.adsRemoved) return true;
-    return ads.showRewarded(placement);
-  }
 }
 
 /// The package tests' stand-in for the standalone's `buildFakeServices`.

@@ -15,8 +15,7 @@ import 'package:game_block_puzzle/src/host/services.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-import '../helpers/fake_host.dart';
-import '../helpers/puzzle_bot.dart';
+import 'package:game_block_puzzle/testing.dart';
 
 void main() {
   group('theme rotation', () {

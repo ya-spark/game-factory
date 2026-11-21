@@ -43,9 +43,6 @@ abstract interface class BlockfallServices {
   /// True while the game screen is on the navigator.
   bool get inRun;
   set inRun(bool v);
-
-  /// Shows a rewarded ad and returns true when the reward is earned (Remove Ads grants it at once).
-  Future<bool> rewarded(BlockfallAdPlacement placement);
 }
 
 /// Makes the container's services available to the Blockfall screens.

@@ -1,6 +1,8 @@
 import 'package:flame/game.dart';
-import 'package:game_block_puzzle/src/game/flame/block_puzzle_game.dart';
-import 'package:game_block_puzzle/src/ui/test_ids.dart';
+
+import '../game/flame/block_puzzle_game.dart';
+import '../ui/test_ids.dart';
+
 import 'package:flutter_test/flutter_test.dart';
 
 /// Drives the block puzzle through real pointer gestures (used by widget and integration tests).
