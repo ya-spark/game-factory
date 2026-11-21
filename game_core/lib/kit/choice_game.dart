@@ -11,6 +11,7 @@ import '../host/game_host.dart';
 import 'game_ids.dart';
 import 'game_palette.dart';
 import 'keys/keys.dart';
+import 'layout/game_chrome.dart';
 import 'layout/game_frame.dart';
 import 'layout/window_class.dart';
 
@@ -350,7 +351,6 @@ class _ChoiceGameScreenState extends State<ChoiceGameScreen>
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
     final wide = WindowClass.ofContext(context) != WindowClass.compact;
     return Scaffold(
       key: GameIds.mgScreen(_g),
@@ -365,29 +365,15 @@ class _ChoiceGameScreenState extends State<ChoiceGameScreen>
             child: Column(
               children: [
                 // No title bar: exit and pause are small controls over the game (R2).
-                Row(
-                  children: [
-                    IconButton(
-                      key: GameIds.mgExit(_g),
-                      tooltip: 'Leave ${widget.title}',
-                      icon: const Icon(Icons.close),
-                      onPressed: widget.onExit,
-                    ),
-                    Expanded(
-                      child: Text(
-                        widget.title,
-                        style: theme.textTheme.titleMedium,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ),
-                    if (_phase == _Phase.play && _result == null)
-                      IconButton(
-                        key: GameIds.mgPause(_g),
-                        tooltip: _paused ? 'Resume' : 'Pause',
-                        icon: Icon(_paused ? Icons.play_arrow : Icons.pause),
-                        onPressed: _togglePause,
-                      ),
-                  ],
+                GameTopBar(
+                  title: widget.title,
+                  onExit: widget.onExit,
+                  exitKey: GameIds.mgExit(_g),
+                  onPause: _phase == _Phase.play && _result == null
+                      ? _togglePause
+                      : null,
+                  pauseKey: GameIds.mgPause(_g),
+                  paused: _paused,
                 ),
                 Expanded(
                   child: Stack(
@@ -397,7 +383,12 @@ class _ChoiceGameScreenState extends State<ChoiceGameScreen>
                         _Phase.play => _play(context),
                         _Phase.results => _results(context),
                       },
-                      if (_paused) _pausedOverlay(theme),
+                      if (_paused)
+                        PauseOverlay(
+                          overlayKey: GameIds.mgPaused(_g),
+                          resumeKey: GameIds.mgResume(_g),
+                          onResume: _togglePause,
+                        ),
                     ],
                   ),
                 ),
@@ -413,32 +404,6 @@ class _ChoiceGameScreenState extends State<ChoiceGameScreen>
       ),
     );
   }
-
-  Widget _pausedOverlay(ThemeData theme) => Positioned.fill(
-    child: ColoredBox(
-      key: GameIds.mgPaused(_g),
-      color: theme.colorScheme.scrim.withValues(alpha: 0.6),
-      child: Center(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(
-              'Paused',
-              style: theme.textTheme.headlineMedium?.copyWith(
-                color: Colors.white,
-              ),
-            ),
-            const SizedBox(height: 12),
-            FilledButton(
-              key: GameIds.mgResume(_g),
-              onPressed: _togglePause,
-              child: const Text('Resume'),
-            ),
-          ],
-        ),
-      ),
-    ),
-  );
 
   Widget _intro(BuildContext context) {
     final theme = Theme.of(context);

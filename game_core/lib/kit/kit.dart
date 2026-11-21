@@ -7,3 +7,4 @@ export 'keys/keys.dart';
 export 'layout/frame_ids.dart';
 export 'layout/game_frame.dart';
 export 'layout/window_class.dart';
+export 'layout/game_chrome.dart';

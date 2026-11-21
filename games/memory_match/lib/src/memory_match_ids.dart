@@ -13,4 +13,7 @@ abstract final class MemoryMatchIds {
   static const matchPrompt = Key('match.prompt');
   static const matchSummary = Key('match.summary');
   static const matchTimer = Key('match.timer');
+  static const matchPause = Key('match.pause');
+  static const matchPaused = Key('match.paused');
+  static const matchResume = Key('match.resume');
 }

@@ -69,6 +69,12 @@ class _MemoryMatchScreenState extends State<MemoryMatchScreen> {
   AnswerResult? _result;
   Timer? _hide;
   GameReadAloud? _reader;
+  bool _paused = false;
+
+  /// The card the keyboard is on (drawn only once a key has been used).
+  int _cursor = 0;
+  bool _keyboardUsed = false;
+  final Map<int, BuildContext> _cardContexts = {};
 
   QuizSession get _s => widget.session;
   bool get _study => widget.mode == MiniGameMode.study;
@@ -108,7 +114,7 @@ class _MemoryMatchScreenState extends State<MemoryMatchScreen> {
   }
 
   void _flip(MemoryMatchBoard b, int i) {
-    if (_result != null) return;
+    if (_result != null || _paused) return;
     final o = b.flip(i);
     if (o == FlipOutcome.ignored) return;
     setState(() {});
@@ -130,37 +136,156 @@ class _MemoryMatchScreenState extends State<MemoryMatchScreen> {
   void _next() => setState(() {
     _result = null;
     _board = null;
+    _cursor = 0;
   });
+
+  void _togglePause() {
+    final b = _board;
+    if (b == null || _result != null || _s.finished) return;
+    setState(() => _paused = !_paused);
+    if (_paused) {
+      _ticker.stop();
+    } else if (b.timeLimit != null && !_study) {
+      _ticker.start();
+    }
+  }
+
+  // ---- keyboard (docs/KEYBOARD.md): arrows move over the cards, Enter turns one, Q reads, Space pauses ----
+
+  void _onInput(GameInput i) {
+    if (i.action == GameAction.exit) {
+      widget.onExit();
+      return;
+    }
+    final b = _board;
+    if (_s.finished && _result == null) {
+      if (i.action == GameAction.action && !i.repeat) widget.onExit();
+      return;
+    }
+    if (b == null) return;
+    if (i.action == GameAction.pause) {
+      if (!i.repeat) _togglePause();
+      return;
+    }
+    if (_paused) return;
+    final cols = b.columns;
+    final count = b.cards.length;
+    int? to;
+    switch (i.action) {
+      case GameAction.left:
+        to = _cursor % cols == 0 ? _cursor : _cursor - 1;
+      case GameAction.right:
+        to = _cursor % cols == cols - 1 || _cursor + 1 >= count
+            ? _cursor
+            : _cursor + 1;
+      case GameAction.up:
+        to = _cursor - cols >= 0 ? _cursor - cols : _cursor;
+      case GameAction.down:
+        to = _cursor + cols < count ? _cursor + cols : _cursor;
+      case GameAction.action:
+        if (i.repeat) return;
+        if (_result != null) {
+          _next();
+        } else {
+          setState(() => _keyboardUsed = true);
+          _flip(b, _cursor);
+        }
+      case GameAction.question:
+        final item = _s.items[_s.index];
+        final prompt =
+            (item.item.json['prompt'] as String?) ?? 'Find the pairs.';
+        _reader?.read(prompt, audioRef: item.item.audio);
+      default:
+        break;
+    }
+    if (to != null) {
+      setState(() {
+        _keyboardUsed = true;
+        _cursor = to!;
+      });
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        final ctx = _cardContexts[_cursor];
+        if (ctx != null && ctx.mounted) {
+          Scrollable.ensureVisible(ctx, duration: Duration.zero);
+        }
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     final answered = _result != null;
     final shownIndex = answered ? _s.index - 1 : _s.index;
     final done = _s.finished && !answered;
+    final title = _study ? 'Memory match: study' : 'Memory match';
+    final wide = WindowClass.ofContext(context) != WindowClass.compact;
     return Scaffold(
       key: MemoryMatchIds.matchScreen,
-      appBar: AppBar(
-        title: Text(_study ? 'Memory match: study' : 'Memory match'),
-        leading: IconButton(
-          key: MemoryMatchIds.matchExit,
-          tooltip: 'Leave the game',
-          icon: const Icon(Icons.close),
-          onPressed: widget.onExit,
-        ),
-      ),
       body: SafeArea(
-        child: done
-            ? MiniGameSummary(
-                summaryKey: MemoryMatchIds.matchSummary,
-                starsKey: MemoryMatchIds.matchStars,
-                doneKey: MemoryMatchIds.matchNext,
-                correct: _s.report.correct,
-                answered: _s.report.answered,
-                stars: _s.report.stars,
-                showStars: _s.rewardsConfig.starsEnabled && !_study,
-                onDone: widget.onExit,
-              )
-            : _board_(context, _s.items[shownIndex], shownIndex),
+        child: GameKeyboard(
+          onInput: _onInput,
+          child: GameFrame(
+            // No ad beside the cards while a board is being played.
+            showAds: done,
+            phoneBanner: null,
+            child: Column(
+              children: [
+                // No title bar: exit and pause are small controls over the game (R2).
+                GameTopBar(
+                  title: title,
+                  onExit: widget.onExit,
+                  exitKey: MemoryMatchIds.matchExit,
+                  onPause: done || answered ? null : _togglePause,
+                  pauseKey: MemoryMatchIds.matchPause,
+                  paused: _paused,
+                ),
+                Expanded(
+                  child: Stack(
+                    children: [
+                      done
+                          ? MiniGameSummary(
+                              summaryKey: MemoryMatchIds.matchSummary,
+                              starsKey: MemoryMatchIds.matchStars,
+                              doneKey: MemoryMatchIds.matchNext,
+                              correct: _s.report.correct,
+                              answered: _s.report.answered,
+                              stars: _s.report.stars,
+                              showStars:
+                                  _s.rewardsConfig.starsEnabled && !_study,
+                              onDone: widget.onExit,
+                            )
+                          : _board_(context, _s.items[shownIndex], shownIndex),
+                      if (_paused)
+                        PauseOverlay(
+                          overlayKey: MemoryMatchIds.matchPaused,
+                          resumeKey: MemoryMatchIds.matchResume,
+                          onResume: _togglePause,
+                        ),
+                    ],
+                  ),
+                ),
+                if (wide)
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: 8),
+                    child: KeyHints(
+                      actions: [
+                        if (!done) ...[
+                          GameAction.left,
+                          GameAction.right,
+                          GameAction.up,
+                          GameAction.down,
+                        ],
+                        GameAction.action,
+                        if (!done && _reader != null) GameAction.question,
+                        if (!done) GameAction.pause,
+                        GameAction.exit,
+                      ],
+                    ),
+                  ),
+              ],
+            ),
+          ),
+        ),
       ),
     );
   }
@@ -261,40 +386,47 @@ class _MemoryMatchScreenState extends State<MemoryMatchScreen> {
           color: up ? cs.surfaceContainerHighest : cs.primary,
           borderRadius: BorderRadius.circular(16),
           border: Border.all(
-            color: matched ? cs.tertiary : cs.outline,
-            width: matched ? 3 : 1,
+            color: _keyboardUsed && i == _cursor
+                ? cs.secondary
+                : (matched ? cs.tertiary : cs.outline),
+            width: (_keyboardUsed && i == _cursor) ? 4 : (matched ? 3 : 1),
           ),
         ),
-        child: InkWell(
-          key: MemoryMatchIds.matchCard(i),
-          borderRadius: BorderRadius.circular(16),
-          onTap: up ? null : () => _flip(b, i),
-          child: Center(
-            child: Padding(
-              padding: const EdgeInsets.all(8),
-              child: up
-                  ? Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        if (matched)
-                          const Padding(
-                            padding: EdgeInsets.only(right: 4),
-                            child: Icon(Icons.check_circle, size: 18),
-                          ),
-                        Flexible(
-                          child: Text(
-                            card.text,
-                            textAlign: TextAlign.center,
-                            style: theme.textTheme.titleMedium?.copyWith(
-                              color: cs.onSurface,
+        child: Builder(
+          builder: (cardContext) {
+            _cardContexts[i] = cardContext;
+            return InkWell(
+              key: MemoryMatchIds.matchCard(i),
+              borderRadius: BorderRadius.circular(16),
+              onTap: up ? null : () => _flip(b, i),
+              child: Center(
+                child: Padding(
+                  padding: const EdgeInsets.all(8),
+                  child: up
+                      ? Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            if (matched)
+                              const Padding(
+                                padding: EdgeInsets.only(right: 4),
+                                child: Icon(Icons.check_circle, size: 18),
+                              ),
+                            Flexible(
+                              child: Text(
+                                card.text,
+                                textAlign: TextAlign.center,
+                                style: theme.textTheme.titleMedium?.copyWith(
+                                  color: cs.onSurface,
+                                ),
+                              ),
                             ),
-                          ),
-                        ),
-                      ],
-                    )
-                  : Icon(Icons.help_outline, color: cs.onPrimary, size: 32),
-            ),
-          ),
+                          ],
+                        )
+                      : Icon(Icons.help_outline, color: cs.onPrimary, size: 32),
+                ),
+              ),
+            );
+          },
         ),
       ),
     );
