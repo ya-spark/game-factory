@@ -7,6 +7,7 @@ import 'package:game_core/game_core.dart';
 
 import 'memory_match_ids.dart';
 
+import 'memory_match_two_player.dart';
 import 'rules/memory_match_rules.dart';
 
 /// Memory match as a registry entry: free, both modes, needs 3 open `pairs` items.
@@ -21,6 +22,8 @@ final MiniGame memoryMatchGame = MiniGame(
     mode: ctx.mode,
     onExit: ctx.onExit,
     onAnswered: ctx.onAnswered,
+    // Two players take turns on one board (docs/SPEC.md); not in calm Study mode.
+    offerTwoPlayers: ctx.mode == MiniGameMode.game,
   ),
 );
 
@@ -39,7 +42,11 @@ class MemoryMatchScreen extends StatefulWidget {
     this.random,
     this.reader,
     this.mismatchDelay = const Duration(milliseconds: 900),
+    this.offerTwoPlayers = false,
   });
+
+  /// Shows the "2 players" choice above the first board.
+  final bool offerTwoPlayers;
 
   final QuizSession session;
   final MiniGameMode mode;
@@ -70,6 +77,8 @@ class _MemoryMatchScreenState extends State<MemoryMatchScreen> {
   Timer? _hide;
   GameReadAloud? _reader;
   bool _paused = false;
+  bool _twoPlayers = false;
+  bool _started = false;
 
   /// The card the keyboard is on (drawn only once a key has been used).
   int _cursor = 0;
@@ -117,7 +126,7 @@ class _MemoryMatchScreenState extends State<MemoryMatchScreen> {
     if (_result != null || _paused) return;
     final o = b.flip(i);
     if (o == FlipOutcome.ignored) return;
-    setState(() {});
+    setState(() => _started = true);
     if (o == FlipOutcome.mismatch) {
       _hide?.cancel();
       _hide = Timer(widget.mismatchDelay, () {
@@ -220,6 +229,16 @@ class _MemoryMatchScreenState extends State<MemoryMatchScreen> {
 
   @override
   Widget build(BuildContext context) {
+    if (_twoPlayers) {
+      return MemoryMatchTwoPlayerScreen(
+        items: _s.items,
+        level: _study ? MatchLevel.older : _level(context),
+        random: _random,
+        reader: widget.reader,
+        mismatchDelay: widget.mismatchDelay,
+        onExit: widget.onExit,
+      );
+    }
     final answered = _result != null;
     final shownIndex = answered ? _s.index - 1 : _s.index;
     final done = _s.finished && !answered;
@@ -337,6 +356,31 @@ class _MemoryMatchScreenState extends State<MemoryMatchScreen> {
                 ),
             ],
           ),
+          if (widget.offerTwoPlayers &&
+              !_study &&
+              !_started &&
+              _s.index == 0 &&
+              _result == null) ...[
+            const SizedBox(height: 8),
+            SegmentedButton<bool>(
+              showSelectedIcon: false,
+              segments: const [
+                ButtonSegment(
+                  value: false,
+                  label: Text('1 player', key: MemoryMatchIds.matchModeOne),
+                ),
+                ButtonSegment(
+                  value: true,
+                  label: Text('2 players', key: MemoryMatchIds.matchModeTwo),
+                ),
+              ],
+              selected: {_twoPlayers},
+              onSelectionChanged: (v) => setState(() {
+                _twoPlayers = v.first;
+                if (_twoPlayers) _ticker.stop();
+              }),
+            ),
+          ],
           const SizedBox(height: 8),
           Semantics(
             header: true,

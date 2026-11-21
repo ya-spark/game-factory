@@ -17,4 +17,13 @@ abstract final class MemoryMatchIds {
   static const matchPaused = Key('match.paused');
   static const matchResume = Key('match.resume');
   static const matchLeave = Key('match.leave');
+  static const matchModeOne = Key('match.mode.one');
+  static const matchModeTwo = Key('match.mode.two');
+  static const matchP1Score = Key('match.p1.score');
+  static const matchP2Score = Key('match.p2.score');
+  static const matchTurn = Key('match.turn');
+  static const matchBoardResult = Key('match.board.result');
+  static const matchWinner = Key('match.winner');
+  static const matchAgain = Key('match.again');
+  static const matchDone = Key('match.done');
 }

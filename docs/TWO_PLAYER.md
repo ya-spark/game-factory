@@ -1,6 +1,6 @@
 # Two players on one device (R2 spec, DRAFT 2026-11-21)
 
-Games: Tug of war, Memory match, Door runner, Blockfall (chosen by fit, owner 2026-11-21). The rules of each mode are in the game's own `docs/SPEC.md` ("Two players"); this page holds what they share. Status: DRAFT, nothing built. Decisions marked **(default)** are my recommendation and stand until the owner changes them.
+Games: Tug of war, Memory match, Door runner, Blockfall (chosen by fit, owner 2026-11-21). The rules of each mode are in the game's own `docs/SPEC.md` ("Two players"); this page holds what they share. Status: Memory match built, the rest DRAFT. Decisions marked **(default)** are my recommendation and stand until the owner changes them.
 
 ## Shared rules
 1. **Choosing.** Each game's start screen has two buttons, "1 player" and "2 players" (the first is the default and has focus). The simultaneous modes (Tug of war head to head, Door runner race, Blockfall versus) need a keyboard each side, so they are offered only on windows 600 dp and wider; Memory match (turns) is offered everywhere, touch included. **(default)**
@@ -16,7 +16,7 @@ Games: Tug of war, Memory match, Door runner, Blockfall (chosen by fit, owner 20
 11. **Pure Dart rules.** Every mode's rules are a pure-Dart class in the game's `lib/src/rules/` (no Flutter), tested on the VM with a seeded random.
 
 ## Order of building (one game at a time, each green before the next)
-1. Memory match (turns): smallest, no new input model.
+1. Memory match (turns): BUILT 2026-11-21 (game-factory, local). Smallest, no new input model.
 2. Tug of war (head to head): same question for both, first right answer pulls.
 3. Door runner (race): two runners in one field.
 4. Blockfall (versus): two wells, garbage rows, the largest.
