@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:math';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 import '../../engine/engine.dart';
 import 'choice_game.dart';
@@ -155,68 +156,96 @@ class _SnakeFieldState extends State<_SnakeField> {
     final pal = MiniGamePalette(context);
     final theme = Theme.of(context);
     final lives = widget.settings.lives;
-    return Column(
-      children: [
-        Padding(
-          padding: const EdgeInsets.only(bottom: 4),
-          child: Text(
-            'Eaten ${_board.eaten} of ${widget.task.labels.length}'
-            '${lives > 0 ? '   Lives ${max(0, lives - _board.mistakes)}' : ''}',
-            key: const Key('snake.status'),
-            style: theme.textTheme.titleSmall,
+    return Focus(
+      autofocus: true,
+      onKeyEvent: (node, event) {
+        if (event is! KeyDownEvent) return KeyEventResult.ignored;
+        final k = event.logicalKey;
+        final d = switch (k) {
+          LogicalKeyboardKey.arrowUp || LogicalKeyboardKey.keyW => SnakeDir.up,
+          LogicalKeyboardKey.arrowDown ||
+          LogicalKeyboardKey.keyS => SnakeDir.down,
+          LogicalKeyboardKey.arrowLeft ||
+          LogicalKeyboardKey.keyA => SnakeDir.left,
+          LogicalKeyboardKey.arrowRight ||
+          LogicalKeyboardKey.keyD => SnakeDir.right,
+          _ => null,
+        };
+        if (d == null) return KeyEventResult.ignored;
+        _go(d);
+        return KeyEventResult.handled;
+      },
+      child: Column(
+        children: [
+          Padding(
+            padding: const EdgeInsets.only(bottom: 4),
+            child: Text(
+              'Eaten ${_board.eaten} of ${widget.task.labels.length}'
+              '${lives > 0 ? '   Lives ${max(0, lives - _board.mistakes)}' : ''}',
+              key: const Key('snake.status'),
+              style: theme.textTheme.titleSmall,
+            ),
           ),
-        ),
-        Expanded(
-          child: GestureDetector(
-            behavior: HitTestBehavior.opaque,
-            onPanEnd: (d) {
-              final v = d.velocity.pixelsPerSecond;
-              if (v.dx.abs() > v.dy.abs()) {
-                _go(v.dx > 0 ? SnakeDir.right : SnakeDir.left);
-              } else {
-                _go(v.dy > 0 ? SnakeDir.down : SnakeDir.up);
-              }
-            },
-            child: CustomPaint(
-              key: const Key('snake.board'),
-              size: Size.infinite,
-              painter: _BoardPainter(
-                board: _board,
-                pal: pal,
-                textStyle: theme.textTheme.titleSmall!,
+          Expanded(
+            child: GestureDetector(
+              behavior: HitTestBehavior.opaque,
+              onPanEnd: (d) {
+                final v = d.velocity.pixelsPerSecond;
+                if (v.dx.abs() > v.dy.abs()) {
+                  _go(v.dx > 0 ? SnakeDir.right : SnakeDir.left);
+                } else {
+                  _go(v.dy > 0 ? SnakeDir.down : SnakeDir.up);
+                }
+              },
+              child: CustomPaint(
+                key: const Key('snake.board'),
+                size: Size.infinite,
+                painter: _BoardPainter(
+                  board: _board,
+                  pal: pal,
+                  textStyle: theme.textTheme.titleSmall!,
+                ),
               ),
             ),
           ),
-        ),
-        Padding(
-          padding: const EdgeInsets.only(top: 6),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              for (final (d, icon, label) in const [
-                (SnakeDir.left, Icons.arrow_back, 'left'),
-                (SnakeDir.up, Icons.arrow_upward, 'up'),
-                (SnakeDir.down, Icons.arrow_downward, 'down'),
-                (SnakeDir.right, Icons.arrow_forward, 'right'),
-              ])
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 4),
-                  child: IconButton.filledTonal(
-                    key: Key('snake.dir.$label'),
-                    tooltip: 'Steer $label',
-                    iconSize: 28,
-                    constraints: const BoxConstraints(
-                      minWidth: 52,
-                      minHeight: 52,
+          Padding(
+            padding: const EdgeInsets.only(top: 6),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                for (final (d, icon, label) in const [
+                  (SnakeDir.left, Icons.arrow_back, 'left'),
+                  (SnakeDir.up, Icons.arrow_upward, 'up'),
+                  (SnakeDir.down, Icons.arrow_downward, 'down'),
+                  (SnakeDir.right, Icons.arrow_forward, 'right'),
+                ])
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 4),
+                    child: IconButton.filledTonal(
+                      key: Key('snake.dir.$label'),
+                      tooltip: 'Steer $label',
+                      iconSize: 28,
+                      constraints: const BoxConstraints(
+                        minWidth: 52,
+                        minHeight: 52,
+                      ),
+                      onPressed: () => _go(d),
+                      icon: Icon(icon),
                     ),
-                    onPressed: () => _go(d),
-                    icon: Icon(icon),
                   ),
-                ),
-            ],
+              ],
+            ),
           ),
-        ),
-      ],
+          Padding(
+            padding: const EdgeInsets.only(top: 4),
+            child: Text(
+              'Keys: arrow keys or W A S D',
+              key: const Key('snake.keys'),
+              style: theme.textTheme.labelSmall,
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

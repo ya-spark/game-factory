@@ -1,6 +1,7 @@
 import 'dart:math';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_game_template/engine/engine.dart';
 import 'package:flutter_game_template/ui/minigames/shooter_screen.dart';
 import 'package:flutter_game_template/ui/minigames/snake_series_screen.dart';
@@ -175,6 +176,75 @@ void main() {
       expect(find.text('Odd'), findsOneWidget);
     });
 
+    testWidgets(
+      'keyboard: number keys shoot the targets, Enter shoots a focused one',
+      (t) async {
+        final log = <AnswerResult>[];
+        await t.pumpWidget(
+          _app(
+            ShooterScreen(
+              session: _session([
+                for (var i = 1; i <= 4; i++) _mcq(i),
+              ], year: 1),
+              level: const MiniGameLevel.younger(),
+              onExit: () {},
+              onAnswered: (r, _) => log.add(r),
+              random: Random(1),
+            ),
+          ),
+        );
+        await t.tap(find.byKey(TestIds.mgStart('shooter')));
+        await t.pump();
+        // every target shows its key number
+        expect(find.byKey(const Key('shooter.key.0')), findsOneWidget);
+        expect(find.byKey(const Key('shooter.key.1')), findsOneWidget);
+        // find which key number the right answer ("Beta") has
+        var right = -1;
+        for (var i = 0; i < 3; i++) {
+          final box = find.byKey(TestIds.mgChoice('shooter', i));
+          if (find
+              .descendant(of: box, matching: find.text('Beta'))
+              .evaluate()
+              .isNotEmpty) {
+            right = i;
+          }
+        }
+        expect(right, isNonNegative);
+        final keys = [
+          LogicalKeyboardKey.digit1,
+          LogicalKeyboardKey.digit2,
+          LogicalKeyboardKey.digit3,
+        ];
+        await t.sendKeyEvent(keys[right]);
+        await t.pump();
+        await t.pump(const Duration(milliseconds: 400));
+        await t.pump();
+        expect(log.length, 1);
+        expect(log.single.correct, isTrue);
+      },
+    );
+
+    testWidgets('keyboard: a key with no target does nothing', (t) async {
+      final log = <AnswerResult>[];
+      await t.pumpWidget(
+        _app(
+          ShooterScreen(
+            session: _session([for (var i = 1; i <= 4; i++) _mcq(i)], year: 1),
+            level: const MiniGameLevel.younger(),
+            onExit: () {},
+            onAnswered: (r, _) => log.add(r),
+            random: Random(1),
+          ),
+        ),
+      );
+      await t.tap(find.byKey(TestIds.mgStart('shooter')));
+      await t.pump();
+      await t.sendKeyEvent(LogicalKeyboardKey.digit9);
+      await t.sendKeyEvent(LogicalKeyboardKey.keyQ);
+      await t.pump(const Duration(milliseconds: 400));
+      expect(log, isEmpty);
+    });
+
     test('registry entry: short mcq and category items only', () {
       final long = PoolItem(
         item: ContentItem({
@@ -228,6 +298,35 @@ void main() {
         await t.pumpWidget(const SizedBox());
       },
     );
+
+    testWidgets('keyboard: arrow keys and WASD steer the snake', (t) async {
+      await t.pumpWidget(
+        _app(
+          SnakeSeriesScreen(
+            session: _session([
+              for (var i = 1; i <= 3; i++) _series(i),
+            ], year: 1),
+            level: const MiniGameLevel.younger(),
+            onExit: () {},
+            random: Random(1),
+          ),
+        ),
+      );
+      await t.tap(find.byKey(TestIds.mgStart('snake_series')));
+      await t.pump();
+      expect(find.byKey(const Key('snake.keys')), findsOneWidget);
+      for (final k in [
+        LogicalKeyboardKey.arrowLeft,
+        LogicalKeyboardKey.arrowDown,
+        LogicalKeyboardKey.keyD,
+        LogicalKeyboardKey.keyW,
+      ]) {
+        await t.sendKeyEvent(k);
+        await t.pump(const Duration(milliseconds: 100));
+      }
+      expect(find.byKey(const Key('snake.board')), findsOneWidget);
+      await t.pumpWidget(const SizedBox());
+    });
 
     test('registry entry: series, word and numeric items it can build', () {
       PoolItem p(Map<String, dynamic> j) => PoolItem(

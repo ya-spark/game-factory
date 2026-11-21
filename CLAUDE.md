@@ -36,6 +36,7 @@ game template (`template/flutter-game-template/`). Games are generated from the 
   `flutter test`, `bash scripts/ad_safety_check.sh`.
 - Keep Android-first, but keep logic in pure Dart and platform specifics behind interfaces and
   `app.config.yaml` `platforms:` so iOS/web can be added later.
+- New screens in new apps and games are responsive for the web (`template/flutter-game-template/docs/WEB_LAYOUT.md`, `lib/ui/layout/responsive.dart`); existing apps keep their layout (owner, 2026-11-21).
 - New games are generated with `scripts/new_game.py` (see `scripts/README.md`); never hand-copy the template.
 - Per-game stage state lives in `registry/games/<id>.json`; read and change it only with `scripts/pipeline.py`. New games start with the `/new-app` skill and the stage agents in `game-studio/.claude/`.
 - Working habits and lessons learned are in `docs/BEST_PRACTICES.md`.

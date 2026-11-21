@@ -190,11 +190,15 @@ class TopicMapSheet extends StatelessWidget {
     required this.showAccuracy,
     required this.onPractise,
     required this.onRevise,
+    this.onOther,
   });
   final MapNode node;
   final bool showAccuracy;
   final VoidCallback onPractise;
   final VoidCallback onRevise;
+
+  /// Practise the topic's other question types (series, pairs, words and so on), shown when it has some.
+  final VoidCallback? onOther;
 
   @override
   Widget build(BuildContext context) {
@@ -238,6 +242,16 @@ class TopicMapSheet extends StatelessWidget {
                 onPressed: onPractise,
                 expand: true,
               ),
+              if (onOther != null) ...[
+                SizedBox(height: t.sp('sm')),
+                DsButton(
+                  id: 'map.other',
+                  label: 'Other question types',
+                  kind: DsButtonKind.secondary,
+                  onPressed: onOther!,
+                  expand: true,
+                ),
+              ],
               if (node.toRevise > 0) ...[
                 SizedBox(height: t.sp('sm')),
                 DsButton(

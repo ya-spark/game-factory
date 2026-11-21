@@ -11,6 +11,7 @@ import '../kit/ds_bars.dart';
 import '../kit/ds_cards.dart';
 import '../kit/ds_buttons.dart';
 import '../kit/ds_chips.dart';
+import '../minigames/flash_review_screen.dart';
 import '../mistakes_round.dart';
 import '../quick_quiz_screen.dart';
 import '../test_ids.dart';
@@ -100,6 +101,7 @@ class _StudyTabState extends State<StudyTab> {
     required int year,
     String? topic,
     List<PoolItem>? pool,
+    bool others = false,
   }) async {
     final s = ServicesScope.of(context);
     final nav = Navigator.of(context);
@@ -113,19 +115,22 @@ class _StudyTabState extends State<StudyTab> {
       year: year,
       today: s.profile.today,
       random: Random(),
-      types: quickQuizGame.itemTypes,
+      types: others
+          ? (ItemType.values.toSet()..remove(ItemType.mcq))
+          : quickQuizGame.itemTypes,
       topic: topic,
       minPool: 1,
       streakDays: s.profile.displayStreak,
-      gameId: quickQuizGame.id,
+      gameId: others ? flashReviewGame.id : quickQuizGame.id,
     );
     if (session == null) return;
+    final game = others ? flashReviewGame : quickQuizGame;
     await nav.push(
       MaterialPageRoute<void>(
         builder: (_) => RulesGate(
-          gameId: quickQuizId,
+          gameId: game.id,
           childId: child.id,
-          child: quickQuizGame.build(
+          child: game.build(
             MiniGameContext(
               session: session,
               mode: MiniGameMode.study,
@@ -589,23 +594,28 @@ class _StudyTabState extends State<StudyTab> {
   }
 
   Future<void> _mapSheet(_StudyData d, MapNode n) async {
-    final practise = await showModalBottomSheet<bool>(
+    final choice = await showModalBottomSheet<String>(
       context: context,
       isScrollControlled: true,
       builder: (sheet) => TopicMapSheet(
         node: n,
         showAccuracy: _showAccuracy,
-        onPractise: () => Navigator.of(sheet).pop(true),
-        onRevise: () => Navigator.of(sheet).pop(false),
+        onPractise: () => Navigator.of(sheet).pop('practise'),
+        onRevise: () => Navigator.of(sheet).pop('revise'),
+        onOther:
+            n.openItems.where((p) => p.item.type != ItemType.mcq).length >= 4
+            ? () => Navigator.of(sheet).pop('other')
+            : null,
       ),
     );
-    if (practise == null || !mounted) return;
+    if (choice == null || !mounted) return;
     await _practice(
       d,
       subject: n.subject,
       year: n.year,
       topic: n.topic,
-      pool: practise ? null : n.reviseItems,
+      pool: choice == 'revise' ? n.reviseItems : null,
+      others: choice == 'other',
     );
   }
 
