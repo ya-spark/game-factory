@@ -37,7 +37,8 @@ class GameFrame extends StatelessWidget {
   final bool showAds;
 
   /// Which banner slot the phone layout uses (menu, or postGame on results).
-  final GameBannerSlot phoneBanner;
+  /// Null: the game draws its own phone banner (and the frame draws none).
+  final GameBannerSlot? phoneBanner;
 
   /// Space between the game and the rail or strip.
   final double gap;
@@ -61,11 +62,11 @@ class GameFrame extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 Expanded(child: stage),
-                if (showAds)
+                if (showAds && phoneBanner != null)
                   Center(
                     child: KeyedSubtree(
                       key: FrameIds.banner,
-                      child: host.banner(context, phoneBanner),
+                      child: host.banner(context, phoneBanner!),
                     ),
                   ),
               ],

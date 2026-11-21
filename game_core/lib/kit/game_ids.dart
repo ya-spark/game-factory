@@ -20,6 +20,9 @@ abstract final class GameIds {
   static Key mgStars(String g) => Key('$g.stars');
   static Key mgDone(String g) => Key('$g.done');
   static Key mgBanner(String g) => Key('$g.banner');
+  static Key mgPause(String g) => Key('$g.pause');
+  static Key mgPaused(String g) => Key('$g.paused');
+  static Key mgResume(String g) => Key('$g.resume');
   static Key mgRope(String g) => Key('$g.rope');
   static Key mgCard(String g) => Key('$g.card');
   static Key mgFlip(String g) => Key('$g.flip');

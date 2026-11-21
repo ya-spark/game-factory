@@ -1,6 +1,7 @@
 import 'dart:math';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:game_core/game_core.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:game_tug_of_war/tug_of_war.dart';
@@ -132,5 +133,117 @@ void main() {
     await t.pump(const Duration(seconds: 21));
     expect(find.textContaining('Time is up'), findsOneWidget);
     await t.pumpWidget(const SizedBox());
+  });
+
+  group('keyboard', () {
+    Future<List<AnswerResult>> start(
+      WidgetTester t, {
+      Size size = const Size(1000, 800),
+      VoidCallback? onExit,
+    }) async {
+      t.view.physicalSize = size;
+      t.view.devicePixelRatio = 1;
+      addTearDown(t.view.reset);
+      final log = <AnswerResult>[];
+      await t.pumpWidget(
+        MaterialApp(
+          home: TugOfWarScreen(
+            session: _session(year: 3),
+            level: const MiniGameLevel.older(),
+            onExit: onExit ?? () {},
+            onAnswered: (r, _) => log.add(r),
+            random: Random(1),
+          ),
+        ),
+      );
+      return log;
+    }
+
+    testWidgets('Enter starts, 2 picks the answer, Enter goes on', (t) async {
+      final log = await start(t);
+      expect(find.byKey(GameIds.mgIntro('tug_of_war')), findsOneWidget);
+      await t.sendKeyEvent(LogicalKeyboardKey.enter);
+      await t.pump();
+      expect(find.byKey(GameIds.mgRope('tug_of_war')), findsOneWidget);
+      // Every option is on the screen; press the key of the one that is right (Beta).
+      for (var n = 1; n <= 4; n++) {
+        final f = find.byKey(GameIds.mgChoice('tug_of_war', n - 1));
+        if (find
+            .descendant(of: f, matching: find.text('Beta'))
+            .evaluate()
+            .isNotEmpty) {
+          await t.sendKeyEvent(
+            [
+              LogicalKeyboardKey.digit1,
+              LogicalKeyboardKey.digit2,
+              LogicalKeyboardKey.digit3,
+              LogicalKeyboardKey.digit4,
+            ][n - 1],
+          );
+          break;
+        }
+      }
+      await t.pump();
+      expect(log.single.correct, isTrue);
+      expect(find.byKey(GameIds.mgFeedback('tug_of_war')), findsOneWidget);
+      await t.sendKeyEvent(LogicalKeyboardKey.enter);
+      await t.pump();
+      expect(find.byKey(GameIds.mgFeedback('tug_of_war')), findsNothing);
+    });
+
+    testWidgets('Esc leaves', (t) async {
+      var left = false;
+      await start(t, onExit: () => left = true);
+      await t.sendKeyEvent(LogicalKeyboardKey.escape);
+      expect(left, isTrue);
+    });
+
+    testWidgets('Space pauses: no answer is taken, Space or Resume goes on', (
+      t,
+    ) async {
+      final log = await start(t);
+      await t.sendKeyEvent(LogicalKeyboardKey.enter);
+      await t.pump();
+      await t.sendKeyEvent(LogicalKeyboardKey.space);
+      await t.pump();
+      expect(find.byKey(GameIds.mgPaused('tug_of_war')), findsOneWidget);
+      await t.sendKeyEvent(LogicalKeyboardKey.digit1);
+      await t.pump();
+      expect(log, isEmpty);
+      await t.sendKeyEvent(LogicalKeyboardKey.space);
+      await t.pump();
+      expect(find.byKey(GameIds.mgPaused('tug_of_war')), findsNothing);
+      await t.sendKeyEvent(LogicalKeyboardKey.space);
+      await t.pump();
+      await t.tap(find.byKey(GameIds.mgResume('tug_of_war')));
+      await t.pump();
+      expect(find.byKey(GameIds.mgPaused('tug_of_war')), findsNothing);
+    });
+
+    testWidgets('the pause button works too', (t) async {
+      await start(t);
+      await t.sendKeyEvent(LogicalKeyboardKey.enter);
+      await t.pump();
+      await t.tap(find.byKey(GameIds.mgPause('tug_of_war')));
+      await t.pump();
+      expect(find.byKey(GameIds.mgPaused('tug_of_war')), findsOneWidget);
+    });
+
+    testWidgets('a wide window shows the key hints, a phone does not', (
+      t,
+    ) async {
+      await start(t);
+      expect(find.byKey(KeyIds.hints), findsOneWidget);
+      await start(t, size: const Size(390, 800));
+      expect(find.byKey(KeyIds.hints), findsNothing);
+    });
+
+    testWidgets('no title bar: the game name sits in the overlay row', (
+      t,
+    ) async {
+      await start(t);
+      expect(find.byType(AppBar), findsNothing);
+      expect(find.byKey(GameIds.mgExit('tug_of_war')), findsOneWidget);
+    });
   });
 }

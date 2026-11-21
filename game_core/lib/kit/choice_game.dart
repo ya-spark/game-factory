@@ -10,6 +10,9 @@ import '../engine/engine.dart';
 import '../host/game_host.dart';
 import 'game_ids.dart';
 import 'game_palette.dart';
+import 'keys/keys.dart';
+import 'layout/game_frame.dart';
+import 'layout/window_class.dart';
 
 /// One thing the child can pick: a door or a balloon.
 class ChoiceOption {
@@ -124,6 +127,7 @@ class _ChoiceGameScreenState extends State<ChoiceGameScreen>
   int _streak = 0;
   int _best = 0;
   bool _scoreSent = false;
+  bool _paused = false;
   GameReadAloud? _reader;
   bool _autoRead = false;
   int? _autoReadIndex;
@@ -268,33 +272,173 @@ class _ChoiceGameScreenState extends State<ChoiceGameScreen>
     });
   }
 
-  Widget _banner(GameBannerSlot slot) => KeyedSubtree(
-    key: GameIds.mgBanner(_g),
-    child: GameHostScope.of(context).banner(context, slot),
-  );
+  /// The phone banner of the start and results screens. On a wider window the frame shows the
+  /// container's strip or rail instead, so the banner steps aside when there is one.
+  Widget _banner(GameBannerSlot slot) {
+    final host = GameHostScope.of(context);
+    final wide = WindowClass.ofContext(context) != WindowClass.compact;
+    if (wide && host.adUnit(context, GameAdFormat.leaderboard) != null) {
+      return const SizedBox.shrink();
+    }
+    return KeyedSubtree(
+      key: GameIds.mgBanner(_g),
+      child: host.banner(context, slot),
+    );
+  }
+
+  // ---- keyboard (docs/KEYBOARD.md): 1 to 4 answer, Enter next or start, Q reads, Space pauses ----
+
+  void _onInput(GameInput i) {
+    if (i.action == GameAction.exit) {
+      widget.onExit();
+      return;
+    }
+    if (i.repeat) return;
+    switch (_phase) {
+      case _Phase.intro:
+        if (i.action == GameAction.action) _start();
+      case _Phase.results:
+        if (i.action == GameAction.action) widget.onExit();
+      case _Phase.play:
+        if (i.action == GameAction.pause) {
+          _togglePause();
+        } else if (_paused) {
+          return;
+        } else if (i.action.pickNumber != null) {
+          final n = i.action.pickNumber! - 1;
+          final opts = _options;
+          if (opts != null && n < opts.length && !_disabled.contains(n)) {
+            _pick(n);
+          }
+        } else if (i.action == GameAction.action) {
+          if (_result != null) _next();
+        } else if (i.action == GameAction.question) {
+          final p = _item;
+          if (p != null && _result == null) _read(p);
+        }
+    }
+  }
+
+  void _togglePause() {
+    if (_phase != _Phase.play || _result != null) return;
+    setState(() => _paused = !_paused);
+    if (_paused) {
+      _timer.stop();
+      _reader?.stop();
+    } else if (widget.secondsPerQuestion > 0) {
+      _timer.forward();
+    }
+  }
+
+  List<GameAction> get _hintActions => switch (_phase) {
+    _Phase.intro => const [GameAction.action, GameAction.exit],
+    _Phase.results => const [GameAction.action, GameAction.exit],
+    _Phase.play => [
+      if (_result != null)
+        GameAction.action
+      else ...[
+        GameAction.pick1,
+        GameAction.pick2,
+        GameAction.pick3,
+        GameAction.pick4,
+        if (_reader != null) GameAction.question,
+      ],
+      GameAction.pause,
+      GameAction.exit,
+    ],
+  };
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final wide = WindowClass.ofContext(context) != WindowClass.compact;
     return Scaffold(
       key: GameIds.mgScreen(_g),
-      appBar: AppBar(
-        title: Text(widget.title),
-        leading: IconButton(
-          key: GameIds.mgExit(_g),
-          tooltip: 'Leave ${widget.title}',
-          icon: const Icon(Icons.close),
-          onPressed: widget.onExit,
-        ),
-      ),
       body: SafeArea(
-        child: switch (_phase) {
-          _Phase.intro => _intro(context),
-          _Phase.play => _play(context),
-          _Phase.results => _results(context),
-        },
+        child: GameKeyboard(
+          onInput: _onInput,
+          child: GameFrame(
+            // No ad beside the game while a question is being played.
+            showAds: _phase != _Phase.play,
+            // The start and results screens draw their own phone banner.
+            phoneBanner: null,
+            child: Column(
+              children: [
+                // No title bar: exit and pause are small controls over the game (R2).
+                Row(
+                  children: [
+                    IconButton(
+                      key: GameIds.mgExit(_g),
+                      tooltip: 'Leave ${widget.title}',
+                      icon: const Icon(Icons.close),
+                      onPressed: widget.onExit,
+                    ),
+                    Expanded(
+                      child: Text(
+                        widget.title,
+                        style: theme.textTheme.titleMedium,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                    if (_phase == _Phase.play && _result == null)
+                      IconButton(
+                        key: GameIds.mgPause(_g),
+                        tooltip: _paused ? 'Resume' : 'Pause',
+                        icon: Icon(_paused ? Icons.play_arrow : Icons.pause),
+                        onPressed: _togglePause,
+                      ),
+                  ],
+                ),
+                Expanded(
+                  child: Stack(
+                    children: [
+                      switch (_phase) {
+                        _Phase.intro => _intro(context),
+                        _Phase.play => _play(context),
+                        _Phase.results => _results(context),
+                      },
+                      if (_paused) _pausedOverlay(theme),
+                    ],
+                  ),
+                ),
+                if (wide)
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: 8),
+                    child: KeyHints(actions: _hintActions),
+                  ),
+              ],
+            ),
+          ),
+        ),
       ),
     );
   }
+
+  Widget _pausedOverlay(ThemeData theme) => Positioned.fill(
+    child: ColoredBox(
+      key: GameIds.mgPaused(_g),
+      color: theme.colorScheme.scrim.withValues(alpha: 0.6),
+      child: Center(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              'Paused',
+              style: theme.textTheme.headlineMedium?.copyWith(
+                color: Colors.white,
+              ),
+            ),
+            const SizedBox(height: 12),
+            FilledButton(
+              key: GameIds.mgResume(_g),
+              onPressed: _togglePause,
+              child: const Text('Resume'),
+            ),
+          ],
+        ),
+      ),
+    ),
+  );
 
   Widget _intro(BuildContext context) {
     final theme = Theme.of(context);
