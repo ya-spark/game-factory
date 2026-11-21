@@ -36,6 +36,7 @@ game template (`template/flutter-game-template/`). Games are generated from the 
   `flutter test`, `bash scripts/ad_safety_check.sh`.
 - Keep Android-first, but keep logic in pure Dart and platform specifics behind interfaces and
   `app.config.yaml` `platforms:` so iOS/web can be added later.
+- No title bar inside a game (owner, 2026-11-21): a new game screen does not draw its own bar with the game's name (no `AppBar` title strip). The host already shows the name: the web bar reads "Game: <name>" and the apps' shell shows it, so a second bar is distracting. The game gets the whole play area; its few controls (exit, pause, score, hint) are small overlays or sit in the play area. Existing games keep their bar until they are changed for another reason.
 - New screens in new apps and games are responsive for the web (`template/flutter-game-template/docs/WEB_LAYOUT.md`, `lib/ui/layout/responsive.dart`); existing apps keep their layout (owner, 2026-11-21).
 - New games are generated with `scripts/new_game.py` (see `scripts/README.md`); never hand-copy the template.
 - Per-game stage state lives in `registry/games/<id>.json`; read and change it only with `scripts/pipeline.py`. New games start with the `/new-app` skill and the stage agents in `game-studio/.claude/`.
