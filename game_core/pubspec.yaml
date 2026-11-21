@@ -19,3 +19,8 @@ dev_dependencies:
 
 executables:
   content_cli:
+
+flutter:
+  assets:
+    - assets/audio/voice/
+    - assets/audio/ambience/

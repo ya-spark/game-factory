@@ -9,6 +9,9 @@ dependencies:
   flutter:
     sdk: flutter
   flame: ^1.38.2
+  # Shared narrator voice and ambience live in game_core's assets; resolved by the container's
+  # dependency_overrides (git ref of game-factory). In this repo, pubspec_overrides.yaml points at ../../game_core.
+  game_core: ^1.0.0
   audioplayers: ^6.1.0
 
 dev_dependencies:
@@ -19,5 +22,3 @@ dev_dependencies:
 flutter:
   assets:
     - assets/sfx/
-    - assets/voice/
-    - assets/ambience/

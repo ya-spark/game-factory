@@ -9,6 +9,9 @@ import 'voice_arbiter.dart';
 /// Wingy's sounds are package assets: the bundle key carries `packages/game_wingy/`, so its players
 /// use an AudioCache with no `assets/` prefix (the default cache would look in the app's assets).
 const String _assetBase = 'packages/game_wingy/assets/';
+
+/// Narrator voice and ambience are shared by the games: they live in game_core.
+const String _sharedAudio = 'packages/game_core/assets/audio/';
 final AudioCache _cache = AudioCache(prefix: '');
 AudioPlayer _newPlayer() => AudioPlayer()..audioCache = _cache;
 
@@ -132,7 +135,7 @@ class AudioService {
       await pl.setVolume(_ambienceLevel());
       if (_ambienceLoaded != file) {
         _ambienceLoaded = file;
-        await pl.play(AssetSource('${_assetBase}ambience/$file'));
+        await pl.play(AssetSource('${_sharedAudio}ambience/$file'));
       } else if (!_ambiencePlaying) {
         await pl.resume();
       }
@@ -188,7 +191,7 @@ class _VoicePlayerOutput implements VoiceOutput {
     _sub = p.onPlayerComplete.listen((_) => onFinished());
     try {
       await p.setVolume(_s.masterVolume);
-      await p.play(AssetSource('$_assetBase$asset'));
+      await p.play(AssetSource('$_sharedAudio$asset'));
     } catch (e) {
       debugPrint('audio: $asset failed: $e');
       onFinished();
@@ -222,7 +225,7 @@ class AmbiencePreview {
       final p = _player ??= _newPlayer();
       await p.setReleaseMode(ReleaseMode.loop);
       await p.setVolume(AudioService.ambienceVolume * volume * 2);
-      await p.play(AssetSource('${_assetBase}ambience/$file'));
+      await p.play(AssetSource('${_sharedAudio}ambience/$file'));
       playing = id;
     } catch (e) {
       debugPrint('audio: preview $id failed: $e');
