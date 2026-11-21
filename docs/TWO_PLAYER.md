@@ -1,6 +1,6 @@
 # Two players on one device (R2 spec, DRAFT 2026-11-21)
 
-Games: Tug of war, Memory match, Door runner, Blockfall (chosen by fit, owner 2026-11-21). The rules of each mode are in the game's own `docs/SPEC.md` ("Two players"); this page holds what they share. Status: Memory match, Tug of war and Door runner built, Blockfall DRAFT. Decisions marked **(default)** are my recommendation and stand until the owner changes them.
+Games: Tug of war, Memory match, Door runner, Blockfall (chosen by fit, owner 2026-11-21). The rules of each mode are in the game's own `docs/SPEC.md` ("Two players"); this page holds what they share. Status: all four modes built (2026-11-21 and 22), not yet on a device. Decisions marked **(default)** are my recommendation and stand until the owner changes them.
 
 ## Shared rules
 1. **Choosing.** Each game's start screen has two buttons, "1 player" and "2 players" (the first is the default and has focus). The simultaneous modes (Tug of war head to head, Door runner race, Blockfall versus) need a keyboard each side, so they are offered only on windows 600 dp and wider; Memory match (turns) is offered everywhere, touch included. **(default)**
@@ -19,7 +19,7 @@ Games: Tug of war, Memory match, Door runner, Blockfall (chosen by fit, owner 20
 1. Memory match (turns): BUILT 2026-11-21 (game-factory, local). Smallest, no new input model.
 2. Tug of war (head to head): BUILT 2026-11-21 (game-factory, local). Same question for both, first right answer pulls.
 3. Door runner (race): BUILT 2026-11-21 (game-factory, local). Two runners in one field.
-4. Blockfall (versus): two wells, garbage rows, the largest.
+4. Blockfall (versus): BUILT 2026-11-22 (game-factory, local). Two wells, garbage rows, the largest.
 
 ## Open questions (my default stands until answered)
 1. Should answers in a two-player round count toward the child's skills and rewards? Default no (rule 5): whose child is it, and a race rewards speed, not learning.

@@ -44,3 +44,5 @@ export 'src/ui/test_ids.dart';
 export 'src/ui/theme_fade.dart';
 export 'src/ui/tip_card.dart';
 export 'src/ui/widgets.dart';
+export 'src/game/rules/blockfall_versus.dart';
+export 'src/ui/versus_screen.dart';

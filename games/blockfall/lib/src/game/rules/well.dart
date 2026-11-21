@@ -128,6 +128,28 @@ class Well {
     }
   }
 
+  /// Raises the stack by [n] rows and fills the bottom [n] rows with [colorId] blocks except at
+  /// column [hole] (versus garbage). Returns true when filled cells were pushed past the top.
+  bool pushGarbage(int n, int hole, int colorId) {
+    final k = n.clamp(0, totalRows);
+    var overflow = false;
+    for (var r = 0; r < k; r++) {
+      for (var c = 0; c < cols; c++) {
+        if (isFilled(r, c)) overflow = true;
+      }
+    }
+    for (var r = 0; r < totalRows - k; r++) {
+      _copyRow(r + k, r);
+    }
+    for (var r = totalRows - k; r < totalRows; r++) {
+      _blankRow(r);
+      for (var c = 0; c < cols; c++) {
+        if (c != hole) set(r, c, colorId);
+      }
+    }
+    return overflow;
+  }
+
   /// Empties rows `[from, to)`.
   void clearRowRange(int from, int to) {
     for (var r = from; r < to; r++) {

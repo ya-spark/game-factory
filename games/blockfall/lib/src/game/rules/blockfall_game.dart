@@ -10,6 +10,9 @@ import 'powerups.dart';
 import 'scoring.dart';
 import 'well.dart';
 
+/// Colour id of the garbage blocks versus pushes up from the bottom.
+const int garbageColorId = 7;
+
 /// Complete, deterministic Blockfall rules engine.
 ///
 /// Pure Dart. Randomness comes from the injected [Random], time from the delta seconds
@@ -270,7 +273,10 @@ class BlockfallGame {
 
   int get score => _score;
   int get lines => _lines;
-  int get level => levelForLines(_lines);
+  int get level => max(levelForLines(_lines), forcedLevel);
+
+  /// A floor for the level (versus raises it with the clock so a game always ends); 0 in a normal game.
+  int forcedLevel = 0;
 
   /// Lines still needed to reach the next level.
   int get goal => goalForLines(_lines);
@@ -534,6 +540,37 @@ class BlockfallGame {
     _fallAcc = 0;
     _lockTimer = 0;
     _lowestRow = best.row;
+  }
+
+  /// Versus: [n] garbage rows rise from the bottom, each full except at [holeColumn]. The falling
+  /// piece is lifted out of the way. Returns true when this ended the game (the stack was
+  /// pushed over the top or the piece has nowhere to go).
+  bool receiveGarbage(int n, int holeColumn) {
+    if (_gameOver || n <= 0) return false;
+    var over = well.pushGarbage(
+      n,
+      holeColumn.clamp(0, Well.cols - 1),
+      garbageColorId,
+    );
+    final a = _active;
+    if (a != null) {
+      var lifted = a;
+      var guard = 0;
+      while (!_fits(lifted) && guard++ < Well.totalRows) {
+        lifted = lifted.shifted(0, -1);
+      }
+      if (_fits(lifted)) {
+        _active = lifted;
+        _lockTimer = 0;
+      } else {
+        over = true;
+      }
+    }
+    if (over) {
+      _endGame(GameOverReason.blockOut);
+      return true;
+    }
+    return false;
   }
 
   void _addLines(int n) {

@@ -28,6 +28,7 @@ import 'hud_widgets.dart';
 import '../host/routes.dart';
 import 'share_card.dart';
 import 'test_ids.dart';
+import 'versus_screen.dart';
 import 'theme_fade.dart';
 import 'widgets.dart';
 
@@ -55,7 +56,11 @@ const EdgeInsets _kSmallPadding = EdgeInsets.symmetric(
 final ValueNotifier<int> _noRevision = ValueNotifier(0);
 
 class GameScreen extends StatefulWidget {
-  const GameScreen({super.key, this.game});
+  const GameScreen({super.key, this.game, this.offerVersus = false});
+
+  /// Offers "2 players" (versus) before a fresh game on windows 600 dp wide and up. A container
+  /// opts in; a game being resumed or a test game never shows the choice.
+  final bool offerVersus;
 
   /// Injectable for tests (seeded rules, preloaded well).
   final BlockfallGame? game;
@@ -72,6 +77,10 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
   bool _dialogOpen = false;
   bool _sheetOpen = false;
   bool _paused = false;
+
+  /// The 1 or 2 players choice is showing over a fresh game; "2 players" swaps to the versus screen.
+  bool _choosing = false;
+  bool _versus = false;
   int _gameIndex = 0;
   final AudioService _audio = newBlockfallAudio();
   bool _warned = false;
@@ -141,9 +150,28 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
       );
       return;
     }
+    if (widget.offerVersus &&
+        widget.game == null &&
+        WindowClass.ofContext(context) != WindowClass.compact) {
+      _choosing = true;
+      rules.isPaused = true;
+      return;
+    }
     _audio.startAmbience();
     _audio.voice('go');
   }
+
+  void _chooseOnePlayer() {
+    setState(() => _choosing = false);
+    _syncPause();
+    _audio.startAmbience();
+    _audio.voice('go');
+  }
+
+  void _chooseVersus() => setState(() {
+    _choosing = false;
+    _versus = true;
+  });
 
   Map<PowerUpType, int> _savedStock() {
     final saved = _s!.profile.data;
@@ -187,7 +215,7 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
   void _syncPause() {
     final f = _flame;
     if (f == null) return;
-    f.rules.isPaused = _paused || _sheetOpen;
+    f.rules.isPaused = _paused || _sheetOpen || _choosing;
     f.touch.cancel();
     f.setSoftDrop(false);
     f.refresh();
@@ -594,6 +622,16 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
   void _onKey(GameInput i) {
     final f = _flame;
     if (f == null) return;
+    if (_choosing) {
+      // Enter or 1 starts one player, 2 opens versus (the buttons work too).
+      if (i.repeat) return;
+      if (i.action == GameAction.action || i.action == GameAction.pick1) {
+        _chooseOnePlayer();
+      } else if (i.action == GameAction.pick2) {
+        _chooseVersus();
+      }
+      return;
+    }
     final pausing = i.action == GameAction.pause || i.action == GameAction.exit;
     if (pausing) {
       if (i.repeat) return;
@@ -633,6 +671,12 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
 
   @override
   Widget build(BuildContext context) {
+    if (_versus) {
+      return BlockfallVersusScreen(
+        theme: BlockTheme.byIndex(_s!.profile.data.themeIndex),
+        onExit: () => Navigator.of(context).pop(),
+      );
+    }
     final flame = _flame;
     return PopScope(
       canPop: false,
@@ -665,7 +709,7 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
                     )
                   : GameFrame(
                       // Centered; no ad beside the well while a game is played.
-                      showAds: _paused,
+                      showAds: _paused || _choosing,
                       phoneBanner: null,
                       maxWidth: 640,
                       padding: EdgeInsets.zero,
@@ -677,6 +721,7 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
                                 _buildPlay(context, flame),
                           ),
                           if (_paused) _buildPauseOverlay(),
+                          if (_choosing) _buildModeChoice(),
                         ],
                       ),
                     ),
@@ -959,6 +1004,52 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
           onTap: () => _onPowerUp(t),
         ),
     ],
+  );
+
+  /// The 1 or 2 players choice over a fresh game on a wide window.
+  Widget _buildModeChoice() => Positioned.fill(
+    child: Container(
+      color: const Color(0xE60A1822),
+      child: Center(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          spacing: 14,
+          children: [
+            const Text(
+              'BLOCKFALL',
+              style: TextStyle(
+                fontSize: 30,
+                letterSpacing: 6,
+                fontWeight: FontWeight.w800,
+                color: Colors.white,
+              ),
+            ),
+            SizedBox(
+              width: 260,
+              height: 52,
+              child: FilledButton(
+                key: TestIds.gameModeOne,
+                autofocus: true,
+                onPressed: _chooseOnePlayer,
+                child: const Text('1 player (Enter)'),
+              ),
+            ),
+            SizedBox(
+              width: 260,
+              height: 52,
+              child: OutlinedButton(
+                key: TestIds.gameModeTwo,
+                onPressed: _chooseVersus,
+                child: const Text(
+                  '2 players: versus (2)',
+                  style: TextStyle(color: Colors.white),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    ),
   );
 
   Widget _buildPauseOverlay() => Positioned.fill(

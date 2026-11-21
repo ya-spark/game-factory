@@ -139,4 +139,67 @@ void main() {
       expect(find.byKey(KeyIds.hints), findsNothing);
     },
   );
+
+  group('choosing 1 or 2 players', () {
+    Future<void> openFresh(
+      WidgetTester tester, {
+      Size size = const Size(1200, 900),
+      bool offer = true,
+    }) async {
+      tester.view.physicalSize = size;
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.reset);
+      await tester.pumpWidget(
+        BlockfallServicesScope(
+          services: FakeBlockfallServices(),
+          child: MaterialApp(home: GameScreen(offerVersus: offer)),
+        ),
+      );
+      await tester.pump(const Duration(milliseconds: 200));
+    }
+
+    testWidgets(
+      'a fresh game on a wide window asks 1 or 2 players, the game waits',
+      (tester) async {
+        await openFresh(tester);
+        expect(find.byKey(TestIds.gameModeOne), findsOneWidget);
+        expect(find.byKey(TestIds.gameModeTwo), findsOneWidget);
+      },
+    );
+
+    testWidgets('1 player starts the game', (tester) async {
+      await openFresh(tester);
+      await tester.tap(find.byKey(TestIds.gameModeOne));
+      await tester.pump(const Duration(milliseconds: 200));
+      expect(find.byKey(TestIds.gameModeOne), findsNothing);
+      expect(find.byKey(TestIds.gameWidget), findsOneWidget);
+    });
+
+    testWidgets(
+      'Enter on the focused 1 player button starts the game, not a hard drop',
+      (tester) async {
+        await openFresh(tester);
+        await tester.sendKeyEvent(LogicalKeyboardKey.enter);
+        await tester.pump(const Duration(milliseconds: 200));
+        expect(find.byKey(TestIds.gameModeOne), findsNothing);
+      },
+    );
+
+    testWidgets('2 players opens versus', (tester) async {
+      await openFresh(tester);
+      await tester.tap(find.byKey(TestIds.gameModeTwo));
+      await tester.pump(const Duration(milliseconds: 200));
+      expect(find.byKey(TestIds.versusScreen), findsOneWidget);
+    });
+
+    testWidgets(
+      'not asked on a phone, and not when the container does not opt in',
+      (tester) async {
+        await openFresh(tester, size: const Size(390, 800));
+        expect(find.byKey(TestIds.gameModeTwo), findsNothing);
+        await openFresh(tester, offer: false);
+        expect(find.byKey(TestIds.gameModeTwo), findsNothing);
+      },
+    );
+  });
 }
