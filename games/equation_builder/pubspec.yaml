@@ -1,0 +1,18 @@
+name: game_equation_builder
+description: "EquationBuilder: a game in game-factory/games; apps and the web are containers that list it."
+publish_to: 'none'
+version: 1.0.0
+environment:
+  sdk: ^3.13.7
+
+dependencies:
+  flutter:
+    sdk: flutter
+  # Resolved by the container's dependency_overrides (git ref of game-factory). In this repo,
+  # pubspec_overrides.yaml points it at ../../game_core.
+  game_core: ^1.0.0
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^6.0.0

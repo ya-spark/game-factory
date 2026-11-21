@@ -14,6 +14,33 @@ abstract class GameReadAloud {
   Future<void> stop();
 }
 
+/// The colours a game uses for plain game UI. A container maps its own theme onto this (the games
+/// never import a theme). Null from the host: the game falls back to the Material colour scheme.
+class GamePalette {
+  const GamePalette({
+    required this.bg,
+    required this.surface,
+    required this.text,
+    required this.primary,
+    required this.onPrimary,
+    required this.accent,
+    required this.onAccent,
+    required this.border,
+    required this.success,
+    this.reduceMotion = false,
+  });
+  final Color bg;
+  final Color surface;
+  final Color text;
+  final Color primary;
+  final Color onPrimary;
+  final Color accent;
+  final Color onAccent;
+  final Color border;
+  final Color success;
+  final bool reduceMotion;
+}
+
 /// The container side of a game. Every method gets the [BuildContext] so a container can read its
 /// own scopes (services, theme) lazily.
 abstract class GameHost {
@@ -30,6 +57,12 @@ abstract class GameHost {
 
   /// A banner for [slot]; an empty box when the container shows none.
   Widget banner(BuildContext context, GameBannerSlot slot);
+
+  /// The container's colours, or null to use the Material colour scheme.
+  GamePalette? palette(BuildContext context) => null;
+
+  /// True for the younger interface level (pictures first, no timers, bigger targets).
+  bool youngerLevel(BuildContext context) => false;
 }
 
 /// The host used when a container provides none (tests, previews): nothing optional.

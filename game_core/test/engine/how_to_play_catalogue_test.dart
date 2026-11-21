@@ -14,19 +14,19 @@ void main() {
       }
       for (final id in [
         quickQuizId,
-        memoryMatchId,
-        sortBinsId,
-        seriesBuilderId,
-        wordBuilderId,
-        trueFalseId,
-        clozeFixId,
-        equationBuilderId,
-        wordGridId,
-        balloonPopId,
-        shooterId,
+        'memory_match',
+        'sort_bins',
+        'series_builder',
+        'word_builder',
+        'true_false',
+        'cloze_fix',
+        'equation_builder',
+        'word_grid',
+        'balloon_pop',
+        'shooter',
         'door_runner',
-        tugOfWarId,
-        flashReviewId,
+        'tug_of_war',
+        'flash_review',
       ]) {
         expect(HowToPlayCatalogue.forGame(id), isNotNull, reason: id);
       }

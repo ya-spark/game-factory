@@ -1,0 +1,6 @@
+# game_tug_of_war
+
+Tug of war: one of the games in `game-factory/games/`; apps and the web are containers that list it (SH1, owner 2026-11-21).
+
+- Spec: `docs/SPEC.md` (the only copy). Public API: `lib/tug_of_war.dart`.
+- A container depends on this package and on `game_core` at one pinned commit of `game-factory` (see `../door_runner/README.md` for the pubspec lines) and provides a `GameHost`.
