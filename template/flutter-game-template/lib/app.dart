@@ -6,6 +6,7 @@ import 'core/profile/child_profile.dart';
 
 import 'package:game_core/engine/engine.dart';
 import 'package:game_core/host/game_host.dart';
+import 'package:game_core/kit/keys/keys.dart';
 
 import 'ui/app_game_host.dart';
 import 'ui/app_shell.dart';
@@ -18,8 +19,12 @@ import 'ui/theme/design_scope.dart';
 import 'ui/theme/design_tokens.dart';
 
 class GameApp extends StatelessWidget {
-  const GameApp({super.key, required this.services, this.design});
+  GameApp({super.key, required this.services, this.design, GameKeyMap? keys})
+    : keys = keys ?? GameKeyMap();
   final Services services;
+
+  /// The player's keys (loaded in `main` from the device; the starting keys in tests).
+  final GameKeyMap keys;
 
   /// The app's design files (null: the plain seed-colour look). Loaded in `main` when
   /// `theme.design` is set in app.config.yaml.
@@ -35,24 +40,27 @@ class GameApp extends StatelessWidget {
       // year level (Scout, Ranger). It changes at once when either changes.
       child: GameHostScope(
         host: const AppGameHost(),
-        child: ListenableBuilder(
-          listenable: services.profile,
-          builder: (context, _) {
-            final child = services.profile.activeChild;
-            final mode = design?.app.resolveMode(
-              child?.effectiveMode == LearnMode.study
-                  ? DesignMode.study
-                  : DesignMode.game,
-            );
-            return _app(
-              cfg,
-              seed,
-              mode,
-              design?.app.levelForYear(child?.year),
-              colorThemeOverrides(child?.colorTheme ?? 'default'),
-              child?.colorTheme ?? 'default',
-            );
-          },
+        child: GameKeysScope(
+          keys: keys,
+          child: ListenableBuilder(
+            listenable: services.profile,
+            builder: (context, _) {
+              final child = services.profile.activeChild;
+              final mode = design?.app.resolveMode(
+                child?.effectiveMode == LearnMode.study
+                    ? DesignMode.study
+                    : DesignMode.game,
+              );
+              return _app(
+                cfg,
+                seed,
+                mode,
+                design?.app.levelForYear(child?.year),
+                colorThemeOverrides(child?.colorTheme ?? 'default'),
+                child?.colorTheme ?? 'default',
+              );
+            },
+          ),
         ),
       ),
     );

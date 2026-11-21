@@ -7,6 +7,9 @@ import 'core/config/products.dart';
 import 'core/services.dart';
 import 'ui/theme/design_loader.dart';
 
+import 'package:game_core/kit/keys/keys.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
@@ -20,7 +23,10 @@ Future<void> main() async {
   final design = config.designId == null
       ? null
       : await DesignBundle.load(config.designId!);
-  runApp(GameApp(services: services, design: design));
+  final keys = await loadGameKeyMap(
+    PrefsGameKeyStore(await SharedPreferences.getInstance()),
+  );
+  runApp(GameApp(services: services, design: design, keys: keys));
   // Slow plugin work (consent form, billing, notifications) after the first frame.
   services.initPlugins();
 }

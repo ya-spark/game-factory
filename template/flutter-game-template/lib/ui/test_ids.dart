@@ -114,6 +114,7 @@ abstract final class TestIds {
   static const settingsAmbience = Key('settings.ambience');
   static const settingsVoice = Key('settings.voice');
   static const settingsHand = Key('settings.hand');
+  static const settingsControls = Key('settings.controls');
   static const settingsTips = Key('settings.tips');
   static const settingsShareApp = Key('settings.shareApp');
 

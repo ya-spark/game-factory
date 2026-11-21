@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:game_core/kit/keys/keys.dart';
 
 import '../core/ads/adsense_plan.dart';
 
@@ -66,6 +67,20 @@ class SettingsScreen extends StatelessWidget {
                         value: p.data.masterVolume,
                         divisions: 20,
                         onChanged: p.setMasterVolume,
+                      ),
+                    ),
+                    ListTile(
+                      key: TestIds.settingsControls,
+                      leading: const Icon(Icons.keyboard_outlined),
+                      title: const Text('Controls'),
+                      subtitle: const Text(
+                        'Change the keys, one or two players',
+                      ),
+                      trailing: const Icon(Icons.chevron_right),
+                      onTap: () => Navigator.of(context).push(
+                        MaterialPageRoute<void>(
+                          builder: (_) => const ControlsScreen(),
+                        ),
                       ),
                     ),
                     ListTile(
