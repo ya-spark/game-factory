@@ -43,3 +43,4 @@ export 'minigames/quick_quiz.dart';
 export 'minigames/quiz_session.dart';
 export 'rewards/goal_preset.dart';
 export 'rewards/rewards.dart';
+export 'minigames/fixed_step/fixed_step.dart';

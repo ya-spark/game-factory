@@ -1,0 +1,237 @@
+import 'dart:math';
+
+import 'package:flutter/material.dart';
+import 'package:flutter/scheduler.dart';
+
+import 'package:game_core/game_core.dart';
+
+import 'rules/runner_rules.dart';
+
+/// Best-score thresholds for 1, 2 and 3 stars on the Games tab tile (docs/SPEC.md, 4.6):
+/// 1000, 2500 and 5000 units run.
+const List<int> runnerStarScores = [100, 250, 500];
+
+const String _g = 'runner';
+
+/// Runner: one tap to jump over gaps and blocks. Coin-locked in the hub (300 coins).
+class RunnerScreen extends StatelessWidget {
+  const RunnerScreen({super.key, this.onScore, this.seedFor});
+  final void Function(int score)? onScore;
+
+  /// The track seed of each round; default a random one. Injected in tests.
+  final int Function()? seedFor;
+
+  @override
+  Widget build(BuildContext context) {
+    return ArcadeFrame(
+      id: _g,
+      title: 'Runner',
+      howTo:
+          'Tap to jump. Clear the gaps and the blocks and run as far as you '
+          'can. The track gets faster. Every track is fair: a well-timed jump '
+          'always works.',
+      starScores: runnerStarScores,
+      coinsPerPoints: 25,
+      hasContinue: true,
+      onScore: onScore,
+      buildPlay: (context, run, round) => _RunnerPlay(
+        key: ValueKey('runner.round.$round'),
+        run: run,
+        seed: seedFor?.call() ?? Random().nextInt(1 << 30),
+      ),
+    );
+  }
+}
+
+class _RunnerPlay extends StatefulWidget {
+  const _RunnerPlay({super.key, required this.run, required this.seed});
+  final ArcadeRun run;
+  final int seed;
+
+  @override
+  State<_RunnerPlay> createState() => _RunnerPlayState();
+}
+
+class _RunnerPlayState extends State<_RunnerPlay>
+    with SingleTickerProviderStateMixin {
+  late final RunnerGame _game = RunnerGame(seed: widget.seed);
+  late final Ticker _ticker = createTicker(_tick);
+  final FixedStepper _stepper = FixedStepper(dt: runnerStep);
+  Duration _last = Duration.zero;
+
+  @override
+  void initState() {
+    super.initState();
+    widget.run.onContinue = _continue;
+    _ticker.start();
+  }
+
+  @override
+  void dispose() {
+    _ticker.dispose();
+    super.dispose();
+  }
+
+  void _continue() {
+    _game.grantContinue();
+    _stepper.reset();
+    _last = Duration.zero;
+    _ticker
+      ..stop()
+      ..start();
+    setState(() {});
+  }
+
+  void _tick(Duration t) {
+    final dt = (t - _last).inMicroseconds / 1e6;
+    _last = t;
+    var n = _stepper.advance(dt);
+    while (n-- > 0 && !_game.over) {
+      _game.step();
+    }
+    setState(() {});
+    if (_game.over) {
+      _ticker.stop();
+      widget.run.end(_game.score, canContinue: true);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final pal = ArcadePalette(context);
+    return Column(
+      children: [
+        ArcadeHud(
+          game: _g,
+          text: 'Score ${_game.score}   Speed ${runnerSpeed(_game.x).round()}',
+        ),
+        Expanded(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: Center(
+              child: AspectRatio(
+                aspectRatio: 100 / 60,
+                child: GestureDetector(
+                  key: MindIds.arcade(_g, 'field'),
+                  behavior: HitTestBehavior.opaque,
+                  onTapDown: (_) => _game.jump(),
+                  child: Semantics(
+                    label: 'Runner track, score ${_game.score}. Tap to jump.',
+                    child: CustomPaint(
+                      painter: _RunnerPainter(_game, pal),
+                      size: Size.infinite,
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
+        Padding(
+          padding: const EdgeInsets.all(12),
+          child: FilledButton(
+            key: MindIds.arcade(_g, 'jump'),
+            onPressed: _game.jump,
+            child: const Padding(
+              padding: EdgeInsets.symmetric(horizontal: 32, vertical: 12),
+              child: Text('Jump'),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _RunnerPainter extends CustomPainter {
+  _RunnerPainter(this.game, this.pal);
+  final RunnerGame game;
+  final ArcadePalette pal;
+
+  static const double _viewW = 100;
+  static const double _viewH = 60;
+  static const double _groundY = 44;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final sx = size.width / _viewW;
+    final sy = size.height / _viewH;
+    canvas.drawRect(Offset.zero & size, Paint()..color = pal.background);
+    final camera = game.x - 25;
+    final ground = Paint()..color = pal.line;
+    // Ground: one strip, with the gaps cut out.
+    var from = camera;
+    final to = camera + _viewW;
+    for (final h in game.track.hazards) {
+      if (h.end < camera) continue;
+      if (h.x > to) break;
+      if (h.kind == HazardKind.gap) {
+        _strip(canvas, from, h.x, sx, sy, camera, ground);
+        from = h.end;
+      }
+    }
+    _strip(canvas, from, to, sx, sy, camera, ground);
+    for (final h in game.track.hazards) {
+      if (h.end < camera) continue;
+      if (h.x > to) break;
+      if (h.kind == HazardKind.block) {
+        canvas.drawRRect(
+          RRect.fromRectAndRadius(
+            Rect.fromLTWH(
+              (h.x - camera) * sx,
+              (_groundY - h.height) * sy,
+              h.width * sx,
+              h.height * sy,
+            ),
+            const Radius.circular(2),
+          ),
+          Paint()..color = pal.danger,
+        );
+      }
+    }
+    // The runner: a rounded square (a shape, not a figure).
+    canvas.drawRRect(
+      RRect.fromRectAndRadius(
+        Rect.fromLTWH(
+          (game.x - camera - runnerWidth / 2) * sx,
+          (_groundY - game.y - runnerWidth) * sy,
+          runnerWidth * sx,
+          runnerWidth * sy,
+        ),
+        const Radius.circular(3),
+      ),
+      Paint()..color = pal.primary,
+    );
+    canvas.drawRect(
+      Offset.zero & size,
+      Paint()
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 2
+        ..color = pal.line,
+    );
+  }
+
+  void _strip(
+    Canvas canvas,
+    double a,
+    double b,
+    double sx,
+    double sy,
+    double camera,
+    Paint paint,
+  ) {
+    if (b <= a) return;
+    canvas.drawRect(
+      Rect.fromLTWH(
+        (a - camera) * sx,
+        _groundY * sy,
+        (b - a) * sx,
+        (_viewH - _groundY) * sy,
+      ),
+      paint,
+    );
+  }
+
+  @override
+  bool shouldRepaint(covariant _RunnerPainter old) => true;
+}

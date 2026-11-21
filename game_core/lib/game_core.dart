@@ -6,3 +6,4 @@ library;
 export 'engine/engine.dart';
 export 'host/game_host.dart';
 export 'kit/kit.dart';
+export 'mind/mind.dart';

@@ -6,7 +6,7 @@ library;
 import 'package:flutter/widgets.dart';
 
 /// Where a container may show an ad banner for a game: menu-like screens only, never in play.
-enum GameBannerSlot { preGame, postGame }
+enum GameBannerSlot { menu, preGame, postGame }
 
 /// Reads text aloud: a recorded clip first when there is one, speech as the fallback.
 abstract class GameReadAloud {
@@ -63,6 +63,21 @@ abstract class GameHost {
 
   /// True for the younger interface level (pictures first, no timers, bigger targets).
   bool youngerLevel(BuildContext context) => false;
+
+  // ---- hooks of the Mind hubs (calm and arcade games); safe no-ops elsewhere ----
+
+  /// A button that opens the container's leaderboards for [gameId] (a shrunk box when there is none).
+  Widget leaderboardEntry(BuildContext context, String gameId) =>
+      const SizedBox.shrink();
+
+  /// A note about achievements just earned (a shrunk box when there is none).
+  Widget achievementNote(BuildContext context) => const SizedBox.shrink();
+
+  /// Offers a rewarded "Continue": true when the player earned it (or Remove Ads makes it free).
+  Future<bool> rewardedContinue(BuildContext context) async => false;
+
+  /// Pays [n] coins into the container's balance.
+  Future<void> addCoins(BuildContext context, int n) async {}
 }
 
 /// The host used when a container provides none (tests, previews): nothing optional.

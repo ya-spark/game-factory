@@ -1,0 +1,5 @@
+# Used when working inside game-factory (a container's own dependency_overrides win when this
+# package is a dependency).
+dependency_overrides:
+  game_core:
+    path: ../../game_core
