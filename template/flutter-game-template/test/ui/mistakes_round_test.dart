@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_game_template/core/profile/child_profile.dart';
 import 'package:flutter_game_template/core/services.dart';
-import 'package:flutter_game_template/engine/engine.dart';
+import 'package:game_core/engine/engine.dart';
 import 'package:flutter_game_template/ui/app_shell.dart';
 import 'package:flutter_game_template/ui/quick_quiz_screen.dart';
 import 'package:flutter_game_template/ui/tabs/tab_data.dart';
@@ -9,6 +9,7 @@ import 'package:flutter_game_template/ui/test_ids.dart';
 import 'package:flutter_game_template/ui/theme/app_theme.dart';
 import 'package:flutter_game_template/ui/theme/design_scope.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:game_flash_review/flash_review.dart';
 
 import '../helpers/fake_services.dart';
 import 'kit/kit_test.dart' show FileDesignBundle, appIds, loadDesign;

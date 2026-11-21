@@ -4,7 +4,6 @@ import '../core/config/app_config.dart';
 import '../core/services.dart';
 import 'challenges_screen.dart';
 import 'daily_reward_screen.dart';
-import 'game_screen.dart';
 import 'more_games_screen.dart';
 import 'settings_screen.dart';
 import 'shop_screen.dart';
@@ -147,12 +146,10 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                             ],
                           ),
                           const SizedBox(height: 8),
-                          MenuButton(
-                            key: TestIds.homePlay,
-                            label: 'Play!',
-                            icon: Icons.play_circle_fill,
-                            primary: true,
-                            onPressed: () => _open(const GameScreen()),
+                          Text(
+                            'Your games will appear here.',
+                            key: TestIds.homeHub,
+                            textAlign: TextAlign.center,
                           ),
                           HomeGrid(
                             children: [

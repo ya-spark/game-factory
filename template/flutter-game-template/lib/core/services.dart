@@ -8,7 +8,9 @@ import 'speech/speech_service.dart';
 import 'speech/tts_speech_service.dart';
 import 'audio/audio_service.dart';
 import 'audio/audioplayers_audio_service.dart';
-import '../engine/engine.dart';
+
+import 'package:game_core/engine/engine.dart';
+
 import 'profile/child_profile.dart';
 import 'config/app_config.dart';
 import 'content/learning_service.dart';

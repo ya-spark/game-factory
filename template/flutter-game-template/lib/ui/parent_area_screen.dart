@@ -4,7 +4,9 @@ import '../core/content/learning_service.dart';
 import '../core/profile/child_profile.dart';
 import '../core/save/save_data.dart';
 import '../core/services.dart';
-import '../engine/engine.dart';
+
+import 'package:game_core/engine/engine.dart';
+
 import 'child_report.dart';
 import 'test_ids.dart';
 import 'year_choices.dart';

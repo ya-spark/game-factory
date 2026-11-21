@@ -1,5 +1,7 @@
-import '../../engine/content/progress.dart' show ItemResult, mistakeClearStreak;
-import '../../engine/stats/game_stats.dart';
+import 'package:game_core/engine/content/progress.dart'
+    show ItemResult, mistakeClearStreak;
+import 'package:game_core/engine/stats/game_stats.dart';
+
 import '../profile/child_profile.dart';
 import '../retention/achievements.dart';
 import '../retention/daily_challenges.dart';

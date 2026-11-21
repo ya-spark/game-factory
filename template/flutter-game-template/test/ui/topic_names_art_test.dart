@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_game_template/core/profile/child_profile.dart';
-import 'package:flutter_game_template/engine/engine.dart';
+import 'package:game_core/engine/engine.dart';
 import 'package:flutter_game_template/ui/game_registry.dart';
 import 'package:flutter_game_template/ui/kit/ds_art.dart';
 import 'package:flutter_game_template/ui/tabs/tab_data.dart';

@@ -1,6 +1,7 @@
 import 'package:flutter/services.dart' show rootBundle;
 
-import '../../engine/engine.dart';
+import 'package:game_core/engine/engine.dart';
+
 import '../clock.dart';
 import '../config/app_config.dart';
 import '../profile/child_profile.dart';

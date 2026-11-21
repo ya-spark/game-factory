@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 
-import '../../engine/engine.dart';
+import 'package:game_core/engine/engine.dart';
+
 import 'child_profile.dart';
 import '../clock.dart';
 import '../config/app_config.dart';

@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 
 import '../core/services.dart';
-import '../engine/engine.dart';
+
+import 'package:game_core/engine/engine.dart';
+
 import 'test_ids.dart';
 
 /// The how-to-play dialog (R1a): rules and tips from [HowToPlayCatalogue], scrollable at large

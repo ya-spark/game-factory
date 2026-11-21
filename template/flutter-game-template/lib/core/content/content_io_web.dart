@@ -1,7 +1,7 @@
 import 'dart:js_interop';
 import 'dart:typed_data';
 
-import '../../engine/engine.dart';
+import 'package:game_core/engine/engine.dart';
 
 /// Web build: the browser has no app documents folder, so downloaded content is kept in memory
 /// for the session only (built-in content ships in the bundle). A page reload downloads again.

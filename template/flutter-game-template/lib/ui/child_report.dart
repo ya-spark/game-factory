@@ -4,7 +4,9 @@ import 'package:flutter/material.dart';
 
 import '../core/profile/child_profile.dart';
 import '../core/services.dart';
-import '../engine/engine.dart';
+
+import 'package:game_core/engine/engine.dart';
+
 import 'quick_quiz_screen.dart';
 import 'rules_dialog.dart';
 import 'tabs/tab_data.dart';

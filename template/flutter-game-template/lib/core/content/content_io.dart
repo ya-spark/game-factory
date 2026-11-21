@@ -3,7 +3,7 @@ import 'dart:typed_data';
 
 import 'package:path_provider/path_provider.dart';
 
-import '../../engine/engine.dart';
+import 'package:game_core/engine/engine.dart';
 
 /// The content cache in the app documents directory. (The web build uses `content_io_web.dart`.)
 Future<DirectoryContentStore> openContentCache() async {

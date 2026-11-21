@@ -1,6 +1,6 @@
 import 'package:yaml/yaml.dart';
 
-import '../../engine/engine.dart';
+import 'package:game_core/engine/engine.dart';
 
 /// AdMob unit IDs for one build mode.
 class AdmobIds {

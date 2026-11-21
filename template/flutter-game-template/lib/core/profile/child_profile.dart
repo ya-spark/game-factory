@@ -1,4 +1,4 @@
-import '../../engine/engine.dart';
+import 'package:game_core/engine/engine.dart';
 
 /// Game or Study mode. A parent can lock a child to one of them.
 enum LearnMode {

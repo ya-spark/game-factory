@@ -1,6 +1,7 @@
 import 'package:shared_preferences/shared_preferences.dart';
 
-import '../../engine/engine.dart';
+import 'package:game_core/engine/engine.dart';
+
 import '../ads/ad_service.dart';
 import '../ads/admob_ad_service.dart';
 import '../config/app_config.dart';

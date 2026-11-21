@@ -3,7 +3,11 @@ import 'package:flutter/material.dart';
 import 'core/config/app_config.dart';
 import 'core/services.dart';
 import 'core/profile/child_profile.dart';
-import 'engine/engine.dart';
+
+import 'package:game_core/engine/engine.dart';
+import 'package:game_core/host/game_host.dart';
+
+import 'ui/app_game_host.dart';
 import 'ui/app_shell.dart';
 import 'ui/home_screen.dart';
 import 'ui/profile_picker_screen.dart';
@@ -29,24 +33,27 @@ class GameApp extends StatelessWidget {
       services: services,
       // The look follows the active child: Game or Study mode, and the interface level from the
       // year level (Scout, Ranger). It changes at once when either changes.
-      child: ListenableBuilder(
-        listenable: services.profile,
-        builder: (context, _) {
-          final child = services.profile.activeChild;
-          final mode = design?.app.resolveMode(
-            child?.effectiveMode == LearnMode.study
-                ? DesignMode.study
-                : DesignMode.game,
-          );
-          return _app(
-            cfg,
-            seed,
-            mode,
-            design?.app.levelForYear(child?.year),
-            colorThemeOverrides(child?.colorTheme ?? 'default'),
-            child?.colorTheme ?? 'default',
-          );
-        },
+      child: GameHostScope(
+        host: const AppGameHost(),
+        child: ListenableBuilder(
+          listenable: services.profile,
+          builder: (context, _) {
+            final child = services.profile.activeChild;
+            final mode = design?.app.resolveMode(
+              child?.effectiveMode == LearnMode.study
+                  ? DesignMode.study
+                  : DesignMode.game,
+            );
+            return _app(
+              cfg,
+              seed,
+              mode,
+              design?.app.levelForYear(child?.year),
+              colorThemeOverrides(child?.colorTheme ?? 'default'),
+              child?.colorTheme ?? 'default',
+            );
+          },
+        ),
       ),
     );
   }

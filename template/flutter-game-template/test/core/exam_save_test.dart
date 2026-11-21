@@ -1,5 +1,5 @@
 import 'package:flutter_game_template/core/save/save_data.dart';
-import 'package:flutter_game_template/engine/engine.dart';
+import 'package:game_core/engine/engine.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import '../helpers/fake_services.dart';

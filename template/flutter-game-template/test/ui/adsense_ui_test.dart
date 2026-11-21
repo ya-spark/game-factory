@@ -1,13 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_game_template/core/ads/ad_service.dart';
-import 'package:flutter_game_template/core/config/app_config.dart';
 import 'package:flutter_game_template/core/services.dart';
 import 'package:flutter_game_template/ui/settings_screen.dart';
 import 'package:flutter_game_template/ui/test_ids.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import '../helpers/fake_services.dart';
-import 'screens_test.dart' show pumpGameOver, settle;
 
 /// Counts how often Google's consent dialog was asked to open.
 class _ConsentAds extends FakeAdService {
@@ -44,18 +42,6 @@ Future<void> openSettings(
 }
 
 void main() {
-  testWidgets('ads are only built at the three placements, none during play', (
-    tester,
-  ) async {
-    final ads = FakeAdService();
-    final s = await buildFakeServices(ads: ads);
-    await pumpGameOver(tester, s);
-    await settle(tester);
-    // Play is over: only the post_game banner was ever asked for, never in play.
-    expect(ads.bannersBuilt.toSet(), {AdPlacement.postGame});
-    expect(ads.bannersBuilt.every(AdPlacement.values.contains), isTrue);
-  });
-
   testWidgets('web Settings with AdSense on shows Ad privacy choices', (
     tester,
   ) async {

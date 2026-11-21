@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 
 import '../core/services.dart';
 import '../core/speech/speech_service.dart';
-import '../engine/engine.dart';
+
+import 'package:game_core/engine/engine.dart';
+
 import 'test_ids.dart';
 
 /// Quick quiz as a registry entry: free, both modes, needs 4 open multiple-choice items.

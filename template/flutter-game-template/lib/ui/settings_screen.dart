@@ -5,7 +5,9 @@ import '../core/ads/adsense_plan.dart';
 import '../core/audio/audio_service.dart';
 import '../core/config/app_config.dart';
 import '../core/services.dart';
-import '../engine/engine.dart';
+
+import 'package:game_core/engine/engine.dart';
+
 import 'more_games_screen.dart';
 import 'parent_area_screen.dart';
 import 'parent_gate.dart';

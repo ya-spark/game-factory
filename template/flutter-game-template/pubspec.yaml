@@ -1,5 +1,5 @@
 name: flutter_game_template
-description: "Flutter + Flame game template (block puzzle sample)."
+description: "Container skeleton: services, theme, shop, settings and shell. Games come from game-factory/games."
 # The following line prevents the package from being accidentally published to
 # pub.dev using `flutter pub publish`. This is preferred for private packages.
 publish_to: 'none' # Remove this line if you wish to publish to pub.dev
@@ -33,12 +33,15 @@ dependencies:
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
   cupertino_icons: ^1.0.8
-  flame: ^1.38.2
   google_mobile_ads: ^9.2.0
   in_app_purchase: ^3.3.1
   flutter_local_notifications: ^22.3.3
   timezone: ^0.11.2
   shared_preferences: ^2.5.6
+  game_core:
+    path: ../../game_core
+  game_flash_review:
+    path: ../../games/flash_review
   yaml: ^3.1.4
   flutter_timezone: ^5.1.1
   games_services: ^5.3.0
@@ -71,6 +74,11 @@ dev_dependencies:
 # following page: https://dart.dev/tools/pub/pubspec
 
 # The following section is specific to Flutter packages.
+# One game_core for the whole app: the game packages declare a plain constraint on it.
+dependency_overrides:
+  game_core:
+    path: ../../game_core
+
 flutter:
   uses-material-design: true
   assets:

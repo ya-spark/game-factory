@@ -1,7 +1,8 @@
 import 'package:flutter/widgets.dart';
 
 import '../../core/services.dart';
-import '../../engine/engine.dart';
+
+import 'package:game_core/engine/engine.dart';
 
 typedef OpenItemsLoader = Future<List<PoolItem>> Function(String childId);
 typedef PacksLoader = Future<List<LoadedPack>> Function();

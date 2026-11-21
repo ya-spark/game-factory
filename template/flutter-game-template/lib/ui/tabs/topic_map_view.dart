@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
-import '../../engine/engine.dart';
+import 'package:game_core/engine/engine.dart';
+
 import '../kit/ds_buttons.dart';
 import '../kit/ds_chips.dart';
 import '../test_ids.dart';

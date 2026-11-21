@@ -70,7 +70,7 @@ void main() {
     await tester.tap(find.byKey(TestIds.pickerSave));
     await tester.pump();
     await tester.pump();
-    expect(find.byKey(TestIds.homePlay), findsOneWidget);
+    expect(find.byKey(TestIds.homeHub), findsOneWidget);
     expect(s.profile.children.single.year, 3);
   });
 
@@ -82,7 +82,7 @@ void main() {
       await s.profile.addChild('Mia', year: 3);
       await pump(tester, s);
       // picker, not home
-      expect(find.byKey(TestIds.homePlay), findsNothing);
+      expect(find.byKey(TestIds.homeHub), findsNothing);
       expect(find.byKey(TestIds.pickerChild('p1')), findsOneWidget);
       expect(find.byKey(TestIds.parentArea), findsNothing);
 
@@ -150,6 +150,6 @@ void main() {
     await tester.tap(find.byKey(TestIds.pickerChild('p1')));
     await tester.pump();
     await tester.pump();
-    expect(find.byKey(TestIds.homePlay), findsOneWidget);
+    expect(find.byKey(TestIds.homeHub), findsOneWidget);
   });
 }

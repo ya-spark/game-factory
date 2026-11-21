@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 
 import '../core/profile/profile_store.dart';
-import '../engine/engine.dart';
+
+import 'package:game_core/engine/engine.dart';
+
 import 'test_ids.dart';
 
 /// The hook a hub-native game screen uses to report a finished run (M2): the score and what only

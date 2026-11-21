@@ -1,6 +1,7 @@
 import 'package:flutter/widgets.dart';
 
-import '../../engine/engine.dart';
+import 'package:game_core/engine/engine.dart';
+
 import '../profile/profile_store.dart';
 import 'notification_service.dart';
 

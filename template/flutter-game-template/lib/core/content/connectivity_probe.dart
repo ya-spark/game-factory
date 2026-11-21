@@ -1,6 +1,6 @@
 import 'package:connectivity_plus/connectivity_plus.dart';
 
-import '../../engine/engine.dart';
+import 'package:game_core/engine/engine.dart';
 
 /// Which kind of connection the device has now. The only file that imports `connectivity_plus`.
 abstract interface class ConnectivityProbe {

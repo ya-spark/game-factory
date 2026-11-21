@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 
 import '../core/profile/child_profile.dart';
 import '../core/services.dart';
-import '../engine/engine.dart';
+
+import 'package:game_core/engine/engine.dart';
+
 import 'game_registry.dart';
 import 'kit/ds_bars.dart';
 import 'mode_toggle.dart';

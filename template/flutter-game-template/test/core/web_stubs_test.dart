@@ -5,7 +5,7 @@ import 'package:flutter_game_template/core/ads/ad_service.dart';
 import 'package:flutter_game_template/core/config/app_config.dart';
 import 'package:flutter_game_template/core/config/products.dart';
 import 'package:flutter_game_template/core/purchase/purchase_service.dart';
-import 'package:flutter_game_template/engine/engine.dart';
+import 'package:game_core/engine/engine.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {

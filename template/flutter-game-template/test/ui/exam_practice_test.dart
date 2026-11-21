@@ -3,7 +3,7 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter_game_template/core/profile/child_profile.dart';
 import 'package:flutter_game_template/core/services.dart';
-import 'package:flutter_game_template/engine/engine.dart';
+import 'package:game_core/engine/engine.dart';
 import 'package:flutter_game_template/ui/app_shell.dart';
 import 'package:flutter_game_template/ui/exam_practice.dart';
 import 'package:flutter_game_template/ui/parent_area_screen.dart';

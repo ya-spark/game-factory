@@ -48,6 +48,7 @@ abstract final class TestIds {
 
   // Home
   static const homePlay = Key('home.play');
+  static const homeHub = Key('home.hub');
   static const homeDailyReward = Key('home.dailyReward');
   static const homeChallenges = Key('home.challenges');
   static const homeShop = Key('home.shop');

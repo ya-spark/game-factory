@@ -9,6 +9,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 import new_game  # noqa: E402
 
+REF = "0123456789abcdef0123456789abcdef01234567"
 ARGS = dict(game_id="my_game", name="My Game", package="com.yaspark.mygame", color="#112233")
 
 
@@ -112,7 +113,6 @@ class GenerateTest(unittest.TestCase):
     def test_features_and_docs_are_carried(self):
         out = self.tmp / "game"
         self.gen(out)
-        self.assertTrue((out / "lib/ui/game_over_panel.dart").is_file())
         self.assertTrue((out / "lib/core/purchase/parent_gate_guard.dart").is_file())
         self.assertIn("coins_4000", (out / "products.yaml").read_text())
         self.assertIn("# My Game: game spec\n", (out / "docs/SPEC.md").read_text())
@@ -126,7 +126,7 @@ class GenerateTest(unittest.TestCase):
         self.gen(out)
         for f in out.rglob("*"):
             self.assertNotIn("flutter_game_template", f.name)
-            if f.is_file() and f.name != "engine_lock.py":
+            if f.is_file():
                 try:
                     self.assertNotIn("flutter_game_template", f.read_text(encoding="utf-8"), f)
                 except UnicodeDecodeError:
@@ -199,15 +199,11 @@ class ProfileTest(unittest.TestCase):
 
     def test_defaults_are_puzzle_adult_ci_off(self):
         out = self.gen()
-        self.assertTrue((out / "lib/game/rules").is_dir())
-        self.assertTrue((out / "lib/ui/game_screen.dart").is_file())
         self.assertIn("audience: adult", (out / "app.config.yaml").read_text())
         self.assertIn(new_game.CI_GUARD, (out / ".github/workflows/check-code.yml").read_text())
 
-    def test_craft_child_strips_puzzle_and_sets_config(self):
+    def test_craft_child_sets_config(self):
         out = self.gen(profile="craft", audience="child")
-        for rel in new_game.PUZZLE_ONLY_PATHS:
-            self.assertFalse((out / rel).exists(), rel)
         self.assertTrue((out / "lib/game/tips.dart").is_file())
         self.assertTrue((out / "lib/ui/share_card.dart").is_file())
         home = (out / "lib/ui/home_screen.dart").read_text()
@@ -409,23 +405,37 @@ class ProfileTest(unittest.TestCase):
                           do_register=True, registry=self.registry, repo="someone/custom-name")
         self.assertIn("    repo: someone/custom-name\n", self.registry.read_text())
 
-    def test_engine_lock_is_written_and_checks(self):
-        out = self.gen(profile="craft")
-        self.assertTrue((out / "engine.lock").is_file())
-        spec = new_game.importlib.util.spec_from_file_location("el", out / "scripts/engine_lock.py")
-        el = new_game.importlib.util.module_from_spec(spec)
-        spec.loader.exec_module(el)
-        self.assertEqual(el.check(out), 0)
-        (out / "lib/engine/engine.dart").write_text("// edited\n")
-        with contextlib.redirect_stderr(io.StringIO()):
-            self.assertEqual(el.check(out), 1)
+    def test_no_engine_copy_and_games_are_pinned(self):
+        out = self.gen(profile="craft", ref=REF)
+        for rel in ("lib/engine", "engine.lock", "scripts/engine_lock.py", "tool/content_cli.dart"):
+            self.assertFalse((out / rel).exists(), rel)
+        pub = (out / "pubspec.yaml").read_text()
+        self.assertNotIn("../../", pub)
+        self.assertIn(f"ref: {REF}", pub)
+        self.assertIn("game_flash_review:", pub)
+        self.assertEqual(pub.count("dependency_overrides:\n  game_core:\n    git:"), 1)
+        reg = (out / "lib/ui/game_registry.dart").read_text()
+        self.assertIn("package:game_flash_review/flash_review.dart", reg)
+        self.assertIn("RegistryEntry(flashReviewGame)", reg)
 
-    def test_engine_hash_is_package_independent(self):
-        a = self.gen("a")
-        b = self.gen("b", over=dict(game_id="other_game", package="com.yaspark.other"))
-        self.assertEqual((a / "engine.lock").read_text(), (b / "engine.lock").read_text())
-        self.assertEqual((a / "engine.lock").read_text(),
-                         (new_game.TEMPLATE_DIR / "engine.lock").read_text())
+    def test_games_flag_lists_each_game(self):
+        out = self.gen(games="true_false,door_runner", ref=REF)
+        pub = (out / "pubspec.yaml").read_text()
+        for g in ("true_false", "door_runner", "flash_review"):
+            self.assertIn(f"  game_{g}:\n    git:", pub)
+            self.assertIn(f"      path: games/{g}\n      ref: {REF}\n", pub)
+        reg = (out / "lib/ui/game_registry.dart").read_text()
+        self.assertIn("RegistryEntry(trueFalseGame)", reg)
+        self.assertIn("RegistryEntry(doorRunnerGame)", reg)
+        self.assertEqual(reg.count("RegistryEntry(quickQuizGame)"), 1)
+
+    def test_bad_games_refused(self):
+        with self.assertRaises(new_game.GenError):
+            new_game.parse_games("not_a_game")
+        with self.assertRaises(new_game.GenError):  # arcade game: needs its own adapter
+            new_game.parse_games("wingy")
+        with self.assertRaises(new_game.GenError):
+            self.gen(games="true_false", ref="abc")
 
 
 if __name__ == "__main__":

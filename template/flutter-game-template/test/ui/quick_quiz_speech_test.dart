@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_game_template/core/speech/speech_service.dart';
-import 'package:flutter_game_template/engine/engine.dart';
+import 'package:game_core/engine/engine.dart';
 import 'package:flutter_game_template/ui/quick_quiz_screen.dart';
 import 'package:flutter_game_template/ui/test_ids.dart';
 import 'package:flutter_test/flutter_test.dart';

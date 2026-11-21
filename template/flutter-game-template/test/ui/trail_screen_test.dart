@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_game_template/core/services.dart';
-import 'package:flutter_game_template/engine/engine.dart';
+import 'package:game_core/engine/engine.dart';
 import 'package:flutter_game_template/ui/test_ids.dart';
 import 'package:flutter_game_template/ui/theme/app_theme.dart';
 import 'package:flutter_game_template/ui/theme/design_scope.dart';

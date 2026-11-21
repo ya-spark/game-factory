@@ -5,7 +5,7 @@ import 'package:flutter_game_template/ui/tabs/tab_data.dart';
 import 'package:flutter_game_template/ui/theme/app_theme.dart';
 import 'package:flutter_game_template/ui/theme/design_scope.dart';
 import 'package:flutter_game_template/core/services.dart';
-import 'package:flutter_game_template/engine/engine.dart';
+import 'package:game_core/engine/engine.dart';
 import 'package:flutter_game_template/ui/stats_screen.dart';
 import 'package:flutter_game_template/ui/test_ids.dart';
 import 'package:flutter_test/flutter_test.dart';

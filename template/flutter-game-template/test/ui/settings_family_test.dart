@@ -3,7 +3,7 @@ import 'package:flutter_game_template/app.dart';
 import 'package:flutter_game_template/core/config/app_config.dart';
 import 'package:flutter_game_template/core/links/external_link_service.dart';
 import 'package:flutter_game_template/core/services.dart';
-import 'package:flutter_game_template/engine/engine.dart';
+import 'package:game_core/engine/engine.dart';
 import 'package:flutter_game_template/ui/test_ids.dart';
 import 'package:flutter_test/flutter_test.dart';
 

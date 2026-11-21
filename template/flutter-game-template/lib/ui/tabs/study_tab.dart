@@ -4,14 +4,18 @@ import 'package:flutter/material.dart';
 
 import '../../core/profile/child_profile.dart';
 import '../../core/services.dart';
-import '../../engine/engine.dart';
+
+import 'package:game_core/engine/engine.dart';
+
 import '../exam_practice.dart';
 import '../rules_dialog.dart';
 import '../kit/ds_bars.dart';
 import '../kit/ds_cards.dart';
 import '../kit/ds_buttons.dart';
 import '../kit/ds_chips.dart';
-import '../minigames/flash_review_screen.dart';
+
+import 'package:game_flash_review/flash_review.dart';
+
 import '../mistakes_round.dart';
 import '../quick_quiz_screen.dart';
 import '../test_ids.dart';

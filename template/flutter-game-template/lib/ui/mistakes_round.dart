@@ -1,9 +1,13 @@
 import 'package:flutter/material.dart';
 
 import '../core/services.dart';
-import '../engine/engine.dart';
+
+import 'package:game_core/engine/engine.dart';
+
 import 'kit/ds_cards.dart';
-import 'minigames/flash_review_screen.dart';
+
+import 'package:game_flash_review/flash_review.dart';
+
 import 'quick_quiz_screen.dart';
 import 'rules_dialog.dart';
 import 'test_ids.dart';

@@ -97,7 +97,7 @@ void _expectIconRow(WidgetTester tester, Services s, Size size) {
   final others = [
     tester.getRect(find.textContaining(s.config.displayName)),
     for (final k in [
-      TestIds.homePlay,
+      TestIds.homeHub,
       TestIds.homeCoins,
       TestIds.homeBestScore,
       TestIds.homeDailyReward,
@@ -169,7 +169,7 @@ void main() {
 
     await tester.tap(find.byKey(TestIds.moreGamesBack));
     await tester.pumpAndSettle();
-    expect(find.byKey(TestIds.homePlay), findsOneWidget);
+    expect(find.byKey(TestIds.homeHub), findsOneWidget);
   });
 
   testWidgets('Cancelling the parent gate opens nothing', (tester) async {

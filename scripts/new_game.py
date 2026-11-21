@@ -1,11 +1,13 @@
 #!/usr/bin/env python3
-"""Generate a new game project from template/flutter-game-template.
+"""Generate a new container app from template/flutter-game-template (the shell: services, theme,
+shop, settings, CI, store files). Games are not copied in: they are packages in games/<id>/ that
+the app pins by git (--games), and the engine is game_core.
 
 Usage:
   python3 scripts/new_game.py --id my_game --name "My Game" \
       --package com.yaspark.mygame --seed-color "#RRGGBB" --out <dir> [--register] \
       [--profile puzzle|craft|mind] [--audience child|teen|adult] [--ci on|off] [--repo owner/name] \
-      [--design <design app_id>]
+      [--design <design app_id>] [--games game_a,game_b] [--ref <game-factory commit>]
 
 Python 3 standard library only. Never writes secrets: admob.release and play_games values
 stay PLACEHOLDER_* (they are only filled in later by the release config / CI secrets).
@@ -18,6 +20,7 @@ import importlib.util
 import json
 import re
 import shutil
+import subprocess
 import sys
 from pathlib import Path
 
@@ -172,7 +175,7 @@ def rewrite_dart_package(out: Path, game_id: str) -> None:
     _sub_file(
         out / "pubspec.yaml",
         r'^description:.*$',
-        f'description: "{game_id} (generated from the game-factory Flutter + Flame template)."',
+        f'description: "{game_id} (generated from the game-factory container template)."',
         1,
         re.M,
     )
@@ -240,29 +243,6 @@ PROFILES = ("puzzle", "craft", "mind")
 AUDIENCES = ("child", "teen", "adult")
 REPO_RE = re.compile(r"^[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+$")
 
-# Block Puzzle files removed for the craft and mind profiles (no puzzle game in those apps).
-# lib/game/tips.dart and lib/ui/share_card.dart stay: tip_service and the challenges screen use them.
-PUZZLE_ONLY_PATHS = (
-    "lib/game/flame",
-    "lib/game/rules",
-    "lib/game/layout.dart",
-    "lib/ui/game_screen.dart",
-    "lib/ui/game_over_panel.dart",
-    "test/game",
-    "test/helpers/puzzle_bot.dart",
-    "test/ui/game_over_centre_test.dart",
-    "test/ui/game_over_panel_test.dart",
-    "test/ui/screens_test.dart",
-    "test/ui/share_tips_ui_test.dart",
-    "integration_test/block_puzzle_bot_test.dart",
-)
-PUZZLE_ONLY_FILES = (
-    "lib/ui/game_over_panel.dart",
-    "lib/game/flame/special_overlay.dart",
-)
-PUZZLE_ONLY_TEST_IDS = (
-    "game.over.panel", "game.over.view", "game.over.share", "game.over.revive", "game.rush",
-)
 CI_GUARD = "${{ vars.CI_ENABLED == 'true' }}"
 
 # What every generated game must carry from the template's features.
@@ -274,15 +254,11 @@ REQUIRED_FILES = (
     "lib/core/purchase/parent_gate_guard.dart",
     "lib/ui/share_card.dart",
     "lib/ui/tip_dialog.dart",
-    "lib/ui/game_over_panel.dart",
-    "lib/game/flame/special_overlay.dart",
     "lib/ui/parent_gate.dart",
     "lib/ui/shop_screen.dart",
     "assets/ambience/night.mp3",
 )
 REQUIRED_TEST_IDS = (
-    "game.over.panel", "game.over.view", "game.over.share", "game.over.revive",
-    "game.rush",
     "gate.dialog", "gate.answer", "gate.submit", "gate.cancel",
     "settings.volume", "settings.ambience", "settings.voice", "settings.hand",
     "settings.tips", "settings.shareApp", "tip.home", "tip.close", "tip.dontShow",
@@ -292,17 +268,9 @@ REQUIRED_PRODUCTS = ("remove_ads_all", "coins_500", "coins_1500", "coins_4000")
 
 def check_features(out: Path, profile: str = "puzzle") -> None:
     """Fails (generator bug) when the copy misses a template feature."""
-    puzzle = profile == "puzzle"
-    files = [f for f in REQUIRED_FILES if puzzle or f not in PUZZLE_ONLY_FILES]
-    missing = [f for f in files if not (out / f).is_file()]
+    missing = [f for f in REQUIRED_FILES if not (out / f).is_file()]
     ids = (out / "lib" / "ui" / "test_ids.dart").read_text(encoding="utf-8")
-    test_ids = [t for t in REQUIRED_TEST_IDS if puzzle or t not in PUZZLE_ONLY_TEST_IDS]
-    missing += [f"test id {t}" for t in test_ids if f"'{t}'" not in ids]
-    if not puzzle:
-        missing += [f"{p} (must be removed)" for p in PUZZLE_ONLY_PATHS if (out / p).exists()]
-        home = (out / "lib/ui/home_screen.dart").read_text(encoding="utf-8")
-        if "game_screen.dart" in home:
-            missing.append("home_screen.dart still imports game_screen.dart")
+    missing += [f"test id {t}" for t in REQUIRED_TEST_IDS if f"'{t}'" not in ids]
     products = (out / "products.yaml").read_text(encoding="utf-8")
     missing += [f"product {p}" for p in REQUIRED_PRODUCTS if f"id: {p}\n" not in products]
     cfg = (out / "app.config.yaml").read_text(encoding="utf-8")
@@ -320,47 +288,6 @@ def check_features(out: Path, profile: str = "puzzle") -> None:
         missing.append("shared release workflow AD_ID report step")
     if missing:
         raise GenError(f"generator bug: template feature missing in the copy: {missing}")
-
-
-def strip_puzzle(out: Path) -> None:
-    """Removes the Block Puzzle game and gives Home a hub placeholder (craft, mind)."""
-    for rel in PUZZLE_ONLY_PATHS:
-        path = out / rel
-        if path.is_dir():
-            shutil.rmtree(path)
-        elif path.is_file():
-            path.unlink()
-        else:
-            raise GenError(f"generator bug: {rel} missing in template copy")
-    home = out / "lib" / "ui" / "home_screen.dart"
-    _sub_file(home, r"^import 'game_screen\.dart';\n", "", 1, re.M)
-    _sub_file(
-        home,
-        r"MenuButton\(\s*key: TestIds\.homePlay,.*?onPressed: \(\) => _open\(const GameScreen\(\)\),\s*\),",
-        "Text(\n"
-        "                            'Your games will appear here.',\n"
-        "                            key: TestIds.homeHub,\n"
-        "                            textAlign: TextAlign.center,\n"
-        "                          ),",
-        1,
-        re.S,
-    )
-    # Tests that wait for Home use the hub marker instead of the Play button.
-    for rel in ("test/ui/more_games_test.dart", "test/ui/parent_area_test.dart"):
-        f = out / rel
-        f.write_text(
-            f.read_text(encoding="utf-8").replace("TestIds.homePlay", "TestIds.homeHub"),
-            encoding="utf-8",
-        )
-    ids = out / "lib" / "ui" / "test_ids.dart"
-    text = ids.read_text(encoding="utf-8")
-    anchor = "  static const homePlay = Key('home.play');\n"
-    if anchor not in text:
-        raise GenError("generator bug: homePlay test id not found")
-    ids.write_text(
-        text.replace(anchor, anchor + "  static const homeHub = Key('home.hub');\n", 1),
-        encoding="utf-8",
-    )
 
 
 def _set_key(path: Path, section: str | None, key: str, value: str) -> None:
@@ -451,23 +378,10 @@ def apply_ci_guard(out: Path, ci: str) -> None:
     wf.write_text(text, encoding="utf-8")
 
 
-def write_engine_lock(out: Path) -> None:
-    """Writes engine.lock from the copy's own engine files (see scripts/engine_lock.py)."""
-    spec = importlib.util.spec_from_file_location(
-        "engine_lock", out / "scripts" / "engine_lock.py"
-    )
-    mod = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(mod)
-    mod.write_lock(out)
-
-
 def leftover_template_refs(out: Path) -> list[str]:
     hits = []
     for f in out.rglob("*"):
         rel = f.relative_to(out)
-        # engine_lock.py names the template package on purpose: it normalises imports with it.
-        if rel.as_posix() == "scripts/engine_lock.py":
-            continue
         if f.is_file() and ".git" not in rel.parts:
             try:
                 if TEMPLATE_PKG in f.read_text(encoding="utf-8"):
@@ -582,6 +496,81 @@ def apply_design(out: Path, template: Path, design_id: str) -> None:
     _sub_file(out / "app.config.yaml", r"^  # design:.*$", f"  design: {design_id}", 1, re.M)
 
 
+GAMES_DIR = REPO_ROOT / "games"
+FACTORY_URL = "https://github.com/ya-spark/game-factory.git"
+# The shell's Study mode and mistakes round use Flash review, so every container lists it.
+ALWAYS_GAMES = ("flash_review",)
+SHA_RE = re.compile(r"^[0-9a-f]{40}$")
+
+
+def camel(game_id: str) -> str:
+    head, *rest = game_id.split("_")
+    return head + "".join(w.capitalize() for w in rest)
+
+
+def game_entry_name(game_id: str, games_dir: Path = GAMES_DIR) -> str | None:
+    """The `<id>Game` MiniGame a quiz game package exports, or None when it has none (an arcade game)."""
+    name = f"{camel(game_id)}Game"
+    for f in (games_dir / game_id / "lib").rglob("*.dart"):
+        if re.search(rf"^(?:final|const)\s+[\w<>]*\s*{name}\b|^MiniGame\s+{name}\b", f.read_text(encoding="utf-8"), re.M):
+            return name
+    return None
+
+
+def parse_games(value: str | None, games_dir: Path = GAMES_DIR) -> list[str]:
+    """Game ids for --games: each must be a package in games/ that a container can list."""
+    ids = [g for g in (value or "").split(",") if g]
+    for g in ids:
+        if not ID_RE.match(g) or not (games_dir / g / "pubspec.yaml").is_file():
+            known = sorted(d.name for d in games_dir.iterdir() if (d / "pubspec.yaml").is_file()) if games_dir.is_dir() else []
+            raise GenError(f"unknown game {g!r} in --games: one of {', '.join(known)}")
+        if game_entry_name(g, games_dir) is None:
+            raise GenError(
+                f"game {g!r} is an arcade game with its own host interface: it needs an adapter in the "
+                "container (see games/{g}/README.md), so --games cannot list it yet".replace("{g}", g)
+            )
+    return list(dict.fromkeys([*ALWAYS_GAMES, *ids]))
+
+
+def factory_head() -> str:
+    try:
+        return subprocess.run(
+            ["git", "-C", str(REPO_ROOT), "rev-parse", "HEAD"], check=True, capture_output=True, text=True
+        ).stdout.strip()
+    except (OSError, subprocess.CalledProcessError) as e:
+        raise GenError(f"cannot read the game-factory commit; pass --ref <sha>: {e}")
+
+
+def _git_dep(name: str, path: str, ref: str) -> str:
+    return f"  {name}:\n    git:\n      url: {FACTORY_URL}\n      path: {path}\n      ref: {ref}\n"
+
+
+def apply_games(out: Path, games: list[str], ref: str, games_dir: Path = GAMES_DIR) -> None:
+    """Pins game_core and each game package by git at `ref` (one game-factory commit), and lists
+    every game in the registry. The template itself uses path dependencies inside this repo."""
+    if not SHA_RE.match(ref):
+        raise GenError(f"invalid --ref {ref!r}: a full 40-character commit sha of game-factory main")
+    pub = out / "pubspec.yaml"
+    text = pub.read_text(encoding="utf-8")
+    old_deps = "  game_core:\n    path: ../../game_core\n  game_flash_review:\n    path: ../../games/flash_review\n"
+    old_over = "dependency_overrides:\n  game_core:\n    path: ../../game_core\n"
+    if old_deps not in text or old_over not in text:
+        raise GenError("generator bug: game_core path dependencies not found in pubspec.yaml")
+    deps = _git_dep("game_core", "game_core", ref) + "".join(
+        _git_dep(f"game_{g}", f"games/{g}", ref) for g in sorted(games)
+    )
+    text = text.replace(old_deps, deps, 1)
+    text = text.replace(old_over, "dependency_overrides:\n" + _git_dep("game_core", "game_core", ref), 1)
+    pub.write_text(text, encoding="utf-8")
+    reg = out / "lib" / "ui" / "game_registry.dart"
+    rtext = reg.read_text(encoding="utf-8")
+    imports = "".join(f"import 'package:game_{g}/{g}.dart';\n" for g in sorted(games))
+    entries = "".join(f"  RegistryEntry({game_entry_name(g, games_dir)}),\n" for g in games if g != "flash_review")
+    rtext = rtext.replace("import 'package:game_flash_review/flash_review.dart';\n", imports, 1)
+    rtext = rtext.replace("  RegistryEntry(flashReviewGame),\n", "  RegistryEntry(flashReviewGame),\n" + entries, 1)
+    reg.write_text(rtext, encoding="utf-8")
+
+
 def generate(
     game_id: str,
     name: str,
@@ -596,6 +585,9 @@ def generate(
     ci: str = "off",
     repo: str | None = None,
     design: str | None = None,
+    games: str | None = None,
+    ref: str | None = None,
+    games_dir: Path = GAMES_DIR,
 ) -> Path:
     if profile not in PROFILES:
         raise GenError(f"invalid --profile {profile!r}: one of {', '.join(PROFILES)}")
@@ -610,6 +602,9 @@ def generate(
         raise GenError(f"invalid --ci {ci!r}: on or off")
     if repo is not None and not REPO_RE.match(repo):
         raise GenError(f"invalid --repo {repo!r}: expected owner/name")
+    game_ids = parse_games(games, games_dir)
+    if ref is None:
+        ref = factory_head()
     validate_id(game_id)
     validate_name(name)
     validate_package(package)
@@ -631,8 +626,7 @@ def generate(
     rewrite_web(out)
     move_workflows(out)
     rewrite_docs(out, name)
-    if profile != "puzzle":
-        strip_puzzle(out)
+    apply_games(out, game_ids, ref, games_dir)
     apply_profile_config(out, profile, audience)
     if profile == "craft":
         apply_content_packs(out)
@@ -649,7 +643,6 @@ def generate(
         drop_design_tests(out)
     apply_ci_guard(out, ci)
     check_features(out, profile)
-    write_engine_lock(out)
     left = leftover_template_refs(out)
     if left:
         raise GenError(f"leftover '{TEMPLATE_PKG}' references in: {', '.join(sorted(set(left)))}")
@@ -667,20 +660,23 @@ def main(argv: list[str] | None = None) -> int:
     p.add_argument("--out", required=True, type=Path, help="output dir (must be empty/new)")
     p.add_argument("--register", action="store_true", help="append to registry/apps.yaml")
     p.add_argument("--profile", default="puzzle", choices=PROFILES,
-                   help="puzzle (default: the Block Puzzle game), craft or mind (no puzzle game)")
+                   help="puzzle (default: plain shell, no design), craft or mind (game-based designs)")
     p.add_argument("--audience", choices=AUDIENCES,
                    help="compliance profile; craft: child or teen, mind: adult")
     p.add_argument("--ci", default="off", choices=("on", "off"),
                    help="off (default): check-code.yml runs only when repo variable CI_ENABLED is 'true'")
     p.add_argument("--design", help="design app_id (craft_lowteen, mind_1, ...); default: the game id "
                    "when it names one of the five apps (craft and mind profiles)")
+    p.add_argument("--games", help="comma-separated ids from games/ to list in the app (git-pinned, "
+                   "with Flash review always); needs a pushed game-factory commit")
+    p.add_argument("--ref", help="game-factory commit sha to pin (default: this checkout's HEAD)")
     p.add_argument("--repo", help="owner/name for the registry (default ya-spark/game-<kebab-id>)")
     args = p.parse_args(argv)
     try:
         out = generate(
             args.game_id, args.name, args.package, args.seed_color, args.out, args.register,
             profile=args.profile, audience=args.audience, ci=args.ci, repo=args.repo,
-            design=args.design,
+            design=args.design, games=args.games, ref=args.ref,
         )
     except GenError as e:
         print(f"error: {e}", file=sys.stderr)

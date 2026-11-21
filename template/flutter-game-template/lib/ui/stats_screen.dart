@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 
 import '../core/services.dart';
-import '../engine/engine.dart';
+
+import 'package:game_core/engine/engine.dart';
+
 import 'kit/ds_bars.dart';
 import 'test_ids.dart';
 import 'theme/app_theme.dart';
