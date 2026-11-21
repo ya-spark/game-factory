@@ -568,6 +568,21 @@ def apply_games(out: Path, games: list[str], ref: str, games_dir: Path = GAMES_D
     reg.write_text(rtext, encoding="utf-8")
 
 
+# Tests written for one app's design (they load its tokens): a generated app keeps them only when
+# it ships that design.
+DESIGN_SPECIFIC_TESTS = {
+    "test/ui/exam_practice_test.dart": "craft_highteen",
+    "test/ui/game_stats_ui_test.dart": "mind_1",
+}
+
+
+def drop_other_design_tests(out: Path, design_id: str) -> None:
+    for rel, needs in DESIGN_SPECIFIC_TESTS.items():
+        path = out / rel
+        if needs != design_id and path.is_file():
+            path.unlink()
+
+
 def generate(
     game_id: str,
     name: str,
@@ -636,6 +651,7 @@ def generate(
             design = DEFAULT_DESIGN[(profile, audience if profile == "craft" else "adult")]
     if design is not None:
         apply_design(out, template, design)
+        drop_other_design_tests(out, design)
     else:
         drop_design_tests(out)
     apply_ci_guard(out, ci)

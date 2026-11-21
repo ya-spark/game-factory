@@ -42,7 +42,9 @@ python3 scripts/new_game.py --id my_game --name "My Game" \
   profiles); when the id is not one of those (a sample or a new app) the profile and audience pick the
   default look (craft child `craft_lowteen`, craft teen `craft_highteen`, mind `mind_1`). The plain puzzle
   profile has none and drops the three design tests (`design_theme_test`, `kit_test`, `themed_screens_test`).
-  Generated games never contain `design/`.
+  Generated games never contain `design/`. Tests written for another app's design (`exam_practice_test` needs
+  `craft_highteen`, `game_stats_ui_test` needs `mind_1`) are dropped unless the app ships that design
+  (`DESIGN_SPECIFIC_TESTS` in `new_game.py`).
 - Flags: `--profile puzzle|craft|mind` (default `puzzle` = the plain shell, no design). `craft` and `mind`
   pick a design (Home shows the `home.hub` placeholder until games are listed). `--audience child|teen|adult` (craft: child or teen, mind:
   adult; default child for craft, adult otherwise) sets `audience:`, `ads.child_directed`,

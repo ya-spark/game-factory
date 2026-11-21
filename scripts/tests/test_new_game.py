@@ -429,6 +429,17 @@ class ProfileTest(unittest.TestCase):
         self.assertIn("RegistryEntry(doorRunnerGame)", reg)
         self.assertEqual(reg.count("RegistryEntry(quickQuizGame)"), 1)
 
+    def test_tests_for_another_apps_design_are_dropped(self):
+        low = self.gen("low", profile="craft", audience="child", ref=REF)
+        for rel in new_game.DESIGN_SPECIFIC_TESTS:
+            self.assertFalse((low / rel).exists(), rel)
+        high = self.gen("high", profile="craft", audience="teen", ref=REF)  # craft_highteen
+        self.assertTrue((high / "test/ui/exam_practice_test.dart").is_file())
+        self.assertFalse((high / "test/ui/game_stats_ui_test.dart").exists())
+        mind = self.gen("mind", profile="mind", audience="adult", ref=REF)  # mind_1
+        self.assertTrue((mind / "test/ui/game_stats_ui_test.dart").is_file())
+        self.assertFalse((mind / "test/ui/exam_practice_test.dart").exists())
+
     def test_bad_games_refused(self):
         with self.assertRaises(new_game.GenError):
             new_game.parse_games("not_a_game")
