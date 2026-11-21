@@ -49,7 +49,6 @@ export 'minigames/quick_quiz.dart';
 export 'minigames/quiz_session.dart';
 export 'minigames/series_builder/rules/series_builder_rules.dart';
 export 'minigames/shooter/rules/shooter_rules.dart';
-export 'minigames/snake_series/rules/snake_series_rules.dart';
 export 'minigames/sort_bins/rules/sort_bins_rules.dart';
 export 'minigames/true_false/rules/true_false_rules.dart';
 export 'minigames/tug_of_war/rules/family_tug_rules.dart';

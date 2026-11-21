@@ -141,18 +141,6 @@ abstract final class HowToPlayCatalogue {
       ],
     ),
     HowToPlay(
-      'snake_series',
-      'Snake',
-      [
-        'Steer the snake with the arrow buttons or by swiping, and eat the items in the right order.',
-        'Eating a wrong item counts against you. The walls wrap around, and bumping into yourself only makes you shorter.',
-      ],
-      [
-        'Work out the whole order before you start to move.',
-        'There is no need to hurry. Younger levels never run out of tries.',
-      ],
-    ),
-    HowToPlay(
       'balloon_pop',
       'Balloon pop',
       [

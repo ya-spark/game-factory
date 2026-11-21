@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_game_template/engine/engine.dart';
 import 'package:flutter_game_template/ui/minigames/shooter_screen.dart';
-import 'package:flutter_game_template/ui/minigames/snake_series_screen.dart';
 import 'package:flutter_game_template/ui/test_ids.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -33,16 +32,6 @@ Map<String, dynamic> _category(int i) => {
     {'text': '10', 'category': 'Even'},
     {'text': '13', 'category': 'Odd'},
   ],
-};
-
-Map<String, dynamic> _series(int i) => {
-  'id': 's.$i',
-  'seq': i,
-  'difficulty': 1,
-  'type': 'series',
-  'explanation': 'Explained $i',
-  'prompt': 'Put the multiples of 3 in order.',
-  'steps': ['3', '6', '9'],
 };
 
 QuizSession _session(List<Map<String, dynamic>> items, {int year = 3}) {
@@ -266,87 +255,6 @@ void main() {
       expect(shooterGame.canPlay(short), isTrue);
       expect(shooterGame.canPlay(long), isFalse);
       expect(shooterGame.modes, {MiniGameMode.game});
-    });
-  });
-
-  group('Snake', () {
-    testWidgets(
-      'the board, status and steering buttons are there and a tap steers',
-      (t) async {
-        await t.pumpWidget(
-          _app(
-            SnakeSeriesScreen(
-              session: _session([
-                for (var i = 1; i <= 3; i++) _series(i),
-              ], year: 1),
-              level: const MiniGameLevel.younger(),
-              onExit: () {},
-              random: Random(1),
-            ),
-          ),
-        );
-        await t.tap(find.byKey(TestIds.mgStart('snake_series')));
-        await t.pump();
-        expect(find.byKey(const Key('snake.board')), findsOneWidget);
-        expect(find.text('Eaten 0 of 3'), findsOneWidget);
-        expect(find.text('Put the multiples of 3 in order.'), findsOneWidget);
-        for (final d in ['left', 'up', 'down', 'right']) {
-          expect(find.byKey(Key('snake.dir.$d')), findsOneWidget);
-        }
-        await t.tap(find.byKey(const Key('snake.dir.left')));
-        await t.pump(const Duration(milliseconds: 800));
-        await t.pumpWidget(const SizedBox());
-      },
-    );
-
-    testWidgets('keyboard: arrow keys and WASD steer the snake', (t) async {
-      await t.pumpWidget(
-        _app(
-          SnakeSeriesScreen(
-            session: _session([
-              for (var i = 1; i <= 3; i++) _series(i),
-            ], year: 1),
-            level: const MiniGameLevel.younger(),
-            onExit: () {},
-            random: Random(1),
-          ),
-        ),
-      );
-      await t.tap(find.byKey(TestIds.mgStart('snake_series')));
-      await t.pump();
-      expect(find.byKey(const Key('snake.keys')), findsOneWidget);
-      for (final k in [
-        LogicalKeyboardKey.arrowLeft,
-        LogicalKeyboardKey.arrowDown,
-        LogicalKeyboardKey.keyD,
-        LogicalKeyboardKey.keyW,
-      ]) {
-        await t.sendKeyEvent(k);
-        await t.pump(const Duration(milliseconds: 100));
-      }
-      expect(find.byKey(const Key('snake.board')), findsOneWidget);
-      await t.pumpWidget(const SizedBox());
-    });
-
-    test('registry entry: series, word and numeric items it can build', () {
-      PoolItem p(Map<String, dynamic> j) => PoolItem(
-        item: ContentItem(j),
-        packId: 'p',
-        subject: 'maths',
-        year: 3,
-        topic: 't',
-      );
-      expect(snakeSeriesGame.canPlay(p(_series(1))), isTrue);
-      expect(snakeSeriesGame.canPlay(p(_mcq(1))), isFalse);
-      expect(
-        snakeSeriesGame.canPlay(
-          p({
-            ..._series(1),
-            'steps': ['a' * 9, 'b', 'c'],
-          }),
-        ),
-        isFalse,
-      );
     });
   });
 }

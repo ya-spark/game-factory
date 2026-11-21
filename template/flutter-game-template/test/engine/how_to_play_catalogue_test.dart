@@ -24,7 +24,6 @@ void main() {
         wordGridId,
         balloonPopId,
         shooterId,
-        snakeSeriesId,
         doorRunnerId,
         tugOfWarId,
         flashReviewId,
