@@ -51,7 +51,7 @@ Future<BlockfallServices> openGame(
   tester.view.physicalSize = const Size(400, 800);
   tester.view.devicePixelRatio = 1;
   addTearDown(tester.view.reset);
-  final s = services ?? await buildFakeServices(ads: ads);
+  final s = services ?? await buildFakeBlockfallServices(ads: ads);
   if (buttons) {
     await s.profile.setControls(ControlScheme.buttons);
   }

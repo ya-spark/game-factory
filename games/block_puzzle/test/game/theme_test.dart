@@ -120,7 +120,7 @@ void main() {
   testWidgets('candy: the SCORE label and score use the Candy HUD colours', (
     tester,
   ) async {
-    final s = await buildFakeServices();
+    final s = await buildFakeBlockPuzzleServices();
     tester.view.physicalSize = const Size(400, 800);
     tester.view.devicePixelRatio = 1;
     addTearDown(tester.view.reset);
@@ -160,7 +160,7 @@ void main() {
   });
 
   testWidgets('game.theme changes after the 10th cleared line', (tester) async {
-    final s = await buildFakeServices();
+    final s = await buildFakeBlockPuzzleServices();
     tester.view.physicalSize = const Size(400, 800);
     tester.view.devicePixelRatio = 1;
     addTearDown(tester.view.reset);

@@ -147,7 +147,7 @@ class FakeBlockPuzzleServices implements BlockPuzzleServices {
   bool inRun = false;
 }
 
-/// The package tests' stand-in for the standalone's `buildFakeServices`.
-Future<FakeBlockPuzzleServices> buildFakeServices({
+/// The package tests' stand-in for the standalone's `buildFakeBlockPuzzleServices`.
+Future<FakeBlockPuzzleServices> buildFakeBlockPuzzleServices({
   FakeBlockPuzzleAds? ads,
 }) async => FakeBlockPuzzleServices(ads: ads);

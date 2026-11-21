@@ -120,7 +120,7 @@ class FakeBlockfallServices implements BlockfallServices {
   bool inRun = false;
 }
 
-/// The package tests' stand-in for the standalone's `buildFakeServices`.
-Future<FakeBlockfallServices> buildFakeServices({
+/// The package tests' stand-in for the standalone's `buildFakeBlockfallServices`.
+Future<FakeBlockfallServices> buildFakeBlockfallServices({
   FakeBlockfallAds? ads,
 }) async => FakeBlockfallServices(ads: ads);
