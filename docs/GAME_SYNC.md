@@ -1,66 +1,19 @@
-# Game sync: standalone games inside the Mind hubs
+# Game sync: retired (SH1, owner 2026-11-21)
 
-Decision (owner, 2026-11-11, `game-studio/docs/decisions/operations.md`): Block Puzzle, Blockfall and Wingy stay
-standalone apps and are **copied** into the Mind hubs (Ember: Block Puzzle, Blockfall; Presto: Wingy).
-The standalone app is the source of truth.
+The standalone games (Wingy, Block Puzzle, Blockfall) are no longer copied into the Mind hubs. Each game
+is one package in `game-factory/games/<game>/`; the standalone app and the hub are both containers that
+show it and provide a `<Game>Services` (profile, ads, share, leaderboard, analytics, config) through
+`<Game>ServicesScope`. A fix to a game is made once, in the package, pushed to `game-factory` `main`, and
+reaches every container when its `ref` moves.
 
-## How a fix reaches a hub
-1. Fix the standalone game (its `docs/SPEC.md` first when behaviour changes) and push its `main`.
-2. One sync issue in `game-studio`: run
-   `python3 game-factory/scripts/sync_game.py apps/game-block-puzzle apps/game-mind-1 block_puzzle`,
-   run the hub's checks, push the hub's `main`, move the pins.
-3. `--check` reports a copy that is behind the source commit or edited locally (exit 1). Never edit
-   files under `lib/games/<game>/` or `test/games/<game>/` in a hub; change the source and sync.
+`scripts/sync_game.py`, `game.lock` and the hub copies (`lib/games/<game>/`) are gone. What stays in a hub is
+its adapter (`lib/host/<game>/`: coins, Remove Ads, ad pacing, share and analytics come from the hub) and
+the tests of that adapter. Rules that still hold for a hub adapter (from the old sync):
+- Rewarded ads only for the Continue (`revive`, adult profile, never with Remove Ads owned); any other
+  placement answers "no ad". No interstitials (the adapter answers `maybeShowInterstitialAfterGameOver`
+  with a no-op, the one name `scripts/ad_safety_check.sh` allows there). No banner during play.
+- `/shop` resolves to the hub's shop.
+- Coins, Remove Ads, sound, volume, ambience, voice, vibration, left-handed mode, tips and the day streak
+  are the hub's, so one balance and one Remove Ads purchase serve every game.
 
-## What the script does
-- Copies the files listed per game in `GAMES` (in `sync_game.py`) to `lib/games/<game>/`,
-  `test/games/<game>/`; assets keep their path. Dart is formatted, so the hub's format check passes.
-- Rewrites every import: inside the copy stays relative, a standalone-only file (its own services,
-  profile, shop, ads) maps to `lib/games/<game>/host/<file>` (the hub's adapter, never synced), any
-  other import is an error.
-- Rewrites `'lib/...'` path literals in copied tests so source-purity tests look at the copy.
-- Writes `lib/games/<game>/game.lock` (source commit, hash, file list).
-
-## Engine sync exclusions (`engine.exclude`)
-A hub holds game code under `lib/engine` and `test/engine` that the template engine does not have
-(mahjong, merge, sudoku, ...). To keep `sync_engine.py` from deleting it and `--check` from calling
-the hub "edited locally", list it in `engine.exclude` at the game repo root: one glob per line,
-`#` comments. A glob is matched on the repo-relative path (`*` also crosses `/`); a pattern naming a
-directory covers everything under it.
-```
-# hub-only games (not template engine)
-lib/engine/mahjong
-test/engine/mahjong_*_test.dart
-```
-Excluded paths are not hashed into `engine.lock`, not compared, never overwritten and never deleted
-by a sync. Shared engine files stay locked. Craft apps and generated games have no `engine.exclude`.
-Logic: `engine_lock.py` (`read_excludes`, `is_excluded`), tests in `scripts/tests/test_sync_engine.py`.
-
-## The host adapter (hub-owned, never synced)
-Per game, `lib/games/<game>/host/` holds what the copied screens call "Services" and "ProfileStore",
-mapped onto the hub:
-- `services.dart`: `Services` (hub services, `HostConfig`, `HostAds`, leaderboard no-op, analytics, share) and `ServicesScope`.
-- `profile_store.dart`: keeps only the game's own data (best score, boosts or power-ups, theme, control
-  scheme, ghost, autosave, stats, achievements) in its own save (`game.<game>.save`). **Coins, Remove
-  Ads, sound, volume, ambience, voice, vibration, left-handed mode, tips and the day streak are the
-  hub's**, so one balance and one Remove Ads purchase serve every game. It reports each finished
-  game's score through `onScore` so the Games tab shows stars and the best score.
-- `ad_service.dart` (`HostAds`): rewarded ads only for the Continue (`revive`, adult profile, never
-  with Remove Ads owned); any other placement answers "no ad" (so Blockfall's power-up refill ad
-  and Block Puzzle's boost refill ad give nothing, and with Remove Ads owned the standalone's own rule
-  grants them). No interstitials. No banner during play: the hub's banners show on the menu and results.
-- `routes.dart`: `/shop` resolves to the hub's shop (`lib/host/host_routes.dart`); the games have no shop of their own.
-- `<game>_host.dart`: the widget the Games tab opens.
-- `test/games/<game>/host/fake_services.dart`: the standalone's `Services` test helper over the hub's fakes.
-
-## Status
-- Mind Ember: `block_puzzle` (free with ads) and `blockfall` (coin-locked, 300 coins) are copied,
-  adapted, registered (`lib/ui/game_registry.dart`) and tiled in the Games tab. Rules, game and
-  `theme_test` tests of Block Puzzle, and the rules and game tests of Blockfall, run in the hub
-  (Blockfall's `test/ui/*` widget tests are not copied yet).
-- Mind Presto: `wingy` (free with ads; stars 10/25/50 from Wingy's Bronze, Silver and Gold medals) is
-  copied, adapted (`lib/games/wingy/host/`: its own `rewarded()` keeps the standalone's Remove Ads
-  rule, Dash Refill is bought with the hub's coins, the Dash Refill ad shows nothing), registered and
-  tiled. Only the free Moth skin exists in the hub (no Wingy skins shop). The copied rules tests run in
-  the hub (`test/games/wingy/rules`); Wingy's `test/ui/*` and `test/core/*` are not copied.
-- Not yet: the standalone widget/e2e tests that need the standalone's own shop and ads (not copied).
+See `docs/FEATURE-SPECS.md` item SH1 in game-studio and `games/<game>/README.md`.
