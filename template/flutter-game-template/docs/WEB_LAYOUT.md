@@ -21,3 +21,12 @@ applies to **new apps and new games from now on**; the existing apps are not cha
    huge empty gutters.
 2. A widget test pumps the screen at those widths (see `test/ui/responsive_test.dart` for the pattern).
 3. The screen still passes at large text sizes on a phone.
+
+## The game frame (R2, `game_core` `GameFrame`)
+A game is wrapped in `GameFrame` (`package:game_core/kit/layout/game_frame.dart`): the game is centered, at most 780 wide (the stage), and the ad is beside or above it, never over it.
+- Under 600 dp: the game fills the width; an anchored banner at the bottom on the menu and results (`phoneBanner`: `menu` or `postGame`).
+- 600 to 1023 dp: a 728 x 90 strip on top, the stage centered below it.
+- 1024 dp and up: the stage and a right rail (300 x 600, or 160 x 600 when the window is under about 1044 wide; left out when the window is shorter than the ad), the pair centered.
+- `showAds: false` while a round is played: nothing is shown and no space is kept. A container with no ad (`GameHost.adUnit` returns null) gets the stage alone, centered.
+- The breakpoints (`WindowClass`) are one copy in `game_core`; `lib/ui/layout/responsive.dart` re-exports them.
+

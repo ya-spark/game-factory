@@ -1,34 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:game_core/kit/layout/window_class.dart';
 
-/// Screen size classes for the web version (the app keeps its phone layout).
-/// New screens use these instead of hard-coded widths, so the layout changes with the window.
-enum WindowClass {
-  /// Under 600 logical pixels: a phone, one column.
-  compact,
-
-  /// 600 to 1023: a tablet or a narrow window, content centred, two columns where it helps.
-  medium,
-
-  /// 1024 and up: a desktop window, a side panel and a wide content area.
-  expanded;
-
-  static const double mediumFrom = 600;
-  static const double expandedFrom = 1024;
-
-  static WindowClass of(double width) => width >= expandedFrom
-      ? expanded
-      : (width >= mediumFrom ? medium : compact);
-
-  static WindowClass ofContext(BuildContext context) =>
-      of(MediaQuery.sizeOf(context).width);
-}
-
-/// Widest the main content gets, per window class. Text and play fields stay readable.
-double contentMaxWidth(WindowClass c) => switch (c) {
-  WindowClass.compact => double.infinity,
-  WindowClass.medium => 720,
-  WindowClass.expanded => 1120,
-};
+// One copy of the breakpoints for every game, app and the web: WindowClass and contentMaxWidth live in
+// game_core and are re-exported here, so screens keep importing this file.
+export 'package:game_core/kit/layout/window_class.dart';
 
 /// Centres its child and limits its width by window class. Wrap a screen body in this.
 class ResponsiveBody extends StatelessWidget {

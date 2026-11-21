@@ -4,3 +4,6 @@ export 'game_palette.dart';
 export 'game_parts.dart';
 export 'audio/audio.dart';
 export 'keys/keys.dart';
+export 'layout/frame_ids.dart';
+export 'layout/game_frame.dart';
+export 'layout/window_class.dart';

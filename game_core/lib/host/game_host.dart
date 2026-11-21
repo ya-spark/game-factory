@@ -41,6 +41,28 @@ class GamePalette {
   final bool reduceMotion;
 }
 
+/// The ad formats a frame can ask a container for, by where they fit.
+enum GameAdFormat {
+  /// 300 x 600, in the right rail of a wide window.
+  halfPage(Size(300, 600)),
+
+  /// 160 x 600, in the right rail when the window is only just wide enough.
+  skyscraper(Size(160, 600)),
+
+  /// 728 x 90, a strip above the game on a medium window.
+  leaderboard(Size(728, 90));
+
+  const GameAdFormat(this.size);
+  final Size size;
+}
+
+/// An ad ready to show, and the size it takes (so the frame can keep the game centered around it).
+class GameAdUnit {
+  const GameAdUnit({required this.widget, required this.size});
+  final Widget widget;
+  final Size size;
+}
+
 /// The container side of a game. Every method gets the [BuildContext] so a container can read its
 /// own scopes (services, theme) lazily.
 abstract class GameHost {
@@ -57,6 +79,10 @@ abstract class GameHost {
 
   /// A banner for [slot]; an empty box when the container shows none.
   Widget banner(BuildContext context, GameBannerSlot slot);
+
+  /// An ad of [format] for the frame around the game, or null when the container has none (apps
+  /// without web ads, Remove Ads, child profiles). The frame shows it only outside play.
+  GameAdUnit? adUnit(BuildContext context, GameAdFormat format) => null;
 
   /// The container's colours, or null to use the Material colour scheme.
   GamePalette? palette(BuildContext context) => null;
