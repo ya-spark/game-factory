@@ -24,6 +24,9 @@ class DoorRunnerView {
     this.answered = false,
     this.world = 0,
     this.speed = 1,
+    this.lane2,
+    this.locked1 = false,
+    this.locked2 = false,
   });
 
   final String question;
@@ -52,6 +55,12 @@ class DoorRunnerView {
   /// 1 normally, 0.4 while Down is held; drives the floor scroll and the runner's stride.
   final double speed;
 
+  /// Race: the second runner's lane (player 2); null in a one-player game. [lane] is player 1's.
+  final int? lane2;
+  final bool locked1;
+  final bool locked2;
+  bool get race => lane2 != null;
+
   DoorRunnerView copyWith({
     int? lane,
     double? approach,
@@ -72,5 +81,8 @@ class DoorRunnerView {
     answered: answered,
     world: world ?? this.world,
     speed: speed ?? this.speed,
+    lane2: lane2,
+    locked1: locked1,
+    locked2: locked2,
   );
 }

@@ -8,6 +8,7 @@ import 'package:game_core/kit/layout/game_frame.dart';
 import 'package:game_core/kit/layout/window_class.dart';
 
 import 'door_runner_ids.dart';
+import 'door_runner_race_screen.dart';
 import 'rules/door_runner_rules.dart';
 import 'rules/door_runner_state.dart';
 import 'ui/door_runner_extras.dart';
@@ -36,6 +37,8 @@ MiniGame doorRunnerGameFor({bool harder = false}) => MiniGame(
     onAnswered: ctx.onAnswered,
     onScore: ctx.onScore,
     level: levelForSession(ctx.session, harder: harder),
+    // Race: two players on one keyboard (docs/SPEC.md); shown on windows 600 dp wide and up.
+    offerTwoPlayers: true,
   ),
 );
 
@@ -52,8 +55,12 @@ class DoorRunnerScreen extends StatefulWidget {
     this.random,
     this.reader,
     this.autoRead,
+    this.offerTwoPlayers = false,
   });
   final QuizSession session;
+
+  /// Adds the "2 players" race button to the start screen (windows 600 dp and wider).
+  final bool offerTwoPlayers;
   final VoidCallback onExit;
   final MiniGameLevel level;
   final void Function(AnswerResult, QuizSession)? onAnswered;
@@ -90,6 +97,7 @@ class _DoorRunnerScreenState extends State<DoorRunnerScreen>
   bool _dialogOpen = false;
   bool _reduce = false;
   bool _scoreSent = false;
+  bool _race = false;
   int _best = 0;
   GameReadAloud? _reader;
   bool _autoRead = false;
@@ -357,6 +365,14 @@ class _DoorRunnerScreenState extends State<DoorRunnerScreen>
 
   @override
   Widget build(BuildContext context) {
+    if (_race) {
+      return DoorRunnerRaceScreen(
+        items: _s.items,
+        level: widget.level,
+        onExit: widget.onExit,
+        random: _random,
+      );
+    }
     return Scaffold(
       key: DoorRunnerIds.screen,
       backgroundColor: DrColors.ink,
@@ -456,21 +472,46 @@ class _DoorRunnerScreenState extends State<DoorRunnerScreen>
           textAlign: TextAlign.center,
         ),
       ],
-      action: SizedBox(
-        width: 220,
-        child: DrButton(
-          key: DoorRunnerIds.start,
-          colors: const [Color(0xFFFFB02E), Color(0xFFFF6B3D)],
-          onPressed: _start,
-          child: const Text(
-            'Start',
-            style: TextStyle(
-              color: Colors.white,
-              fontSize: 22,
-              fontWeight: FontWeight.w800,
+      action: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          SizedBox(
+            width: 220,
+            child: DrButton(
+              key: DoorRunnerIds.start,
+              colors: const [Color(0xFFFFB02E), Color(0xFFFF6B3D)],
+              onPressed: _start,
+              child: const Text(
+                'Start',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 22,
+                  fontWeight: FontWeight.w800,
+                ),
+              ),
             ),
           ),
-        ),
+          if (widget.offerTwoPlayers &&
+              WindowClass.ofContext(context) != WindowClass.compact) ...[
+            const SizedBox(height: 10),
+            SizedBox(
+              width: 220,
+              child: DrButton(
+                key: DoorRunnerIds.modeTwo,
+                height: 48,
+                onPressed: () => setState(() => _race = true),
+                child: const Text(
+                  '2 players: race',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 18,
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ],
       ),
     );
   }

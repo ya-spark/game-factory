@@ -45,8 +45,12 @@ class DoorRunnerField extends StatefulWidget {
     required this.onZap,
     this.fx,
     this.reduceMotion = false,
+    this.interactive = true,
   });
   final DoorRunnerView view;
+
+  /// False in the race: doors are not tappable (two players share one keyboard).
+  final bool interactive;
   final void Function(int doorIndex) onZap;
   final DoorRunnerFx? fx;
   final bool reduceMotion;
@@ -108,7 +112,6 @@ class _DoorRunnerFieldState extends State<DoorRunnerField>
             : Offset(sin(_time * 90) * 5, cos(_time * 70) * 4) *
                   (widget.fx!.shake / 0.25);
         final rs = size.width < 500 ? 72.0 : 84.0;
-        final runnerX = g.laneCenter(v.lane, 1.0);
         return Transform.translate(
           offset: shake,
           child: Stack(
@@ -138,46 +141,9 @@ class _DoorRunnerFieldState extends State<DoorRunnerField>
                   child: const IgnorePointer(),
                 ),
               for (var i = 0; i < n; i++) _doorAt(g, approach, i, v),
-              // Trail behind the runner, then the runner.
-              for (final (dy, a, sz) in [
-                (rs * 0.62, 0.28, rs * 0.5),
-                (rs * 0.92, 0.14, rs * 0.36),
-              ])
-                AnimatedPositioned(
-                  duration: widget.reduceMotion
-                      ? Duration.zero
-                      : const Duration(milliseconds: 160),
-                  left: runnerX - sz / 2,
-                  top: g.runnerLine + rs * 0.5 + dy - sz / 2,
-                  width: sz,
-                  height: sz,
-                  child: DecoratedBox(
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      color: DrColors.cyan.withValues(alpha: a),
-                    ),
-                  ),
-                ),
-              AnimatedPositioned(
-                duration: widget.reduceMotion
-                    ? Duration.zero
-                    : const Duration(milliseconds: 160),
-                curve: Curves.easeOut,
-                left: runnerX - rs / 2,
-                top: g.runnerLine + 4,
-                width: rs,
-                height: rs,
-                child: Semantics(
-                  label: 'Runner in lane ${v.lane + 1} of $n',
-                  child: CustomPaint(
-                    key: DoorRunnerIds.runner,
-                    painter: RunnerPainter(
-                      time: _time,
-                      speed: v.paused ? 0 : v.speed,
-                    ),
-                  ),
-                ),
-              ),
+              // Trail behind each runner, then the runner. In a race two runners (circle and
+              // square marker) share the field and stand side by side when they share a lane.
+              for (final r in _runners(v, g, rs)) ..._runner(g, r, rs, n),
               if (widget.fx != null)
                 Positioned.fill(
                   child: IgnorePointer(
@@ -193,6 +159,98 @@ class _DoorRunnerFieldState extends State<DoorRunnerField>
     );
   }
 
+  List<_Runner> _runners(DoorRunnerView v, DoorRunnerGeometry g, double rs) {
+    if (!v.race) {
+      return [
+        _Runner(
+          g.laneCenter(v.lane, 1.0),
+          rs,
+          null,
+          DrColors.cyan,
+          false,
+          v.lane,
+        ),
+      ];
+    }
+    final size = rs * 0.8;
+    final shared = v.lane == v.lane2;
+    final off = shared ? size * 0.3 : 0.0;
+    return [
+      _Runner(
+        g.laneCenter(v.lane, 1.0) + off,
+        size,
+        1,
+        const Color(0xFFFFC740),
+        v.locked1,
+        v.lane,
+      ),
+      _Runner(
+        g.laneCenter(v.lane2!, 1.0) - off,
+        size,
+        2,
+        const Color(0xFF59CC9E),
+        v.locked2,
+        v.lane2!,
+      ),
+    ];
+  }
+
+  List<Widget> _runner(DoorRunnerGeometry g, _Runner r, double rs, int n) {
+    final v = widget.view;
+    final dur = widget.reduceMotion
+        ? Duration.zero
+        : const Duration(milliseconds: 160);
+    final sz = r.size;
+    return [
+      for (final (dy, a, t) in [
+        (sz * 0.62, 0.28, sz * 0.5),
+        (sz * 0.92, 0.14, sz * 0.36),
+      ])
+        AnimatedPositioned(
+          duration: dur,
+          left: r.x - t / 2,
+          top: g.runnerLine + sz * 0.5 + dy - t / 2,
+          width: t,
+          height: t,
+          child: DecoratedBox(
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: r.tint.withValues(alpha: a),
+            ),
+          ),
+        ),
+      AnimatedPositioned(
+        duration: dur,
+        curve: Curves.easeOut,
+        left: r.x - sz / 2,
+        top: g.runnerLine + 4,
+        width: sz,
+        height: sz,
+        child: Opacity(
+          opacity: r.locked ? 0.4 : 1,
+          child: Semantics(
+            label: r.player == null
+                ? 'Runner in lane ${r.lane + 1} of $n'
+                : 'Player ${r.player} in lane ${r.lane + 1} of $n${r.locked ? ', locked out' : ''}',
+            child: CustomPaint(
+              key: r.player == null
+                  ? DoorRunnerIds.runner
+                  : (r.player == 1
+                        ? DoorRunnerIds.runner1
+                        : DoorRunnerIds.runner2),
+              painter: RunnerPainter(
+                time: _time,
+                speed: v.paused || r.locked ? 0 : v.speed,
+                tint: r.tint,
+                marker: r.player,
+              ),
+            ),
+          ),
+        ),
+      ),
+    ];
+  }
+
   Widget _doorAt(
     DoorRunnerGeometry g,
     double approach,
@@ -205,7 +263,11 @@ class _DoorRunnerFieldState extends State<DoorRunnerField>
     final h = w * 260 / 160;
     final x = g.laneCenter(i, s);
     final door = v.doors[i];
-    final can = !v.answered && !v.paused && door.mark != DoorMark.wrong;
+    final can =
+        widget.interactive &&
+        !v.answered &&
+        !v.paused &&
+        door.mark != DoorMark.wrong;
     return Positioned(
       left: x - w / 2,
       top: g.yAt(s) - h + 2,
@@ -649,9 +711,20 @@ class ScenePainter extends CustomPainter {
 
 /// A round friendly critter (no person): halo, feet that bob, body, eyes, cheeks, smile.
 class RunnerPainter extends CustomPainter {
-  RunnerPainter({required this.time, required this.speed});
+  RunnerPainter({
+    required this.time,
+    required this.speed,
+    this.tint = DrColors.cyan,
+    this.marker,
+  });
   final double time;
   final double speed;
+
+  /// The glow colour (a race gives each player their own).
+  final Color tint;
+
+  /// Race: 1 draws a circle badge over the runner, 2 a square one (colour is never the only cue).
+  final int? marker;
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -663,10 +736,7 @@ class RunnerPainter extends CustomPainter {
       46,
       Paint()
         ..shader = RadialGradient(
-          colors: [
-            DrColors.cyan.withValues(alpha: 0.55),
-            DrColors.cyan.withValues(alpha: 0),
-          ],
+          colors: [tint.withValues(alpha: 0.55), tint.withValues(alpha: 0)],
         ).createShader(Rect.fromCircle(center: c, radius: 46)),
     );
     final stride = sin(time * 14 * speed) * 3 * (speed > 0 ? 1 : 0);
@@ -741,11 +811,30 @@ class RunnerPainter extends CustomPainter {
         ..strokeCap = StrokeCap.round
         ..color = const Color(0xFF1B3E9C),
     );
+    if (marker != null) {
+      final badge = Paint()..color = tint;
+      final ring = Paint()
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 2.5
+        ..color = Colors.white;
+      const at = Offset(48, 8);
+      if (marker == 1) {
+        canvas.drawCircle(at, 8, badge);
+        canvas.drawCircle(at, 8, ring);
+      } else {
+        final r = Rect.fromCenter(center: at, width: 15, height: 15);
+        canvas.drawRect(r, badge);
+        canvas.drawRect(r, ring);
+      }
+    }
   }
 
   @override
   bool shouldRepaint(RunnerPainter old) =>
-      old.time != time || old.speed != speed;
+      old.time != time ||
+      old.speed != speed ||
+      old.tint != tint ||
+      old.marker != marker;
 }
 
 /// Floating "+N" and sparkle bursts over the doors.
@@ -795,4 +884,22 @@ class FxPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(FxPainter old) => true;
+}
+
+/// Where a runner stands and how it looks (private to the field).
+class _Runner {
+  const _Runner(
+    this.x,
+    this.size,
+    this.player,
+    this.tint,
+    this.locked,
+    this.lane,
+  );
+  final double x;
+  final double size;
+  final int? player;
+  final Color tint;
+  final bool locked;
+  final int lane;
 }

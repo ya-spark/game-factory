@@ -17,6 +17,7 @@ class DoorRunnerFrame extends StatelessWidget {
     required this.slowZone,
     this.overlay,
     this.world = 0,
+    this.hints,
   });
   final int world;
   final Widget hud;
@@ -26,6 +27,10 @@ class DoorRunnerFrame extends StatelessWidget {
 
   /// Pause overlay, drawn over the field only.
   final Widget? overlay;
+
+  /// The key hints under the field, always shown (the race); null: the one-player rule, hints on a
+  /// wide window and the touch slow zone below it.
+  final Widget? hints;
 
   static const double playMaxWidth = 760;
 
@@ -67,7 +72,12 @@ class DoorRunnerFrame extends StatelessWidget {
                         ],
                       ),
                     ),
-                    if (wide) const DoorRunnerKeyHints() else slowZone,
+                    if (hints != null)
+                      hints!
+                    else if (wide)
+                      const DoorRunnerKeyHints()
+                    else
+                      slowZone,
                   ],
                 );
               },

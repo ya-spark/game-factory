@@ -6,3 +6,5 @@ library;
 export 'src/door_runner_ids.dart';
 export 'src/door_runner_screen.dart';
 export 'src/rules/door_runner_rules.dart' show doorRunnerId;
+export 'src/door_runner_race_screen.dart';
+export 'src/rules/door_runner_race.dart';

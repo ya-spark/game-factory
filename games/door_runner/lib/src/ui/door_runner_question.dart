@@ -11,16 +11,20 @@ class DoorRunnerQuestionChip extends StatelessWidget {
     required this.onOpen,
   });
   final String question;
-  final VoidCallback onOpen;
+
+  /// Null: the question is only shown (the race has no question dialog).
+  final VoidCallback? onOpen;
 
   @override
   Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       child: Semantics(
-        button: true,
+        button: onOpen != null,
         excludeSemantics: true,
-        label: 'Question: $question. Open to see the answers.',
+        label: onOpen == null
+            ? 'Question: $question'
+            : 'Question: $question. Open to see the answers.',
         onTap: onOpen,
         child: GestureDetector(
           key: DoorRunnerIds.question,
@@ -75,13 +79,14 @@ class DoorRunnerQuestionChip extends StatelessWidget {
                           shadows: drTextShadow,
                         ),
                       ),
-                      Text(
-                        'Tap to see the answers',
-                        style: TextStyle(
-                          color: Colors.white.withValues(alpha: 0.65),
-                          fontSize: 12,
+                      if (onOpen != null)
+                        Text(
+                          'Tap to see the answers',
+                          style: TextStyle(
+                            color: Colors.white.withValues(alpha: 0.65),
+                            fontSize: 12,
+                          ),
                         ),
-                      ),
                     ],
                   ),
                 ),

@@ -22,6 +22,8 @@ abstract final class DoorRunnerIds {
   static Key door(int i) => Key('door_runner.door.$i');
   static Key lane(int i) => Key('door_runner.lane.$i');
   static const runner = Key('door_runner.runner');
+  static const runner1 = Key('door_runner.p1.runner');
+  static const runner2 = Key('door_runner.p2.runner');
   static const slow = Key('door_runner.slow');
   static const keys = Key('door_runner.keys');
   static const adSlot = Key('door_runner.ad_slot');
@@ -32,4 +34,12 @@ abstract final class DoorRunnerIds {
   static const results = Key('door_runner.results');
   static const stars = Key('door_runner.stars');
   static const done = Key('door_runner.done');
+  static const modeTwo = Key('door_runner.mode.two');
+  static const raceScreen = Key('door_runner.race.screen');
+  static const p1Score = Key('door_runner.p1.score');
+  static const p2Score = Key('door_runner.p2.score');
+  static const raceMessage = Key('door_runner.race.message');
+  static const winner = Key('door_runner.winner');
+  static const again = Key('door_runner.again');
+  static const raceLeave = Key('door_runner.race.leave');
 }
