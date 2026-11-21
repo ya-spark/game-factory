@@ -8,6 +8,9 @@ import 'package:flutter/services.dart';
 import '../host/ad_service.dart';
 
 import 'package:game_core/kit/audio/audio.dart' hide ambienceTracks;
+import 'package:game_core/kit/keys/keys.dart';
+import 'package:game_core/kit/layout/game_frame.dart';
+import 'package:game_core/kit/layout/window_class.dart';
 
 import '../core/audio/blockfall_audio.dart';
 import '../host/profile_store.dart';
@@ -584,6 +587,48 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
     );
   }
 
+  // ------------------------------------------------------------------ keyboard
+  // docs/KEYBOARD.md. Left and right move (held keys repeat), Up rotates, Down soft-drops while
+  // held, Enter drops at once, Q holds, 1 to 3 use the power-ups, Space or Esc pause.
+
+  void _onKey(GameInput i) {
+    final f = _flame;
+    if (f == null) return;
+    final pausing = i.action == GameAction.pause || i.action == GameAction.exit;
+    if (pausing) {
+      if (i.repeat) return;
+      // Esc and Space pause; on the pause screen they go back to the game.
+      _paused ? _resume() : _pause();
+      return;
+    }
+    if (_paused || _sheetOpen || _dialogOpen || f.rules.isGameOver) return;
+    switch (i.action) {
+      case GameAction.left:
+        f.moveLeft();
+      case GameAction.right:
+        f.moveRight();
+      case GameAction.up:
+        if (!i.repeat) f.rotate();
+      case GameAction.down:
+        if (!i.repeat) f.setSoftDrop(true, minSeconds: 0.15);
+      case GameAction.action:
+        if (!i.repeat) f.hardDrop();
+      case GameAction.question:
+        if (!i.repeat) f.hold();
+      case GameAction.pick1 || GameAction.pick2 || GameAction.pick3:
+        if (!i.repeat) {
+          final n = i.action.pickNumber! - 1;
+          if (n < PowerUpType.values.length) _onPowerUp(PowerUpType.values[n]);
+        }
+      default:
+        break;
+    }
+  }
+
+  void _onKeyRelease(GameInput i) {
+    if (i.action == GameAction.down) _flame?.setSoftDrop(false);
+  }
+
   // ------------------------------------------------------------------ build
 
   @override
@@ -603,27 +648,39 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
             child: child!,
           ),
           child: SafeArea(
-            child: flame == null
-                ? Align(
-                    alignment: Alignment.topLeft,
-                    child: Padding(
-                      padding: const EdgeInsets.all(12),
-                      child: IconButton.filledTonal(
-                        key: TestIds.gameBack,
-                        icon: const Icon(Icons.chevron_left),
-                        onPressed: () => Navigator.of(context).pop(),
+            child: GameKeyboard(
+              onInput: _onKey,
+              onRelease: _onKeyRelease,
+              child: flame == null
+                  ? Align(
+                      alignment: Alignment.topLeft,
+                      child: Padding(
+                        padding: const EdgeInsets.all(12),
+                        child: IconButton.filledTonal(
+                          key: TestIds.gameBack,
+                          icon: const Icon(Icons.chevron_left),
+                          onPressed: () => Navigator.of(context).pop(),
+                        ),
+                      ),
+                    )
+                  : GameFrame(
+                      // Centered; no ad beside the well while a game is played.
+                      showAds: _paused,
+                      phoneBanner: null,
+                      maxWidth: 640,
+                      padding: EdgeInsets.zero,
+                      child: Stack(
+                        children: [
+                          ValueListenableBuilder<int>(
+                            valueListenable: flame.revision,
+                            builder: (context, _, _) =>
+                                _buildPlay(context, flame),
+                          ),
+                          if (_paused) _buildPauseOverlay(),
+                        ],
                       ),
                     ),
-                  )
-                : Stack(
-                    children: [
-                      ValueListenableBuilder<int>(
-                        valueListenable: flame.revision,
-                        builder: (context, _, _) => _buildPlay(context, flame),
-                      ),
-                      if (_paused) _buildPauseOverlay(),
-                    ],
-                  ),
+            ),
           ),
         ),
       ),
@@ -694,6 +751,32 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
         const SizedBox(height: 6),
         _buildPowerUps(flame),
         const SizedBox(height: 8),
+        if (WindowClass.ofContext(context) != WindowClass.compact)
+          const Padding(
+            padding: EdgeInsets.only(bottom: 8),
+            child: KeyHints(
+              style: TextStyle(color: Colors.white70, fontSize: 12),
+              words: {
+                GameAction.up: 'rotate',
+                GameAction.down: 'soft drop',
+                GameAction.action: 'hard drop',
+                GameAction.question: 'hold',
+                GameAction.pick1: 'power-ups',
+              },
+              actions: [
+                GameAction.left,
+                GameAction.right,
+                GameAction.up,
+                GameAction.down,
+                GameAction.action,
+                GameAction.question,
+                GameAction.pick1,
+                GameAction.pick2,
+                GameAction.pick3,
+                GameAction.pause,
+              ],
+            ),
+          ),
       ],
     );
   }

@@ -153,6 +153,13 @@ class KeyHints extends StatelessWidget {
     // Left and right read as one pair; the four answers as one range.
     final shown = <(String, String, GameAction)>[];
     bool has(GameAction a) => actions.contains(a);
+    final picks = [
+      GameAction.pick1,
+      GameAction.pick2,
+      GameAction.pick3,
+      GameAction.pick4,
+    ];
+    final lastPick = picks.lastWhere(has, orElse: () => GameAction.pick1);
     String key(GameAction a) =>
         keyLabel(map.primaryOf(KeySlot(a, a.shared ? 0 : player)));
     for (final a in actions) {
@@ -172,9 +179,9 @@ class KeyHints extends StatelessWidget {
           words[GameAction.left] ?? 'move',
           a,
         ));
-      } else if (a == GameAction.pick1 && has(GameAction.pick4)) {
+      } else if (a == GameAction.pick1 && lastPick != GameAction.pick1) {
         shown.add((
-          '${key(GameAction.pick1)}-${key(GameAction.pick4)}',
+          '${key(GameAction.pick1)}-${key(lastPick)}',
           words[GameAction.pick1] ?? 'answer',
           a,
         ));
