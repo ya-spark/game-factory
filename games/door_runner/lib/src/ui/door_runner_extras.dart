@@ -3,43 +3,6 @@ import 'package:flutter/material.dart';
 import '../door_runner_ids.dart';
 import 'door_runner_style.dart';
 
-/// Placeholder for an ad. Draws a quiet box and nothing else: no ad request, no AdService call,
-/// no input. [rail] is the 300 px column at the right; otherwise the 50 px strip at the top.
-class DoorRunnerAdSlot extends StatelessWidget {
-  const DoorRunnerAdSlot({super.key, required this.rail});
-  final bool rail;
-
-  static const double railWidth = 300;
-  static const double stripHeight = 50;
-
-  @override
-  Widget build(BuildContext context) {
-    return ExcludeSemantics(
-      child: IgnorePointer(
-        child: Container(
-          key: DoorRunnerIds.adSlot,
-          width: rail ? railWidth : double.infinity,
-          height: rail ? double.infinity : stripHeight,
-          margin: const EdgeInsets.all(4),
-          alignment: Alignment.center,
-          decoration: BoxDecoration(
-            color: Colors.white.withValues(alpha: 0.06),
-            border: Border.all(color: Colors.white.withValues(alpha: 0.3)),
-            borderRadius: BorderRadius.circular(10),
-          ),
-          child: Text(
-            'Ad space',
-            style: TextStyle(
-              color: Colors.white.withValues(alpha: 0.5),
-              fontSize: 13,
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-}
-
 /// Touch only: hold this bar to slow the doors (the Down key on a keyboard).
 class DoorRunnerSlowZone extends StatefulWidget {
   const DoorRunnerSlowZone({super.key, required this.onSlow});

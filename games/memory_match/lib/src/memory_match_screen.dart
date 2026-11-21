@@ -153,11 +153,17 @@ class _MemoryMatchScreenState extends State<MemoryMatchScreen> {
   // ---- keyboard (docs/KEYBOARD.md): arrows move over the cards, Enter turns one, Q reads, Space pauses ----
 
   void _onInput(GameInput i) {
+    final b = _board;
     if (i.action == GameAction.exit) {
-      widget.onExit();
+      if (i.repeat) return;
+      // Esc pauses a board (the pause screen offers Leave); elsewhere it leaves.
+      if (b != null && _result == null && !_s.finished) {
+        _togglePause();
+      } else {
+        widget.onExit();
+      }
       return;
     }
-    final b = _board;
     if (_s.finished && _result == null) {
       if (i.action == GameAction.action && !i.repeat) widget.onExit();
       return;
@@ -260,6 +266,8 @@ class _MemoryMatchScreenState extends State<MemoryMatchScreen> {
                           overlayKey: MemoryMatchIds.matchPaused,
                           resumeKey: MemoryMatchIds.matchResume,
                           onResume: _togglePause,
+                          onLeave: widget.onExit,
+                          leaveKey: MemoryMatchIds.matchLeave,
                         ),
                     ],
                   ),
@@ -278,7 +286,6 @@ class _MemoryMatchScreenState extends State<MemoryMatchScreen> {
                         GameAction.action,
                         if (!done && _reader != null) GameAction.question,
                         if (!done) GameAction.pause,
-                        GameAction.exit,
                       ],
                     ),
                   ),

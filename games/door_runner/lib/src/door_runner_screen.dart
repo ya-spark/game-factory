@@ -4,6 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:game_core/engine/engine.dart';
 import 'package:game_core/host/game_host.dart';
+import 'package:game_core/kit/layout/game_frame.dart';
+import 'package:game_core/kit/layout/window_class.dart';
 
 import 'door_runner_ids.dart';
 import 'rules/door_runner_rules.dart';
@@ -339,10 +341,19 @@ class _DoorRunnerScreenState extends State<DoorRunnerScreen>
     );
   }
 
-  Widget _banner(GameBannerSlot slot) => KeyedSubtree(
-    key: DoorRunnerIds.banner,
-    child: GameHostScope.of(context).banner(context, slot),
-  );
+  /// The phone banner of the start and results screens. On a wider window the frame shows the
+  /// container's strip or rail instead, so the banner steps aside when there is one.
+  Widget _banner(GameBannerSlot slot) {
+    final host = GameHostScope.of(context);
+    final wide = WindowClass.ofContext(context) != WindowClass.compact;
+    if (wide && host.adUnit(context, GameAdFormat.leaderboard) != null) {
+      return const SizedBox.shrink();
+    }
+    return KeyedSubtree(
+      key: DoorRunnerIds.banner,
+      child: host.banner(context, slot),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -376,41 +387,47 @@ class _DoorRunnerScreenState extends State<DoorRunnerScreen>
     required GameBannerSlot placement,
   }) {
     return _backdrop(
-      child: Column(
-        children: [
-          Align(
-            alignment: Alignment.centerLeft,
-            child: Padding(
-              padding: const EdgeInsets.all(8),
-              child: KeyedSubtree(
-                key: DoorRunnerIds.exit,
-                child: DrRoundButton(
-                  icon: Icons.close,
-                  tooltip: 'Leave Door runner',
-                  onPressed: widget.onExit,
-                ),
-              ),
-            ),
-          ),
-          Expanded(
-            child: Center(
-              child: SingleChildScrollView(
-                key: key,
-                padding: const EdgeInsets.all(24),
-                child: ConstrainedBox(
-                  constraints: const BoxConstraints(maxWidth: 520),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: children,
+      // Centered; a strip or rail from the container sits beside it, not over it.
+      child: GameFrame(
+        maxWidth: 640,
+        phoneBanner: null,
+        padding: EdgeInsets.zero,
+        child: Column(
+          children: [
+            Align(
+              alignment: Alignment.centerLeft,
+              child: Padding(
+                padding: const EdgeInsets.all(8),
+                child: KeyedSubtree(
+                  key: DoorRunnerIds.exit,
+                  child: DrRoundButton(
+                    icon: Icons.close,
+                    tooltip: 'Leave Door runner',
+                    onPressed: widget.onExit,
                   ),
                 ),
               ),
             ),
-          ),
-          // Pinned under the scrolling text so it is always on screen, even at large text.
-          Padding(padding: const EdgeInsets.only(bottom: 16), child: action),
-          _banner(placement),
-        ],
+            Expanded(
+              child: Center(
+                child: SingleChildScrollView(
+                  key: key,
+                  padding: const EdgeInsets.all(24),
+                  child: ConstrainedBox(
+                    constraints: const BoxConstraints(maxWidth: 520),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: children,
+                    ),
+                  ),
+                ),
+              ),
+            ),
+            // Pinned under the scrolling text so it is always on screen, even at large text.
+            Padding(padding: const EdgeInsets.only(bottom: 16), child: action),
+            _banner(placement),
+          ],
+        ),
       ),
     );
   }

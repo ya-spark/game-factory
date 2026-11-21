@@ -257,10 +257,19 @@ void main() {
       expect(find.byKey(MemoryMatchIds.matchSummary), findsOneWidget);
     });
 
-    testWidgets('Esc leaves', (t) async {
+    testWidgets('Esc pauses a board and the pause screen can leave', (t) async {
       var left = false;
       await open(t, onExit: () => left = true);
       await t.sendKeyEvent(LogicalKeyboardKey.escape);
+      await t.pump();
+      expect(left, isFalse);
+      expect(find.byKey(MemoryMatchIds.matchPaused), findsOneWidget);
+      await t.sendKeyEvent(LogicalKeyboardKey.escape); // Esc again goes back
+      await t.pump();
+      expect(find.byKey(MemoryMatchIds.matchPaused), findsNothing);
+      await t.sendKeyEvent(LogicalKeyboardKey.escape);
+      await t.pump();
+      await t.tap(find.byKey(MemoryMatchIds.matchLeave));
       expect(left, isTrue);
     });
 

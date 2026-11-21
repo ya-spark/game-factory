@@ -63,6 +63,8 @@ class PauseOverlay extends StatelessWidget {
     required this.onResume,
     this.resumeKey,
     this.overlayKey,
+    this.onLeave,
+    this.leaveKey,
   });
 
   final VoidCallback onResume;
@@ -70,6 +72,10 @@ class PauseOverlay extends StatelessWidget {
 
   /// Key of the covering box (tests look for it).
   final Key? overlayKey;
+
+  /// Adds a "Leave game" button under Resume (null: no button).
+  final VoidCallback? onLeave;
+  final Key? leaveKey;
 
   @override
   Widget build(BuildContext context) {
@@ -94,6 +100,17 @@ class PauseOverlay extends StatelessWidget {
                 onPressed: onResume,
                 child: const Text('Resume'),
               ),
+              if (onLeave != null) ...[
+                const SizedBox(height: 8),
+                TextButton(
+                  key: leaveKey,
+                  onPressed: onLeave,
+                  child: const Text(
+                    'Leave game',
+                    style: TextStyle(color: Colors.white),
+                  ),
+                ),
+              ],
             ],
           ),
         ),

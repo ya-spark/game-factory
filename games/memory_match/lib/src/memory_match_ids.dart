@@ -16,4 +16,5 @@ abstract final class MemoryMatchIds {
   static const matchPause = Key('match.pause');
   static const matchPaused = Key('match.paused');
   static const matchResume = Key('match.resume');
+  static const matchLeave = Key('match.leave');
 }

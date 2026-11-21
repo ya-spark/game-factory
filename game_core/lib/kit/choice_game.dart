@@ -290,11 +290,16 @@ class _ChoiceGameScreenState extends State<ChoiceGameScreen>
   // ---- keyboard (docs/KEYBOARD.md): 1 to 4 answer, Enter next or start, Q reads, Space pauses ----
 
   void _onInput(GameInput i) {
+    if (i.repeat) return;
     if (i.action == GameAction.exit) {
-      widget.onExit();
+      // Esc pauses a round (the pause screen offers Leave); elsewhere it leaves.
+      if (_phase == _Phase.play && _result == null) {
+        _togglePause();
+      } else {
+        widget.onExit();
+      }
       return;
     }
-    if (i.repeat) return;
     switch (_phase) {
       case _Phase.intro:
         if (i.action == GameAction.action) _start();
@@ -345,7 +350,6 @@ class _ChoiceGameScreenState extends State<ChoiceGameScreen>
         if (_reader != null) GameAction.question,
       ],
       GameAction.pause,
-      GameAction.exit,
     ],
   };
 
@@ -388,6 +392,8 @@ class _ChoiceGameScreenState extends State<ChoiceGameScreen>
                           overlayKey: GameIds.mgPaused(_g),
                           resumeKey: GameIds.mgResume(_g),
                           onResume: _togglePause,
+                          onLeave: widget.onExit,
+                          leaveKey: GameIds.mgLeave(_g),
                         ),
                     ],
                   ),

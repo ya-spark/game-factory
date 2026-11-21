@@ -191,10 +191,22 @@ void main() {
       expect(find.byKey(GameIds.mgFeedback('tug_of_war')), findsNothing);
     });
 
-    testWidgets('Esc leaves', (t) async {
+    testWidgets('Esc leaves from the start screen, pauses in a round', (
+      t,
+    ) async {
       var left = false;
       await start(t, onExit: () => left = true);
       await t.sendKeyEvent(LogicalKeyboardKey.escape);
+      expect(left, isTrue);
+      left = false;
+      await start(t, onExit: () => left = true);
+      await t.sendKeyEvent(LogicalKeyboardKey.enter);
+      await t.pump();
+      await t.sendKeyEvent(LogicalKeyboardKey.escape);
+      await t.pump();
+      expect(left, isFalse);
+      expect(find.byKey(GameIds.mgPaused('tug_of_war')), findsOneWidget);
+      await t.tap(find.byKey(GameIds.mgLeave('tug_of_war')));
       expect(left, isTrue);
     });
 

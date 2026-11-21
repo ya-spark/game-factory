@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:game_core/game_core.dart';
 import 'package:game_door_runner/src/ui/door_runner_extras.dart';
 import 'package:game_door_runner/src/ui/door_runner_field.dart';
 import 'package:game_door_runner/src/ui/door_runner_frame.dart';
@@ -98,30 +99,27 @@ Future<void> _size(WidgetTester t, double w, double h) async {
 }
 
 void main() {
-  testWidgets('wide window: ad rail at the right, key hints, no slow zone', (
+  testWidgets('wide window: play column centred, key hints, no slow zone', (
     t,
   ) async {
     await _size(t, 1280, 800);
     await t.pumpWidget(_app(const _Demo()));
-    final rail = t.getRect(find.byKey(DoorRunnerIds.adSlot));
-    expect(rail.width, DoorRunnerAdSlot.railWidth + 8);
-    expect(rail.right, greaterThan(1200));
+    final stage = t.getRect(find.byKey(FrameIds.stage));
+    expect(stage.width, lessThanOrEqualTo(DoorRunnerFrame.playMaxWidth));
+    expect(stage.center.dx, closeTo(640, 1));
     expect(find.byKey(DoorRunnerIds.keys), findsOneWidget);
     expect(find.byKey(DoorRunnerIds.slow), findsNothing);
   });
 
-  testWidgets(
-    'compact window: slim ad strip at the top, slow zone, no key hints',
-    (t) async {
-      await _size(t, 390, 780);
-      await t.pumpWidget(_app(const _Demo()));
-      final strip = t.getRect(find.byKey(DoorRunnerIds.adSlot));
-      expect(strip.top, lessThan(10));
-      expect(strip.height, DoorRunnerAdSlot.stripHeight + 8);
-      expect(find.byKey(DoorRunnerIds.slow), findsOneWidget);
-      expect(find.byKey(DoorRunnerIds.keys), findsNothing);
-    },
-  );
+  testWidgets('compact window: slow zone, no key hints, play fills the width', (
+    t,
+  ) async {
+    await _size(t, 390, 780);
+    await t.pumpWidget(_app(const _Demo()));
+    expect(find.byKey(DoorRunnerIds.slow), findsOneWidget);
+    expect(find.byKey(DoorRunnerIds.keys), findsNothing);
+    expect(t.getRect(find.byKey(FrameIds.stage)).width, 390);
+  });
 
   testWidgets('younger level shows no hearts and no streak', (t) async {
     await _size(t, 390, 780);
@@ -131,18 +129,14 @@ void main() {
     expect(find.byKey(DoorRunnerIds.score), findsOneWidget);
   });
 
-  testWidgets('the ad slot ignores taps and is hidden from screen readers', (
-    t,
-  ) async {
+  testWidgets('no ad is shown or kept free while a run is played', (t) async {
     await _size(t, 1280, 800);
-    await t.pumpWidget(_app(const _Demo()));
-    expect(
-      find.ancestor(
-        of: find.byKey(DoorRunnerIds.adSlot),
-        matching: find.byType(IgnorePointer),
-      ),
-      findsWidgets,
+    await t.pumpWidget(
+      _app(GameHostScope(host: _AdsHost(), child: const _Demo())),
     );
+    expect(find.byKey(FrameIds.rail), findsNothing);
+    expect(find.byKey(FrameIds.strip), findsNothing);
+    expect(find.byKey(const Key('ad.test')), findsNothing);
   });
 
   testWidgets(
@@ -294,20 +288,67 @@ void main() {
     });
   });
 
-  test('doorRunnerKeyFor maps every documented key', () {
-    expect(doorRunnerKeyFor(LogicalKeyboardKey.keyA)!.key, DoorRunnerKey.left);
-    expect(doorRunnerKeyFor(LogicalKeyboardKey.keyD)!.key, DoorRunnerKey.right);
-    expect(doorRunnerKeyFor(LogicalKeyboardKey.keyW)!.key, DoorRunnerKey.zap);
-    expect(doorRunnerKeyFor(LogicalKeyboardKey.keyS)!.key, DoorRunnerKey.slow);
-    expect(
-      doorRunnerKeyFor(LogicalKeyboardKey.escape)!.key,
-      DoorRunnerKey.pause,
-    );
-    expect(
-      doorRunnerKeyFor(LogicalKeyboardKey.keyQ)!.key,
-      DoorRunnerKey.question,
-    );
-    expect(doorRunnerKeyFor(LogicalKeyboardKey.numpad4)!.doorIndex, 3);
-    expect(doorRunnerKeyFor(LogicalKeyboardKey.keyZ), isNull);
+  group('keys go through the shared key map', () {
+    Future<List<String>> pumpKeys(WidgetTester t, {GameKeyMap? keys}) async {
+      final log = <String>[];
+      Widget app = _app(_Demo(log: log));
+      if (keys != null) app = GameKeysScope(keys: keys, child: app);
+      await _size(t, 390, 780);
+      await t.pumpWidget(app);
+      return log;
+    }
+
+    testWidgets('the second hand works too: A D W S', (t) async {
+      final log = await pumpKeys(t);
+      await t.sendKeyEvent(LogicalKeyboardKey.keyW);
+      await t.sendKeyDownEvent(LogicalKeyboardKey.keyS);
+      await t.sendKeyUpEvent(LogicalKeyboardKey.keyS);
+      expect(log, ['zap 1', 'slow true', 'slow false']);
+    });
+
+    testWidgets('Esc pauses, Q asks, the numpad picks a door', (t) async {
+      final log = await pumpKeys(t);
+      await t.sendKeyEvent(LogicalKeyboardKey.escape);
+      await t.pump();
+      expect(find.byType(DoorRunnerPauseOverlay), findsOneWidget);
+      await t.sendKeyEvent(LogicalKeyboardKey.escape);
+      await t.pump();
+      await t.sendKeyEvent(LogicalKeyboardKey.keyQ);
+      await t.sendKeyEvent(LogicalKeyboardKey.numpad4);
+      expect(log, ['question', 'door 3']);
+    });
+
+    testWidgets('a remapped key steers and the old one does not', (t) async {
+      final keys = GameKeyMap()
+        ..assign(const KeySlot(GameAction.up, 1), LogicalKeyboardKey.keyJ);
+      final log = await pumpKeys(t, keys: keys);
+      await t.sendKeyEvent(LogicalKeyboardKey.keyJ);
+      await t.sendKeyEvent(LogicalKeyboardKey.arrowUp);
+      expect(log, ['zap 1']);
+    });
+
+    testWidgets('the hints show the remapped key', (t) async {
+      final keys = GameKeyMap()
+        ..assign(const KeySlot(GameAction.up, 1), LogicalKeyboardKey.keyJ);
+      await pumpKeys(t, keys: keys);
+      await _size(t, 1280, 800);
+      await t.pumpWidget(GameKeysScope(keys: keys, child: _app(const _Demo())));
+      expect(
+        find.descendant(
+          of: find.byKey(DoorRunnerIds.keys),
+          matching: find.text('J'),
+        ),
+        findsOneWidget,
+      );
+    });
   });
+}
+
+/// A container that offers every ad format.
+class _AdsHost extends NoGameHost {
+  @override
+  GameAdUnit? adUnit(BuildContext context, GameAdFormat format) => GameAdUnit(
+    widget: const SizedBox(key: Key('ad.test')),
+    size: format.size,
+  );
 }

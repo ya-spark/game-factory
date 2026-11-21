@@ -47,9 +47,32 @@ class _GameKeyboardState extends State<GameKeyboard> {
       widget.focusNode ?? (_own ??= FocusNode(debugLabel: 'GameKeyboard'));
 
   @override
+  void initState() {
+    super.initState();
+    FocusManager.instance.addListener(_onFocusChange);
+  }
+
+  @override
   void dispose() {
+    FocusManager.instance.removeListener(_onFocusChange);
     _own?.dispose();
     super.dispose();
+  }
+
+  /// A button that vanishes or a dialog that closes leaves no focus: take it back, so the keys
+  /// keep working without a click. Only while this game is the page on top.
+  void _onFocusChange() {
+    final pf = FocusManager.instance.primaryFocus;
+    if (pf == null || pf is FocusScopeNode) {
+      WidgetsBinding.instance.addPostFrameCallback((_) => _reclaim());
+    }
+  }
+
+  void _reclaim() {
+    if (!mounted || !widget.enabled) return;
+    final pf = FocusManager.instance.primaryFocus;
+    final onTop = ModalRoute.of(context)?.isCurrent ?? true;
+    if (onTop && (pf == null || pf is FocusScopeNode)) _node.requestFocus();
   }
 
   KeyEventResult _onKey(FocusNode node, KeyEvent event) {
@@ -99,7 +122,11 @@ class KeyHints extends StatelessWidget {
     required this.actions,
     this.player = 1,
     this.style,
+    this.words = const {},
   });
+
+  /// Replaces the short word of an action (Door runner says "zap" for up and "slow" for down).
+  final Map<GameAction, String> words;
 
   /// The actions to show, in order.
   final List<GameAction> actions;
@@ -142,17 +169,17 @@ class KeyHints extends StatelessWidget {
       if (a == GameAction.left && has(GameAction.right)) {
         shown.add((
           '${key(GameAction.left)} ${key(GameAction.right)}',
-          'move',
+          words[GameAction.left] ?? 'move',
           a,
         ));
       } else if (a == GameAction.pick1 && has(GameAction.pick4)) {
         shown.add((
           '${key(GameAction.pick1)}-${key(GameAction.pick4)}',
-          'answer',
+          words[GameAction.pick1] ?? 'answer',
           a,
         ));
       } else {
-        shown.add((key(a), _word(a), a));
+        shown.add((key(a), words[a] ?? _word(a), a));
       }
     }
     return Wrap(
