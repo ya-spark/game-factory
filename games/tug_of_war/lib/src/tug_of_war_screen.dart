@@ -11,7 +11,7 @@ import 'rules/tug_of_war_rules.dart';
 /// [introExtra] is the container's extra on the start screen (this app's "Play with a sibling" button).
 MiniGame tugOfWarGameFor({
   bool harder = false,
-  Widget Function(BuildContext context)? introExtra,
+  Widget? Function(BuildContext context)? introExtra,
 }) => MiniGame(
   id: tugOfWarId,
   title: 'Tug of war',
@@ -56,7 +56,7 @@ class TugOfWarScreen extends StatefulWidget {
   final bool harder;
 
   /// The container's extra on the start screen (a sibling game button), or null.
-  final Widget Function(BuildContext context)? introExtra;
+  final Widget? Function(BuildContext context)? introExtra;
 
   @override
   State<TugOfWarScreen> createState() => _TugOfWarScreenState();
