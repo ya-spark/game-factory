@@ -6,7 +6,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import '../host/ad_service.dart';
-import '../core/audio/audio_service.dart';
+
+import 'package:game_core/kit/audio/audio.dart' hide ambienceTracks;
+
+import '../core/audio/blockfall_audio.dart';
 import '../host/profile_store.dart';
 import '../core/save/save_data.dart';
 import '../host/services.dart';
@@ -67,7 +70,7 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
   bool _sheetOpen = false;
   bool _paused = false;
   int _gameIndex = 0;
-  final AudioService _audio = AudioService();
+  final AudioService _audio = newBlockfallAudio();
   bool _warned = false;
   BlockfallServices? _runFlagOwner;
 

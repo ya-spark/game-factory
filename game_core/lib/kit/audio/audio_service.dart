@@ -42,7 +42,12 @@ abstract class AudioService {
     required double volume,
     required String ambience,
     required bool voice,
+    bool sfx = true,
   });
+
+  /// Plays a short effect (`sfx/<name>.wav` in the game's own assets) when the service was given an
+  /// effects folder and Sound and effects are on; otherwise does nothing.
+  Future<void> sfx(String name);
 
   /// Plays `assets/audio/voice/<name>.mp3` of game_core unless a clip is speaking: a playing clip is never cut
   /// off (see `VoiceArbiter`). With [variants] > 1 a `_02`, `_03` ... file is picked at random.
@@ -73,7 +78,11 @@ class NoopAudioService implements AudioService {
     required double volume,
     required String ambience,
     required bool voice,
+    bool sfx = true,
   }) {}
+
+  @override
+  Future<void> sfx(String name) async {}
 
   @override
   Future<void> voice(String name, {int variants = 1}) async {}
@@ -100,8 +109,10 @@ class FakeAudioService implements AudioService {
   double volume = 1.0;
   String ambience = defaultAmbienceId;
   bool voiceOn = true;
+  bool sfxOn = true;
   bool ambiencePlaying = false;
   final List<String> voices = [];
+  final List<String> sfxes = [];
 
   /// Ambience ids sampled, in order; [previewing] is the one playing now.
   final List<String> previews = [];
@@ -113,7 +124,9 @@ class FakeAudioService implements AudioService {
     required double volume,
     required String ambience,
     required bool voice,
+    bool sfx = true,
   }) {
+    sfxOn = sfx;
     this.sound = sound;
     this.volume = volume;
     this.ambience = ambience;
@@ -124,6 +137,11 @@ class FakeAudioService implements AudioService {
   @override
   Future<void> voice(String name, {int variants = 1}) async {
     if (sound && voiceOn) voices.add(name);
+  }
+
+  @override
+  Future<void> sfx(String name) async {
+    if (sound && sfxOn) sfxes.add(name);
   }
 
   @override

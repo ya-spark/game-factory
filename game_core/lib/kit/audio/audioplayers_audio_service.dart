@@ -17,11 +17,25 @@ AudioPlayer _newPlayer() => AudioPlayer()..audioCache = _cache;
 /// [AudioService] over `audioplayers`. The only file that imports it. Failures (missing
 /// plugin in tests, no audio device) are swallowed: sound is never worth crashing a game.
 class AudioplayersAudioService implements AudioService {
-  AudioplayersAudioService({Random? random}) : _random = random ?? Random() {
+  /// [tracks] and [defaultAmbience] let a game offer its own background sounds (default: the shared
+  /// list). [sfxBase] is the bundle key prefix of the game's own assets, for example
+  /// `packages/game_wingy/assets/`: effects play `<sfxBase>sfx/<name>.wav`; without it [sfx] does nothing.
+  AudioplayersAudioService({
+    Random? random,
+    List<(String, String, String?)>? tracks,
+    String? defaultAmbience,
+    this.sfxBase,
+  }) : _random = random ?? Random(),
+       _tracks = tracks ?? ambienceTracks,
+       ambienceId = defaultAmbience ?? defaultAmbienceId {
     _arbiter = VoiceArbiter(_VoicePlayerOutput(this), onSpeaking: _duck);
   }
 
   final Random _random;
+  final List<(String, String, String?)> _tracks;
+  final String? sfxBase;
+  final List<AudioPlayer> _sfx = [];
+  int _nextSfx = 0;
   AudioPlayer? _voice;
   AudioPlayer? _ambience;
   late final VoiceArbiter _arbiter;
@@ -29,12 +43,15 @@ class AudioplayersAudioService implements AudioService {
   bool enabled = true;
   bool voiceOn = true;
   double masterVolume = 1.0;
-  String ambienceId = defaultAmbienceId;
+  bool sfxOn = true;
+  String ambienceId;
 
   bool _ambienceWanted = false;
   bool _ambiencePlaying = false;
   String? _ambienceLoaded;
 
+  static const int _sfxChannels = 4;
+  static const double sfxVolume = 0.7;
   static const double ambienceVolume = 0.25;
   static const double ambienceDuckedVolume = 0.1;
 
@@ -50,7 +67,9 @@ class AudioplayersAudioService implements AudioService {
     required double volume,
     required String ambience,
     required bool voice,
+    bool sfx = true,
   }) {
+    sfxOn = sfx;
     enabled = sound;
     masterVolume = volume;
     voiceOn = voice;
@@ -59,6 +78,30 @@ class AudioplayersAudioService implements AudioService {
       _ambienceLoaded = null;
     }
     unawaited(_syncAmbience());
+  }
+
+  /// Plays `sfx/<name>.wav`; overlapping effects use a small round-robin pool.
+  @override
+  Future<void> sfx(String name) async {
+    final base = sfxBase;
+    if (base == null || !enabled || !sfxOn) return;
+    final p = _sfxPlayer();
+    try {
+      await p.stop();
+      await p.setVolume(sfxVolume * masterVolume);
+      await p.play(AssetSource('${base}sfx/$name.wav'));
+    } catch (e) {
+      debugPrint('audio: sfx/$name failed: $e');
+    }
+  }
+
+  AudioPlayer _sfxPlayer() {
+    if (_sfx.length < _sfxChannels) {
+      final p = _newPlayer()..setAudioContext(_context);
+      _sfx.add(p);
+      return p;
+    }
+    return _sfx[_nextSfx++ % _sfxChannels];
   }
 
   @override
@@ -87,7 +130,7 @@ class AudioplayersAudioService implements AudioService {
 
   Future<void> _syncAmbience() async {
     String? file;
-    for (final t in ambienceTracks) {
+    for (final t in _tracks) {
       if (t.$1 == ambienceId) file = t.$3;
     }
     final shouldPlay = _ambienceWanted && enabled && file != null;
@@ -118,7 +161,7 @@ class AudioplayersAudioService implements AudioService {
   @override
   Future<void> previewAmbience(String id) async {
     String? file;
-    for (final t in ambienceTracks) {
+    for (final t in _tracks) {
       if (t.$1 == id) file = t.$3;
     }
     if (!enabled || file == null) return;
@@ -159,7 +202,7 @@ class AudioplayersAudioService implements AudioService {
     _arbiter.reset();
     _ambienceWanted = false;
     _previewTimer?.cancel();
-    for (final p in [?_voice, ?_ambience, ?_preview]) {
+    for (final p in [..._sfx, ?_voice, ?_ambience, ?_preview]) {
       try {
         await p.dispose();
       } catch (_) {}
@@ -197,5 +240,50 @@ class _VoicePlayerOutput implements VoiceOutput {
     final pos = await p.getCurrentPosition();
     if (d == null || pos == null) return null;
     return d - pos;
+  }
+}
+
+/// One-shot player for a Settings "preview" button: plays a track from the start, looping until
+/// stopped. Separate from the in-game service so Settings needs no game audio.
+class AmbiencePreview {
+  AmbiencePreview({List<(String, String, String?)>? tracks})
+    : _tracks = tracks ?? ambienceTracks;
+
+  final List<(String, String, String?)> _tracks;
+  AudioPlayer? _player;
+  String? playing;
+
+  Future<void> toggle(String id, double volume) async {
+    if (playing == id) return stop();
+    String? file;
+    for (final t in _tracks) {
+      if (t.$1 == id) file = t.$3;
+    }
+    if (file == null) return stop();
+    try {
+      final p = _player ??= _newPlayer();
+      await p.setReleaseMode(ReleaseMode.loop);
+      await p.setVolume(AudioplayersAudioService.ambienceVolume * volume * 2);
+      await p.play(AssetSource('${_audioBase}ambience/$file'));
+      playing = id;
+    } catch (e) {
+      debugPrint('audio: preview $id failed: $e');
+      playing = null;
+    }
+  }
+
+  Future<void> stop() async {
+    playing = null;
+    try {
+      await _player?.stop();
+    } catch (_) {}
+  }
+
+  Future<void> dispose() async {
+    playing = null;
+    try {
+      await _player?.dispose();
+    } catch (_) {}
+    _player = null;
   }
 }

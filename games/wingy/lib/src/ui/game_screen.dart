@@ -6,7 +6,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import '../host/ad_service.dart';
-import '../core/audio/audio_service.dart';
+
+import 'package:game_core/kit/audio/audio.dart' hide ambienceTracks;
+
+import '../core/audio/wingy_audio.dart';
 import '../host/profile_store.dart';
 import '../host/services.dart';
 import '../core/skins/flyer_skins.dart';
@@ -52,7 +55,7 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
   bool _dialogOpen = false;
   bool _pauseOpen = false;
   bool _refillArmed = false;
-  final AudioService _audio = AudioService();
+  final AudioService _audio = newWingyAudio();
   bool _started = false;
   WingyServices? _services;
 

@@ -3,9 +3,9 @@
 /// Spec: `docs/SPEC.md`.
 library;
 
-export 'src/core/audio/audio_service.dart';
+export 'src/core/audio/wingy_audio.dart';
 
-export 'package:game_core/kit/audio/voice_arbiter.dart';
+export 'package:game_core/kit/audio/audio.dart' hide ambienceTracks;
 
 export 'src/core/clock.dart';
 export 'src/core/retention/achievements.dart';

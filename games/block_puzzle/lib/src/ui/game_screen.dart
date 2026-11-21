@@ -6,7 +6,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import '../host/ad_service.dart';
-import '../core/audio/audio_service.dart';
+
+import 'package:game_core/kit/audio/audio.dart' hide ambienceTracks;
+
+import '../core/audio/block_puzzle_audio.dart';
 import '../host/profile_store.dart';
 import '../host/services.dart';
 import '../game/flame/block_puzzle_game.dart';
@@ -53,7 +56,7 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
   bool _recorded = false;
   bool _dialogOpen = false;
   bool _pauseOpen = false;
-  final AudioService _audio = AudioService();
+  final AudioService _audio = newBlockPuzzleAudio();
   bool _warned = false;
   BlockPuzzleProfileStore? _profile;
   BlockPuzzleServices? _services;

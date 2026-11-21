@@ -3,7 +3,11 @@ enum VoicePriority { high, normal, low }
 
 /// Voice lines that must always be heard (they wait for the speaking clip to end).
 /// PLACEHOLDERS: each game lists its own line names (files in game_core `assets/audio/voice/<name>.mp3`).
-const Set<String> highPriorityVoiceLines = {'game_over', 'new_best', 'better_than_the_best'};
+const Set<String> highPriorityVoiceLines = {
+  'game_over',
+  'new_best',
+  'better_than_the_best',
+};
 
 /// Voice lines that are dropped first (cheap hints and cues).
 const Set<String> lowPriorityVoiceLines = {'get_ready', 'go', 'careful'};
