@@ -2,7 +2,7 @@ import 'dart:io';
 
 import 'package:flutter_game_template/core/ads/ad_service.dart';
 import 'package:flutter_game_template/core/analytics/analytics_service.dart';
-import 'package:flutter_game_template/core/audio/audio_service.dart';
+import 'package:game_core/kit/audio/audio.dart';
 import 'package:flutter_game_template/core/config/app_config.dart';
 import 'package:flutter_game_template/core/config/products.dart';
 import 'package:flutter_game_template/core/identity/identity_service.dart';

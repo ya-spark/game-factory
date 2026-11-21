@@ -1,4 +1,4 @@
-import 'package:flutter_game_template/core/audio/voice_arbiter.dart';
+import 'package:game_core/kit/audio/audio.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 class FakeVoice implements VoiceOutput {

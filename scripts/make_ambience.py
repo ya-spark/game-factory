@@ -4,7 +4,7 @@ noise: original sound, no samples, no third-party source. Mono, 44.1 kHz, 64 kbp
 seamless (all filtering is circular, all envelopes are periodic).
 
 Needs: pip install numpy lameenc
-Usage: python3 scripts/make_ambience.py <output dir>   (e.g. a game's assets/ambience)
+Usage: python3 scripts/make_ambience.py <output dir>   (e.g. game_core/assets/audio/ambience)
 Fixed random seeds: the output is reproducible.
 """
 import sys

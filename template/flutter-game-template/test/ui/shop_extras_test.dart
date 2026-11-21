@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_game_template/core/audio/audio_service.dart';
+import 'package:game_core/kit/audio/audio.dart';
 import 'package:flutter_game_template/core/profile/child_profile.dart';
 import 'package:flutter_game_template/core/services.dart';
 import 'package:flutter_game_template/ui/settings_screen.dart';

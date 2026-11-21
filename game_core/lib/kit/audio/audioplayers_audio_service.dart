@@ -7,6 +7,13 @@ import 'package:flutter/foundation.dart';
 import 'audio_service.dart';
 import 'voice_arbiter.dart';
 
+/// Narrator voice and ambience are package assets of game_core: the bundle key carries
+/// `packages/game_core/assets/audio/`, so every player uses an [AudioCache] with no prefix (the
+/// default cache would look in the app's own `assets/`).
+const String _audioBase = 'packages/game_core/assets/audio/';
+final AudioCache _cache = AudioCache(prefix: '');
+AudioPlayer _newPlayer() => AudioPlayer()..audioCache = _cache;
+
 /// [AudioService] over `audioplayers`. The only file that imports it. Failures (missing
 /// plugin in tests, no audio device) are swallowed: sound is never worth crashing a game.
 class AudioplayersAudioService implements AudioService {
@@ -60,7 +67,7 @@ class AudioplayersAudioService implements AudioService {
     final n = variants <= 1 ? 1 : _random.nextInt(variants) + 1;
     final file = n == 1 ? name : '${name}_${n.toString().padLeft(2, '0')}';
     try {
-      await _arbiter.say('voice/$file.mp3', voicePriorityOf(name));
+      await _arbiter.say('${_audioBase}voice/$file.mp3', voicePriorityOf(name));
     } catch (e) {
       debugPrint('audio: voice/$file failed: $e');
     }
@@ -90,12 +97,12 @@ class AudioplayersAudioService implements AudioService {
         _ambiencePlaying = false;
         return;
       }
-      final pl = _ambience ??= AudioPlayer()..setAudioContext(_context);
+      final pl = _ambience ??= _newPlayer()..setAudioContext(_context);
       await pl.setReleaseMode(ReleaseMode.loop);
       await pl.setVolume(_ambienceLevel());
       if (_ambienceLoaded != file) {
         _ambienceLoaded = file;
-        await pl.play(AssetSource('ambience/$file'));
+        await pl.play(AssetSource('${_audioBase}ambience/$file'));
       } else if (!_ambiencePlaying) {
         await pl.resume();
       }
@@ -117,10 +124,10 @@ class AudioplayersAudioService implements AudioService {
     if (!enabled || file == null) return;
     try {
       _previewTimer?.cancel();
-      final pl = _preview ??= AudioPlayer()..setAudioContext(_context);
+      final pl = _preview ??= _newPlayer()..setAudioContext(_context);
       await pl.setReleaseMode(ReleaseMode.loop);
       await pl.setVolume(ambienceVolume * 2 * masterVolume);
-      await pl.play(AssetSource('ambience/$file'));
+      await pl.play(AssetSource('${_audioBase}ambience/$file'));
       _previewTimer = Timer(ambiencePreviewLength, stopPreview);
     } catch (e) {
       debugPrint('audio: preview $id failed: $e');
@@ -166,7 +173,7 @@ class _VoicePlayerOutput implements VoiceOutput {
   StreamSubscription<void>? _sub;
 
   AudioPlayer get _p =>
-      _s._voice ??= AudioPlayer()
+      _s._voice ??= _newPlayer()
         ..setAudioContext(AudioplayersAudioService._context);
 
   @override

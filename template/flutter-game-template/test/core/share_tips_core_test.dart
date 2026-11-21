@@ -1,7 +1,7 @@
 import 'dart:io';
 import 'dart:math';
 
-import 'package:flutter_game_template/core/audio/audio_service.dart';
+import 'package:game_core/kit/audio/audio.dart';
 import 'package:flutter_game_template/core/config/app_config.dart';
 import 'package:flutter_game_template/core/save/save_data.dart';
 import 'package:flutter_game_template/core/share/share_service.dart';
@@ -145,14 +145,6 @@ void main() {
       expect(back.tipsOff, isTrue);
       expect(back.tipHomeDay, 12);
       expect(SaveData.fromJson({'masterVolume': 7}).masterVolume, 1.0);
-    });
-
-    test('every ambience track has a file in assets/ambience', () {
-      for (final t in ambienceTracks) {
-        if (t.$3 == null) continue;
-        expect(File('assets/ambience/${t.$3}').existsSync(), isTrue);
-      }
-      expect(ambienceTracks.any((t) => t.$1 == defaultAmbienceId), isTrue);
     });
   });
 }

@@ -6,8 +6,8 @@ import 'ads/ad_service.dart';
 import 'analytics/analytics_service.dart';
 import 'speech/speech_service.dart';
 import 'speech/tts_speech_service.dart';
-import 'audio/audio_service.dart';
-import 'audio/audioplayers_audio_service.dart';
+
+import 'package:game_core/kit/audio/audio.dart';
 
 import 'package:game_core/engine/engine.dart';
 

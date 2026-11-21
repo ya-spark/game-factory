@@ -10,6 +10,7 @@ dependencies:
     sdk: flutter
   yaml: ^3.1.4
   shared_preferences: ^2.5.6  # the arcade frame keeps its best score
+  audioplayers: ^6.1.0  # imported only in lib/kit/audio/audioplayers_audio_service.dart
   crypto: ^3.0.8
   cryptography: ^2.9.0
 

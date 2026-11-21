@@ -1,4 +1,4 @@
-/// Ambience tracks: id, label, file in assets/ambience/ ('off' has no file).
+/// Ambience tracks: id, label, file in game_core's assets/audio/ambience/ ('off' has no file).
 const List<(String, String, String?)> ambienceTracks = [
   ('off', 'Off', null),
   ('morning_birds', 'Morning birds', 'morning_birds.mp3'),
@@ -44,7 +44,7 @@ abstract class AudioService {
     required bool voice,
   });
 
-  /// Plays `assets/voice/<name>.mp3` unless a clip is speaking: a playing clip is never cut
+  /// Plays `assets/audio/voice/<name>.mp3` of game_core unless a clip is speaking: a playing clip is never cut
   /// off (see `VoiceArbiter`). With [variants] > 1 a `_02`, `_03` ... file is picked at random.
   Future<void> voice(String name, {int variants = 1});
 

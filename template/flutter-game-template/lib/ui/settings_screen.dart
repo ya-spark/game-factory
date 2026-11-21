@@ -2,7 +2,9 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 import '../core/ads/adsense_plan.dart';
-import '../core/audio/audio_service.dart';
+
+import 'package:game_core/kit/audio/audio.dart';
+
 import '../core/config/app_config.dart';
 import '../core/services.dart';
 

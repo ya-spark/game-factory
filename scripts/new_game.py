@@ -247,8 +247,6 @@ CI_GUARD = "${{ vars.CI_ENABLED == 'true' }}"
 
 # What every generated game must carry from the template's features.
 REQUIRED_FILES = (
-    "lib/core/audio/audio_service.dart",
-    "lib/core/audio/voice_arbiter.dart",
     "lib/core/share/share_service.dart",
     "lib/core/tips/tip_service.dart",
     "lib/core/purchase/parent_gate_guard.dart",
@@ -256,7 +254,6 @@ REQUIRED_FILES = (
     "lib/ui/tip_dialog.dart",
     "lib/ui/parent_gate.dart",
     "lib/ui/shop_screen.dart",
-    "assets/ambience/night.mp3",
 )
 REQUIRED_TEST_IDS = (
     "gate.dialog", "gate.answer", "gate.submit", "gate.cancel",
