@@ -2,7 +2,7 @@
 
 Status: REWRITTEN as Bridge builder (U3, owner 2026-11-22). The game lives once in `game-factory/games/equation_builder/` (SH1); apps and the web list it in their registry and bring content, theme and services. It asks its container only through `GameHost` (`game_core/lib/host`).
 
-**Name.** The child sees "Bridge builder" (title, start screen, how to play, catalogue and web cards). The package, the folder and the game id `equation_builder` are kept on purpose: saved progress and best scores are keyed by the id.
+**Name.** The child sees "Bridge builder" (start screen, how to play, catalogue and web cards; the game itself draws no title). The package, the folder and the game id `equation_builder` are kept on purpose: saved progress and best scores are keyed by the id.
 
 Rules code and the accepts declaration are unchanged from the earlier Equation builder: `lib/src/rules/equation_builder_rules.dart`. New pure-Dart rules for the bridge: `lib/src/rules/bridge_rules.dart`. The screen is `lib/src/equation_builder_screen.dart`, the art `lib/src/ui/bridge_art.dart` (drawn in code; no asset files), test IDs `EquationBuilderIds` here and `GameIds` in game_core.
 
@@ -34,8 +34,10 @@ Rules code and the accepts declaration are unchanged from the earlier Equation b
 - Reduced motion (host setting or system): no wobble, the plank and robot jump to the end state.
 
 ## Screens and layout
-- Start screen (title, small scene, how to play, Start), play, results (score, right count, stars, Done). The frame is `GameFrame` (centred, max 780 wide; ad rail or strip only outside play via the container); no title bar inside the game: `GameTopBar` (exit, name, score, read aloud, pause) and `PauseOverlay` (Resume, Leave).
-- The scene is a stack: the painted backdrop and robot, the sign, and the slot row laid over the gap. Scene height is 0.52 of its width, between 190 and 320 dp. Slots are at most 60 dp (down to about 44 dp at 320 wide with 5 slots). Tiles are 68 dp (younger) or 60 dp, in a wrapping row under the scene. Everything scrolls at large text sizes. Checked at 390, 800 and 1440 wide with text scaled 1.5.
+- Start screen (small scene, how to play, Start), play, results (score, right count, stars, Done). The frame is `GameFrame` (centred, max 780 wide; ad rail or strip only outside play via the container).
+- **No title bar** (owner rule 2026-11-21, fixed 2026-11-22): the game never draws its name; the host shows it ("Game: Bridge builder" on the web). Exit (top left), read aloud and pause (top right) are 44 dp round overlay buttons over the play area, like Wingy's pause button (`_overlayButtons`; `GameTopBar` is not used). The stage, score and timer are a small HUD in the play area between those buttons (Bridge N of M, Stage S; Score; clock and thin bar older levels only; 44 dp tall, 56 dp at text scale over 1.2). `PauseOverlay` (Resume, Leave) covers the game while paused.
+- **Fits the window** (owner 2026-11-22: the game ran below the visible window and had to be scrolled). The play area is the window height less the web bar (about 44 px); `_play` is a `LayoutBuilder` and splits that height: HUD strip, then the scene, then the tray (Clear, Lay plank, tiles, hint). The scene keeps its 0.52 aspect, at most 320 tall, and shrinks to the height left (the sign scales down inside it, slots are at most 60 dp and at most 0.34 of the scene height). The tray takes its natural height, at most 60 percent of the play area; only beyond that does it scroll inside itself (large text on a short window). On a short landscape window (height under 460 and wider than 1.3 times the height, e.g. a phone on its side) the scene is on the left and the tray on the right, so nothing stacks past the bottom. Tile size: 68 dp (younger) or 60 dp, 52 dp under 560 dp tall, 48 dp under 400. Keyboard key hints show only on windows 600 dp wide and at least 520 dp tall. Neither the page nor the game scrolls at 360x640, 390x844, 844x390, 1280x720, 1440x900, 1920x1080 (window less 44 px) at text scale 1.0; at 1.5 nothing overflows and at worst the tray scrolls.
+- Tiles are sized by their content (at least the tile size square). Never give the tile `Container` an `alignment`: it stretches to the full row, one tile per row (the cause of the old overflow).
 - Read aloud: the speaker button reads "Make N with the tiles..." through `GameReadAloud` (and automatically for the container's auto-read setting).
 
 ## Keyboard
@@ -60,7 +62,7 @@ Backspace and Delete are not in the shared map; the screen reads them in a `Focu
 ## Test map (names in `test/`)
 - `bridge_rules_test.dart`: settings per level, stages and scenery, stage stars, board place/remove, verdicts (any sum, single number, full miss), seeds, purity.
 - `equation_builder_rules_test.dart` (unchanged): evaluation order, any equal sum counts, target from whole-number items, every puzzle solvable, younger tiles, seed.
-- `equation_builder_screens_test.dart`: Flow (title and how to play, four bridges to results with score, stage flag and stars, single number is not a sum), Input (drag, tap, take back, Clear; keyboard arrows, Enter, 1 to 4, Backspace; Space Next and pause; Esc; hints; labels), Levels (older five slots and timer, timeout lays a working sum, study has no timer, pause stops the timer), Layout (390, 800, 1440 wide at 1.5 text scale, centred).
+- `equation_builder_screens_test.dart`: Flow (how to play, no title text, four bridges to results with score, stage flag and stars, single number is not a sum), Input (drag, tap, take back, Clear; keyboard arrows, Enter, 1 to 4, Backspace; Space Next and pause; Esc; hints; labels), Levels (older five slots and timer, timeout lays a working sum, study has no timer, pause stops the timer), Layout (360x640, 390x844, 844x390, 1280x720, 1440x900, 1920x1080 less the 44 px web bar, younger and older, text 1.0 and 1.5: no title text, exit and pause 44 dp, no overflow, stage inside the height, no tray scroll at 1.0).
 - Not testable on the VM (left for the owner's check on a device or in the browser): the look and feel of the art and the wobble and roll animation, read-aloud audio.
 
 ## Art

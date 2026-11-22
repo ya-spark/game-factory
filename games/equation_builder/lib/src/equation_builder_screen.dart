@@ -520,62 +520,99 @@ class _EquationBuilderScreenState extends State<EquationBuilderScreen>
             child: GameFrame(
               showAds: _phase != _Phase.play,
               phoneBanner: null,
-              child: Column(
-                children: [
-                  // No title bar: exit, name and pause are small controls (R2).
-                  GameTopBar(
-                    title: bridgeBuilderTitle,
-                    onExit: widget.onExit,
-                    exitKey: GameIds.mgExit(_g),
-                    onPause: _phase == _Phase.play && _result == null
-                        ? _togglePause
-                        : null,
-                    pauseKey: GameIds.mgPause(_g),
-                    paused: _paused,
-                    trailing: [
-                      if (_phase == _Phase.play)
-                        Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 8),
-                          child: Text(
-                            'Score $_score',
-                            key: GameIds.mgScore(_g),
-                            style: Theme.of(context).textTheme.labelLarge,
-                          ),
+              child: LayoutBuilder(
+                builder: (context, box) {
+                  // Key hints need room: on a short window the play area keeps the height.
+                  final showHints = wide && box.maxHeight >= 520;
+                  return Column(
+                    children: [
+                      // No title bar (owner, 2026-11-21): the host shows the name. Exit, pause and
+                      // read aloud are small overlays on the play area, like Wingy's pause button.
+                      Expanded(
+                        child: Stack(
+                          children: [
+                            switch (_phase) {
+                              _Phase.intro => _intro(context),
+                              _Phase.play => _play(context),
+                              _Phase.results => _results(context),
+                            },
+                            _overlayButtons(context),
+                            if (_paused)
+                              PauseOverlay(
+                                overlayKey: GameIds.mgPaused(_g),
+                                resumeKey: GameIds.mgResume(_g),
+                                onResume: _togglePause,
+                                onLeave: widget.onExit,
+                                leaveKey: GameIds.mgLeave(_g),
+                              ),
+                          ],
                         ),
-                      if (_phase == _Phase.play && _reader != null)
-                        IconButton(
-                          key: GameIds.mgSpeak(_g),
-                          tooltip: 'Read the target aloud',
-                          icon: const Icon(Icons.volume_up),
-                          onPressed: _read,
-                        ),
+                      ),
+                      if (showHints) _hints(context),
                     ],
-                  ),
-                  Expanded(
-                    child: Stack(
-                      children: [
-                        switch (_phase) {
-                          _Phase.intro => _intro(context),
-                          _Phase.play => _play(context),
-                          _Phase.results => _results(context),
-                        },
-                        if (_paused)
-                          PauseOverlay(
-                            overlayKey: GameIds.mgPaused(_g),
-                            resumeKey: GameIds.mgResume(_g),
-                            onResume: _togglePause,
-                            onLeave: widget.onExit,
-                            leaveKey: GameIds.mgLeave(_g),
-                          ),
-                      ],
-                    ),
-                  ),
-                  if (wide) _hints(context),
-                ],
+                  );
+                },
               ),
             ),
           ),
         ),
+      ),
+    );
+  }
+
+  static const double _btn = 44;
+
+  Widget _overlayButtons(BuildContext context) {
+    final playing = _phase == _Phase.play;
+    final canPause = playing && _result == null;
+    final style = IconButton.styleFrom(
+      fixedSize: const Size(_btn, _btn),
+      minimumSize: const Size(_btn, _btn),
+      padding: EdgeInsets.zero,
+      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+    );
+    return Positioned.fill(
+      child: Stack(
+        children: [
+          Positioned(
+            top: 0,
+            left: 0,
+            child: IconButton.filledTonal(
+              key: GameIds.mgExit(_g),
+              style: style,
+              tooltip: 'Leave the game',
+              icon: const Icon(Icons.close),
+              onPressed: widget.onExit,
+            ),
+          ),
+          Positioned(
+            top: 0,
+            right: 0,
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                if (playing && _reader != null)
+                  IconButton.filledTonal(
+                    key: GameIds.mgSpeak(_g),
+                    style: style,
+                    tooltip: 'Read the target aloud',
+                    icon: const Icon(Icons.volume_up),
+                    onPressed: _read,
+                  ),
+                if (canPause) ...[
+                  const SizedBox(width: 6),
+                  IconButton.filledTonal(
+                    key: GameIds.mgPause(_g),
+                    style: style,
+                    tooltip: _paused ? 'Resume' : 'Pause',
+                    icon: Icon(_paused ? Icons.play_arrow : Icons.pause),
+                    onPressed: _togglePause,
+                  ),
+                ],
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -612,25 +649,20 @@ class _EquationBuilderScreenState extends State<EquationBuilderScreen>
 
   Widget _intro(BuildContext context) {
     final theme = Theme.of(context);
+    final short = MediaQuery.sizeOf(context).height < 480;
     return Column(
       children: [
         Expanded(
           child: Center(
             child: SingleChildScrollView(
               key: GameIds.mgIntro(_g),
-              padding: const EdgeInsets.all(24),
+              padding: const EdgeInsets.fromLTRB(24, 48, 24, 16),
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Text(
-                    bridgeBuilderTitle,
-                    style: theme.textTheme.headlineMedium,
-                    textAlign: TextAlign.center,
-                  ),
-                  const SizedBox(height: 12),
                   SizedBox(
-                    height: 150,
-                    width: 300,
+                    height: short ? 80 : 150,
+                    width: short ? 160 : 300,
                     child: Semantics(
                       image: true,
                       label: 'A toy robot waits at a gap in a bridge',
@@ -648,7 +680,7 @@ class _EquationBuilderScreenState extends State<EquationBuilderScreen>
                     style: theme.textTheme.bodyLarge,
                     textAlign: TextAlign.center,
                   ),
-                  const SizedBox(height: 24),
+                  SizedBox(height: short ? 12 : 24),
                   FilledButton(
                     key: GameIds.mgStart(_g),
                     onPressed: _start,
@@ -666,6 +698,7 @@ class _EquationBuilderScreenState extends State<EquationBuilderScreen>
 
   Widget _results(BuildContext context) {
     final theme = Theme.of(context);
+    final short = MediaQuery.sizeOf(context).height < 480;
     final r = _s.report;
     return Column(
       children: [
@@ -673,13 +706,13 @@ class _EquationBuilderScreenState extends State<EquationBuilderScreen>
           child: Center(
             child: SingleChildScrollView(
               key: GameIds.mgResults(_g),
-              padding: const EdgeInsets.all(24),
+              padding: const EdgeInsets.fromLTRB(24, 48, 24, 16),
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   SizedBox(
-                    height: 150,
-                    width: 300,
+                    height: short ? 80 : 150,
+                    width: short ? 160 : 300,
                     child: ExcludeSemantics(
                       child: ClipRRect(
                         borderRadius: BorderRadius.circular(16),
@@ -719,7 +752,7 @@ class _EquationBuilderScreenState extends State<EquationBuilderScreen>
                       style: theme.textTheme.titleMedium,
                     ),
                   ],
-                  const SizedBox(height: 24),
+                  SizedBox(height: short ? 12 : 24),
                   FilledButton(
                     key: GameIds.mgDone(_g),
                     onPressed: widget.onExit,
@@ -740,58 +773,143 @@ class _EquationBuilderScreenState extends State<EquationBuilderScreen>
     if (puzzle == null || board == null) return const SizedBox.shrink();
     final theme = Theme.of(context);
     final answered = _result != null;
-    return Center(
-      child: SingleChildScrollView(
-        padding: const EdgeInsets.fromLTRB(12, 0, 12, 12),
-        child: ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 680),
+    final scale = MediaQuery.textScalerOf(context).scale(1.0);
+    return LayoutBuilder(
+      builder: (context, box) {
+        final w = box.maxWidth, h = box.maxHeight;
+        // Height-aware (owner, 2026-11-22): the stage fits the window. The HUD strip, the scene and
+        // the tile tray share the height; the tray scrolls inside itself only when it must.
+        final strip = scale > 1.2 ? 56.0 : 44.0;
+        final landscape = h < 460 && w > h * 1.3;
+        final tileSize = h < 400
+            ? 48.0
+            : (h < 560 ? 52.0 : (widget.level.older ? 60.0 : 68.0));
+        Widget tray() => SingleChildScrollView(
+          key: EquationBuilderIds.mgTray(_g),
+          padding: const EdgeInsets.fromLTRB(12, 0, 12, 4),
           child: Column(
+            mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              Row(
+              if (answered) ..._feedback(theme),
+              if (answered) const SizedBox(height: 8),
+              if (!answered) _controls(context, board),
+              if (!answered) const SizedBox(height: 6),
+              Wrap(
+                spacing: 8,
+                runSpacing: 4,
+                alignment: WrapAlignment.center,
                 children: [
-                  Expanded(
-                    child: Text(
-                      'Bridge ${_round + 1} of ${_s.total}'
-                      ' · Stage ${_stage.stage + 1}',
-                      key: GameIds.mgProgress(_g),
-                      style: theme.textTheme.labelLarge,
-                    ),
+                  for (var i = 0; i < puzzle.tiles.length; i++)
+                    _tile(context, board, i, tileSize),
+                ],
+              ),
+              if (!answered) const SizedBox(height: 4),
+              if (!answered) _hintLine(theme),
+            ],
+          ),
+        );
+        final Widget body;
+        if (landscape) {
+          body = Row(
+            children: [
+              Expanded(
+                flex: 11,
+                child: Center(child: _scene(context, puzzle, board)),
+              ),
+              SizedBox(
+                width: min(340.0, w * 0.42),
+                child: Align(
+                  alignment: Alignment.center,
+                  child: ConstrainedBox(
+                    constraints: BoxConstraints(maxHeight: h - strip),
+                    child: tray(),
                   ),
-                  if (_timed) _timerLabel(theme),
+                ),
+              ),
+            ],
+          );
+        } else {
+          body = Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Flexible(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 12),
+                  child: Center(child: _scene(context, puzzle, board)),
+                ),
+              ),
+              const SizedBox(height: 8),
+              ConstrainedBox(
+                constraints: BoxConstraints(maxHeight: (h - strip) * 0.6),
+                child: tray(),
+              ),
+            ],
+          );
+        }
+        return Align(
+          alignment: Alignment.topCenter,
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 680),
+            child: Column(
+              children: [
+                SizedBox(height: strip, child: _hud(theme, strip)),
+                Expanded(child: body),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  /// Stage, score and timer inside the play area, between the exit and pause buttons.
+  Widget _hud(ThemeData theme, double strip) {
+    final speak = _reader != null;
+    return Padding(
+      padding: EdgeInsets.only(left: 52, right: speak ? 104 : 52),
+      child: Center(
+        child: FittedBox(
+          fit: BoxFit.scaleDown,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                'Bridge ${_round + 1} of ${_s.total} · Stage ${_stage.stage + 1}',
+                key: GameIds.mgProgress(_g),
+                style: theme.textTheme.labelLarge,
+              ),
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    'Score $_score',
+                    key: GameIds.mgScore(_g),
+                    style: theme.textTheme.labelLarge,
+                  ),
+                  if (_timed) ...[
+                    const SizedBox(width: 12),
+                    _timerLabel(theme),
+                  ],
                 ],
               ),
               if (_timed)
                 Padding(
-                  padding: const EdgeInsets.only(top: 4),
+                  padding: const EdgeInsets.only(top: 2),
                   child: ExcludeSemantics(
-                    child: AnimatedBuilder(
-                      animation: _timer,
-                      builder: (_, _) => LinearProgressIndicator(
-                        value: 1 - _timer.value,
-                        minHeight: 6,
-                        borderRadius: BorderRadius.circular(3),
+                    child: SizedBox(
+                      width: 140,
+                      child: AnimatedBuilder(
+                        animation: _timer,
+                        builder: (_, _) => LinearProgressIndicator(
+                          value: 1 - _timer.value,
+                          minHeight: 4,
+                          borderRadius: BorderRadius.circular(2),
+                        ),
                       ),
                     ),
                   ),
                 ),
-              const SizedBox(height: 8),
-              _scene(context, puzzle, board),
-              const SizedBox(height: 8),
-              if (!answered) _controls(context, board),
-              const SizedBox(height: 8),
-              Wrap(
-                spacing: 10,
-                runSpacing: 10,
-                alignment: WrapAlignment.center,
-                children: [
-                  for (var i = 0; i < puzzle.tiles.length; i++)
-                    _tile(context, board, i),
-                ],
-              ),
-              const SizedBox(height: 8),
-              if (!answered) _hintLine(theme),
-              if (answered) ..._feedback(theme),
             ],
           ),
         ),
@@ -843,15 +961,17 @@ class _EquationBuilderScreenState extends State<EquationBuilderScreen>
   ) {
     return LayoutBuilder(
       builder: (context, box) {
-        final w = box.maxWidth;
-        final h = (w * 0.52).clamp(190.0, 320.0);
+        // Fit the width and the height given; keep the 0.52 aspect, at most 320 tall.
+        final maxH = box.maxHeight.isFinite ? box.maxHeight : 320.0;
+        final w = min(box.maxWidth, min(maxH, 320.0) / 0.52);
+        final h = w * 0.52;
         final size = Size(w, h);
         final deckY = h * BridgeGeometry.deck;
         final bank = w * BridgeGeometry.bank;
         final gapW = w - 2 * bank;
         const gapSp = 4.0;
         final n = board.slotCount;
-        final ss = min(60.0, (gapW - gapSp * (n - 1)) / n);
+        final ss = min(min(60.0, h * 0.34), (gapW - gapSp * (n - 1)) / n);
         final rowW = ss * n + gapSp * (n - 1);
         final rowLeft = bank + (gapW - rowW) / 2;
         final rowTop = deckY - h * 0.01;
@@ -860,6 +980,7 @@ class _EquationBuilderScreenState extends State<EquationBuilderScreen>
         final endX = _stage.endsStage ? 0.8 : 0.94;
         return SizedBox(
           key: EquationBuilderIds.mgScene(_g),
+          width: w,
           height: h,
           child: ClipRRect(
             borderRadius: BorderRadius.circular(16),
@@ -924,7 +1045,12 @@ class _EquationBuilderScreenState extends State<EquationBuilderScreen>
                   top: 4,
                   left: 0,
                   right: 0,
-                  child: Center(child: _sign(context, w)),
+                  height: deckY - 6,
+                  child: FittedBox(
+                    fit: BoxFit.scaleDown,
+                    alignment: Alignment.topCenter,
+                    child: _sign(context, w),
+                  ),
                 ),
                 Positioned(
                   left: rowLeft,
@@ -1155,20 +1281,18 @@ class _EquationBuilderScreenState extends State<EquationBuilderScreen>
     );
   }
 
-  Widget _tile(BuildContext context, BridgeBoard board, int i) {
+  Widget _tile(BuildContext context, BridgeBoard board, int i, double size) {
     final theme = Theme.of(context);
     final t = board.tiles[i];
     final placed = board.isPlaced(i);
     final selected = _selTile == i;
     final cursor = _keyed && _cursor == i;
     final op = isOperator(t);
-    final big = !widget.level.older;
-    final size = big ? 68.0 : 60.0;
     final answered = _result != null;
     Widget face({bool lifted = false}) => Container(
       constraints: BoxConstraints(minWidth: size, minHeight: size),
       padding: const EdgeInsets.symmetric(horizontal: 12),
-      alignment: Alignment.center,
+      // No `alignment` on the Container: it would stretch every tile to the full row width.
       decoration: BoxDecoration(
         color: op ? const Color(0xFFFFB02E) : const Color(0xFF5AA9FF),
         borderRadius: BorderRadius.circular(14),
@@ -1183,11 +1307,15 @@ class _EquationBuilderScreenState extends State<EquationBuilderScreen>
           ),
         ],
       ),
-      child: Text(
-        t,
-        style: theme.textTheme.headlineSmall?.copyWith(
-          color: op ? bridgeInk : Colors.white,
-          fontWeight: FontWeight.w900,
+      child: Center(
+        widthFactor: 1,
+        heightFactor: 1,
+        child: Text(
+          t,
+          style: theme.textTheme.headlineSmall?.copyWith(
+            color: op ? bridgeInk : Colors.white,
+            fontWeight: FontWeight.w900,
+          ),
         ),
       ),
     );
@@ -1203,7 +1331,7 @@ class _EquationBuilderScreenState extends State<EquationBuilderScreen>
       label: label,
       onTap: () => _tapTile(i),
       child: Padding(
-        padding: const EdgeInsets.only(bottom: 6),
+        padding: const EdgeInsets.only(bottom: 4),
         child: AnimatedScale(
           scale: selected ? 1.12 : 1,
           duration: const Duration(milliseconds: 120),

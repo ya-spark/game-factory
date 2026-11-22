@@ -12,5 +12,6 @@ abstract final class EquationBuilderIds {
   static Key mgPlank(String g) => Key('$g.plank');
   static Key mgFlag(String g) => Key('$g.flag');
   static Key mgStageStars(String g) => Key('$g.stage_stars');
+  static Key mgTray(String g) => Key('$g.tray');
   static Key mgGhost(String g) => Key('$g.ghost');
 }

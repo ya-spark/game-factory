@@ -155,7 +155,9 @@ void main() {
           ),
         );
         expect(find.byKey(GameIds.mgIntro(_g)), findsOneWidget);
-        expect(find.text('Bridge builder'), findsWidgets);
+        // The host shows the name; the game draws no title strip of its own.
+        expect(find.text('Bridge builder'), findsNothing);
+        expect(find.byKey(GameIds.mgExit(_g)), findsOneWidget);
         expect(find.text('Equation builder'), findsNothing);
         expect(find.byType(AppBar), findsNothing);
         expect(find.textContaining('stuck at a gap'), findsOneWidget);
@@ -448,27 +450,70 @@ void main() {
   });
 
   group('Bridge builder (SPEC: Layout)', () {
-    for (final size in [
-      const Size(390, 800),
-      const Size(800, 700),
-      const Size(1440, 900),
+    for (final size in const [
+      Size(360, 640),
+      Size(390, 844),
+      Size(844, 390),
+      Size(1280, 720),
+      Size(1440, 900),
+      Size(1920, 1080),
     ]) {
-      testWidgets(
-        'plays at ${size.width.toInt()} wide with large text, nothing overflows, the stage is centred',
-        (t) async {
-          await open(
-            t,
-            level: const MiniGameLevel.older(),
-            size: size,
-            scale: 1.5,
-            year: 4,
+      for (final scale in const [1.0, 1.5]) {
+        for (final older in [false, true]) {
+          testWidgets(
+            'plays at ${size.width.toInt()}x${size.height.toInt()}, text ${scale}x, ${older ? 'older' : 'younger'}: no title, exit and pause, no overflow, stage fits',
+            (t) async {
+              // The web bar takes about 44 px of the window height.
+              final game = Size(size.width, size.height - 44);
+              await open(
+                t,
+                level: older
+                    ? const MiniGameLevel.older()
+                    : const MiniGameLevel.younger(),
+                size: game,
+                scale: scale,
+                year: older ? 4 : 1,
+              );
+              expect(t.takeException(), isNull);
+              expect(find.text('Bridge builder'), findsNothing);
+              expect(find.byType(AppBar), findsNothing);
+              expect(find.byKey(GameIds.mgExit(_g)), findsOneWidget);
+              expect(find.byKey(GameIds.mgPause(_g)), findsOneWidget);
+              expect(t.getSize(find.byKey(GameIds.mgPause(_g))).width, 44);
+              final scene = t.getRect(
+                find.byKey(EquationBuilderIds.mgScene(_g)),
+              );
+              expect(scene.top, greaterThanOrEqualTo(0));
+              expect(scene.bottom, lessThanOrEqualTo(game.height));
+              expect(scene.right, lessThanOrEqualTo(game.width));
+              // The tray (controls and tiles) is on screen without scrolling the page; the first tile and
+              // the Lay plank button are inside the window.
+              final tile = t.getRect(_tile(0));
+              expect(tile.bottom, lessThanOrEqualTo(game.height));
+              expect(
+                (scene.center.dx - game.width / 2).abs(),
+                lessThan(game.width * 0.3),
+              );
+              // At normal text size nothing scrolls inside the game at all.
+              if (scale == 1.0) {
+                final st = t.state<ScrollableState>(
+                  find.descendant(
+                    of: find.byKey(EquationBuilderIds.mgTray(_g)),
+                    matching: find.byType(Scrollable),
+                  ),
+                );
+                expect(st.position.maxScrollExtent, 0);
+              }
+              // Pause covers the game and resumes.
+              await t.tap(find.byKey(GameIds.mgPause(_g)));
+              await t.pump();
+              expect(find.byKey(GameIds.mgPaused(_g)), findsOneWidget);
+              expect(t.takeException(), isNull);
+              await t.pumpWidget(const SizedBox());
+            },
           );
-          expect(t.takeException(), isNull);
-          final c = t.getCenter(find.byKey(EquationBuilderIds.mgScene(_g))).dx;
-          expect((c - size.width / 2).abs(), lessThan(size.width * 0.2));
-          await t.pumpWidget(const SizedBox());
-        },
-      );
+        }
+      }
     }
   });
 }
