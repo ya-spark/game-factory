@@ -9,8 +9,8 @@ void main() {
   testWidgets('Parcel train opens and closes cleanly', (t) async {
     SharedPreferences.setMockInitialValues({});
     await t.pumpWidget(
-      MaterialApp(
-        home: GameHostScope(host: const NoGameHost(), child: ParcelTrainScreen()),
+      const MaterialApp(
+        home: GameHostScope(host: NoGameHost(), child: ParcelTrainScreen()),
       ),
     );
     await t.pump(const Duration(milliseconds: 200));
