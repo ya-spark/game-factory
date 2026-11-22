@@ -34,10 +34,11 @@ and the item selector are described in `CONTENT_FORMAT.md`.
   itself. Both score through `QuizSession` (one answer per board or round, stars on first pass). Test IDs:
   `match.*` and `sort.*` in `test_ids.dart`. Level comes from the theme's `InterfaceLevel` unless `level:` is given.
 
-- Series builder (`seriesBuilderGame`, view `lib/ui/minigames/series_builder_screen.dart`, rules
-  `lib/engine/minigames/series_builder/rules/`): tap the shuffled tiles in the right order; one `series` item is
-  one round; needs 3 open `series` items. `SeriesLevel` (younger: up to 5 tiles, a wrong tile is greyed, no timer,
-  never fails; older: up to 8 tiles and a gentle clock; hard: up to 10 tiles). Longer series play a window of the steps.
+- Domino chain (was Series builder; `dominoChainGame`, package `games/domino_chain` in game-factory, see its
+  `docs/SPEC.md`): the steps of a `series` item are dominoes dragged (or tapped) into numbered slots, then Go topples the
+  chain and it stops at the first wrong domino. A session is up to 6 chains (2 per stage); needs 1 open `series` item.
+  `SeriesLevel` (younger: up to 4 dominoes, 2 hints, no timer; older: up to 7, 1 hint, a gentle clock; hard: 7, tighter
+  clock, no hints; the flag has no text). Longer series play a window of the steps.
 - Word builder (`wordBuilderGame`, view `lib/ui/minigames/word_builder_screen.dart`, rules
   `lib/engine/minigames/word_builder/rules/`): build the answer from letter tiles with a hint; one `word` item, or
   one `cloze` item (a word per gap), is one round; needs 3 open `word` or `cloze` items. The item's listed answers
@@ -45,8 +46,8 @@ and the item selector are described in `CONTENT_FORMAT.md`.
   wrong letters greyed, the word completes by itself, no timer; older: free building with Check, Undo and Clear and a
   gentle clock; hard: two decoy letters and tighter limits). Tiles come from the item's `letters` (else the answer).
   Both new games take `hard: true` (Craft Champion), report their score through `onScore`, and are added to a Craft
-  app's registry by the app (`RegistryEntry(seriesBuilderGame)`, `RegistryEntry(wordBuilderGame)`). Test IDs:
-  `series.*` and `wordb.*`.
+  app's registry by the app (`RegistryEntry(dominoChainGame)`, `RegistryEntry(wordBuilderGame)`). Test IDs:
+  `domino_chain.*` and `wordb.*`.
 
 Adding a minigame: create a `MiniGame`, add a `RegistryEntry` to the app's registry, build its screen
 from `ctx.session`, call `ctx.onAnswered` after each answer. Never score outside `QuizSession`.

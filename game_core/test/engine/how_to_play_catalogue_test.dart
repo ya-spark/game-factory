@@ -16,7 +16,7 @@ void main() {
         quickQuizId,
         'memory_match',
         'sort_bins',
-        'series_builder',
+        'domino_chain',
         'word_builder',
         'true_false',
         'cloze_fix',

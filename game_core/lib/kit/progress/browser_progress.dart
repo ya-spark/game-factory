@@ -77,6 +77,7 @@ class MemoryProgressStorage implements ProgressStorage {
 /// old id is read once and written under the new one (best scores here, the web's `amc.state` in games-web).
 const Map<String, String> renamedGameIds = {
   'equation_builder': 'bridge_builder',
+  'series_builder': 'domino_chain',
 };
 
 /// Browser-saved progress of the web games (W3; spec in the studio repo `docs/FEATURE-SPECS.md`).

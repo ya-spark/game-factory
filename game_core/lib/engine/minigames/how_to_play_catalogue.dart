@@ -63,15 +63,15 @@ abstract final class HowToPlayCatalogue {
       ],
     ),
     HowToPlay(
-      'series_builder',
-      'Series builder',
+      'domino_chain',
+      'Domino chain',
       [
-        'Put the steps in the right order by tapping the tiles one after the other.',
-        'A wrong tile is greyed out and you try again.',
+        'Drag the dominoes into the row, or tap a domino and then a slot, so the steps are in the right order. Then press Go.',
+        'The chain topples. If it stops at a domino, that step was not next: swap it and press Go again.',
       ],
       [
-        'Find the first step before you start tapping.',
-        'Older levels add a gentle timer.',
+        'Find the first step before you start.',
+        'Use a hint if you are stuck. Older levels add a gentle timer.',
       ],
     ),
     HowToPlay(

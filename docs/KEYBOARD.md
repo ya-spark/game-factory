@@ -35,6 +35,7 @@ One key map for every game and app, in `game_core` (`lib/kit/keys/`, import `pac
 |---|---|
 | Choose-one games (Tug of war, True or false, Cloze fix, Balloon pop, Shooter shell) | 1 to 4 answer, Enter start / next, Q read the question, Space pause, Esc pause or leave |
 | Bridge builder (id `bridge_builder`) | left and right choose a tile, Enter or Space places it in the next slot (or takes it back; B-01: Space selects, it does not pause), 1 to 9 place that tile, Backspace or Down takes the last tile back, Q reads the target, Space or Enter is Next after a result, Esc pauses or leaves |
+| Domino chain (id `domino_chain`) | left and right choose a domino, Enter places it in the next slot (or takes it back), 1 to 4 place that domino, Backspace, Delete or Down takes the last one back, H hint, Space is Go when every slot is full (else pause), Space or Enter is Next after a solve, Q reads the steps, Esc pauses or leaves; every button shows its key |
 | Memory match | arrows over the cards, Enter turns a card (or goes on), Q reads, Space pause, Esc pause or leave |
 | Door runner | left and right steer, up zaps, down slows while held, 1 to 4 pick a door, Enter or Q the question, Space or Esc pause |
 | Blockfall | left and right move (held keys repeat), up rotates, down soft-drops while held, Enter hard-drops, Q holds, 1 to 3 power-ups, Space or Esc pause |
