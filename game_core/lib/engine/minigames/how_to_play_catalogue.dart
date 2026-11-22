@@ -53,6 +53,20 @@ abstract final class HowToPlayCatalogue {
       ],
     ),
     HowToPlay(
+      'wind_up_dash',
+      'Wind-up dash',
+      [
+        'Space or tap to jump. The toy car rolls by itself: hop over bricks and do not fall in gaps.',
+        'Pick up the paper stars. Ten stars wind the spring, and a full spring bounces you off one brick.',
+        'Courses have flags: a crash puts you back at the last flag for free. Reach the flag at the end for stars.',
+      ],
+      [
+        'Jump a little before the brick, not at the last moment.',
+        'Pick up most of the stars on a course for 2 or 3 stars.',
+        'P or Esc pauses.',
+      ],
+    ),
+    HowToPlay(
       'memory_match',
       'Memory match',
       [
