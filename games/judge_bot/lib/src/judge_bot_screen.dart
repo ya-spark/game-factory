@@ -917,7 +917,10 @@ class _JudgeBotScreenState extends State<JudgeBotScreen>
             children: [
               Expanded(child: _art(claim, scale)),
               const SizedBox(height: 6),
-              SizedBox(height: h < 600 ? 84 : 96, child: _feedback(claim)),
+              SizedBox(
+                height: h < 600 ? 92 : (h < 760 ? 112 : 128),
+                child: _feedback(claim),
+              ),
               const SizedBox(height: 6),
               SizedBox(height: lampsH, child: _lamps(stacked)),
               const SizedBox(height: 8),
@@ -1046,7 +1049,7 @@ class _JudgeBotScreenState extends State<JudgeBotScreen>
       builder: (context, box) {
         final ah = box.maxHeight;
         final younger = !widget.level.older;
-        final ticketH = (ah * 0.46).clamp(110.0, 230.0);
+        final ticketH = (ah * 0.36).clamp(104.0, 200.0);
         final robotH = ah - ticketH - 8;
         return Column(
           children: [
