@@ -1,6 +1,7 @@
 import 'dart:math';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 import 'package:game_core/game_core.dart';
 
@@ -196,6 +197,18 @@ class _MergeScreenState extends State<MergeScreen> {
           onInput: _onKey,
           spaceGoesOn: _phase != _Phase.play,
           hints: _hints,
+          shortcuts: {
+            if (_phase == _Phase.play) ...{
+              LogicalKeyboardKey.backspace: () {
+                final g = _game;
+                if (g != null && g.canUndo) setState(g.undo);
+              },
+              LogicalKeyboardKey.keyN: () => _start(_relaxed),
+            },
+          },
+          extraHints: _phase == _Phase.play
+              ? const [('Backspace', 'undo'), ('N', 'new garden')]
+              : const [],
           words: const {
             GameAction.left: 'slide left / right',
             GameAction.up: 'slide up',
@@ -362,12 +375,12 @@ class _MergeScreenState extends State<MergeScreen> {
                     onPressed: g.canUndo
                         ? () => setState(() => g.undo())
                         : null,
-                    child: const Text('Undo'),
+                    child: Text(withKey('Undo', 'Backspace')),
                   ),
                   OutlinedButton(
                     key: MindIds.calmControl(_g, 'restart'),
                     onPressed: () => _start(_relaxed),
-                    child: const Text('New garden'),
+                    child: Text(withKey('New garden', 'N')),
                   ),
                   if (_relaxed)
                     FilledButton(
