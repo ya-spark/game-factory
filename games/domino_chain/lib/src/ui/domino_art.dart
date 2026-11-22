@@ -330,7 +330,7 @@ class DominoRowPainter extends CustomPainter {
     final w = size.width, h = size.height;
     final dh = h * 0.42;
     final dw = dh * 0.62;
-    final gap = (w * 0.8 - dw * count) / max(1, count - 1);
+    final gap = (w * 0.68 - dw * count) / max(1, count - 1);
     final base = h * 0.82;
     final x0 = w * 0.08;
     for (var i = 0; i < count; i++) {

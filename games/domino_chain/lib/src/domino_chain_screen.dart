@@ -124,6 +124,9 @@ class _DominoChainScreenState extends State<DominoChainScreen>
   int _totalMs = 1000;
   int _timeLimit = 0;
   String _message = '';
+
+  /// The prompt of the chain on the table (kept: the session moves on when the chain is solved).
+  String _prompt = 'Put these in order.';
   AnswerResult? _result;
   int _chainStars = 0;
   int _stageFirst = 0;
@@ -178,6 +181,7 @@ class _DominoChainScreenState extends State<DominoChainScreen>
     final chain = DominoChain.fromItem(item, widget.level, _random);
     _round = _s.index;
     _chain = chain;
+    _prompt = '${item.json['prompt'] ?? 'Put these in order.'}';
     _board = DominoBoard(tiles: chain.tiles, steps: chain.steps);
     _stage = dominoStageFor(_round, _chains);
     if (_stage.indexInStage == 0) _stageFirst = 0;
@@ -469,13 +473,8 @@ class _DominoChainScreenState extends State<DominoChainScreen>
 
   String get _promptText {
     final c = _chain;
-    final prompt =
-        (_s.index < _s.items.length
-            ? _s.items[_s.index].item.json['prompt']
-            : null) ??
-        'Put these in order.';
-    if (c == null) return '$prompt';
-    return '$prompt The steps are: ${c.tiles.join('. ')}.';
+    if (c == null) return _prompt;
+    return '$_prompt The steps are: ${c.tiles.join('. ')}.';
   }
 
   Future<void> _read() => _reader == null
@@ -1336,11 +1335,7 @@ class _DominoChainScreenState extends State<DominoChainScreen>
 
   Widget _sign(BuildContext context) {
     final theme = Theme.of(context);
-    final prompt =
-        (_s.index < _s.items.length
-            ? _s.items[_s.index].item.json['prompt']
-            : null) ??
-        'Put these in order.';
+    final prompt = _prompt;
     return Semantics(
       key: DominoChainIds.sign(_g),
       container: true,
@@ -1355,7 +1350,7 @@ class _DominoChainScreenState extends State<DominoChainScreen>
             borderRadius: BorderRadius.circular(12),
           ),
           child: Text(
-            '$prompt',
+            prompt,
             key: GameIds.mgPrompt(_g),
             maxLines: 3,
             overflow: TextOverflow.ellipsis,

@@ -213,6 +213,12 @@ void main() {
         await t.tap(_go());
         await settle(t);
         expect(log, hasLength(1));
+        // the sign keeps this chain's prompt after the session moved on
+        expect(find.byKey(GameIds.mgPrompt(_g)), findsOneWidget);
+        expect(
+          (t.widget<Text>(find.byKey(GameIds.mgPrompt(_g)))).data,
+          'Put the steps 1 in order',
+        );
         expect(log.single.correct, isFalse); // second try: not a first pass
         expect(find.byKey(GameIds.mgFeedback(_g)), findsOneWidget);
         expect(find.textContaining('Flag up'), findsWidgets);
