@@ -391,7 +391,7 @@ class _ChoiceGameScreenState extends State<ChoiceGameScreen>
 
   @override
   Widget build(BuildContext context) {
-    final wide = WindowClass.ofContext(context) != WindowClass.compact;
+    final wide = keyHintsFit(context);
     return Scaffold(
       key: GameIds.mgScreen(_g),
       body: SafeArea(

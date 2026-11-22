@@ -271,7 +271,7 @@ class _MemoryMatchScreenState extends State<MemoryMatchScreen> {
     final shownIndex = answered ? _s.index - 1 : _s.index;
     final done = _s.finished && !answered;
     final title = _study ? 'Memory match: study' : 'Memory match';
-    final wide = WindowClass.ofContext(context) != WindowClass.compact;
+    final wide = keyHintsFit(context);
     return Scaffold(
       key: MemoryMatchIds.matchScreen,
       body: SafeArea(

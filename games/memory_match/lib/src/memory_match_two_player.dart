@@ -228,7 +228,7 @@ class _MemoryMatchTwoPlayerScreenState
 
   @override
   Widget build(BuildContext context) {
-    final wide = WindowClass.ofContext(context) != WindowClass.compact;
+    final wide = keyHintsFit(context);
     return Scaffold(
       key: MemoryMatchIds.matchScreen,
       body: SafeArea(

@@ -79,4 +79,5 @@ How it is built (game_core, `lib/kit/keys/key_labels.dart`):
 - Shared screens already do it: `ChoiceGameScreen`, `ArcadeFrame` (Play, Play again, Done "(Esc)", Continue "(C)", L leaves a round), `CalmResults`, `MiniGameSummary`.
 - A dialog needs its own `GameKeyboard` (a dialog is a new route; the game's keyboard does not see its keys) or an autofocused primary button (the web how-to dialog: "Got it (Enter / Esc)").
 - Not changed on purpose: Space-vs-pause in Runner, True or false, Stack tower and Parcel train (their rewrite specs decide). Blockfall, Block puzzle and Wingy are app games (apps paused) and not on the web; they are not part of B-09 yet. Setting switches (Hints, Show mistakes, Winnable deals) and level chips on menus are reached with Tab and Space or Enter.
+- The hint row (`KeyHints`) shows only when the window is 600 dp wide and 520 dp tall (`keyHintsFit(context)`); on a short window the play area keeps the height, the keys still work and every button prints its own key.
 - The audit of every game's screens and buttons is in `docs/queue/B-09-shortcut-keys.md` in game-studio.

@@ -139,3 +139,11 @@ String keyNameOf(BuildContext context, GameAction action, {int player = 1}) =>
       GameKeysScope.of(context)
           .primaryOf(KeySlot(action, action.shared ? 0 : player)),
     );
+
+/// True when the key hint row has room: a window 600 dp and wider that is also at least 520 dp
+/// tall. A short laptop-landscape window keeps its height for the play area (B-17); the keys still
+/// work and every button prints its own key.
+bool keyHintsFit(BuildContext context) {
+  final size = MediaQuery.sizeOf(context);
+  return size.width >= 600 && size.height >= 520;
+}

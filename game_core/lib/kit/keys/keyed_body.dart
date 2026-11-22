@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 
-import '../layout/window_class.dart';
 import 'game_action.dart';
 import 'game_keyboard.dart';
 import 'key_labels.dart';
@@ -41,7 +40,7 @@ class KeyedBody extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final wide = WindowClass.ofContext(context) != WindowClass.compact;
+    final wide = keyHintsFit(context);
     return GameKeyboard(
       onInput: onInput,
       onRelease: onRelease,

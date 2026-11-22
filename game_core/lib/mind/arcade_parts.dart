@@ -8,7 +8,6 @@ import '../host/game_host.dart';
 import '../kit/game_parts.dart';
 import '../kit/keys/keys.dart';
 import '../kit/layout/game_chrome.dart';
-import '../kit/layout/window_class.dart';
 import 'mind_ids.dart';
 import 'run_report.dart';
 
@@ -226,7 +225,7 @@ class _ArcadeFrameState extends State<ArcadeFrame> {
 
   @override
   Widget build(BuildContext context) {
-    final wide = WindowClass.ofContext(context) != WindowClass.compact;
+    final wide = keyHintsFit(context);
     return Scaffold(
       appBar: AppBar(
         title: Text(widget.title),

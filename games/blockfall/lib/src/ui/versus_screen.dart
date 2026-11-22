@@ -184,7 +184,7 @@ class _VersusState extends State<BlockfallVersusScreen>
 
   @override
   Widget build(BuildContext context) {
-    final wide = WindowClass.ofContext(context) != WindowClass.compact;
+    final wide = keyHintsFit(context);
     return Scaffold(
       key: TestIds.versusScreen,
       backgroundColor: _theme.backgroundTop,

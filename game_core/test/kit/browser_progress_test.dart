@@ -70,29 +70,26 @@ void main() {
     },
   );
 
-  test(
-    'a best score saved under series_builder moves to domino_chain once, the higher one wins',
-    () async {
-      final s = MemoryProgressStorage()
-        ..data['amc.best.series_builder'] = '12'
-        ..data['amc.best.equation_builder'] = '4';
-      var p = BrowserProgress(s);
-      await p.load();
-      expect(p.bestScore('domino_chain'), 12);
-      expect(p.bestScore('series_builder'), 0);
-      expect(p.bestScore('bridge_builder'), 4);
-      expect(s.data.containsKey('amc.best.series_builder'), isFalse);
-      expect(s.data['amc.best.domino_chain'], '12');
-      expect(renamedGameIds['series_builder'], 'domino_chain');
-      // an old score lower than the new one does not replace it
-      s.data['amc.best.series_builder'] = '5';
-      s.data['amc.best.domino_chain'] = '20';
-      p = BrowserProgress(s);
-      await p.load();
-      expect(p.bestScore('domino_chain'), 20);
-      expect(s.data.containsKey('amc.best.series_builder'), isFalse);
-    },
-  );
+  test('a best score saved under series_builder moves to domino_chain once, the higher one wins', () async {
+    final s = MemoryProgressStorage()
+      ..data['amc.best.series_builder'] = '12'
+      ..data['amc.best.equation_builder'] = '4';
+    var p = BrowserProgress(s);
+    await p.load();
+    expect(p.bestScore('domino_chain'), 12);
+    expect(p.bestScore('series_builder'), 0);
+    expect(p.bestScore('bridge_builder'), 4);
+    expect(s.data.containsKey('amc.best.series_builder'), isFalse);
+    expect(s.data['amc.best.domino_chain'], '12');
+    expect(renamedGameIds['series_builder'], 'domino_chain');
+    // an old score lower than the new one does not replace it
+    s.data['amc.best.series_builder'] = '5';
+    s.data['amc.best.domino_chain'] = '20';
+    p = BrowserProgress(s);
+    await p.load();
+    expect(p.bestScore('domino_chain'), 20);
+    expect(s.data.containsKey('amc.best.series_builder'), isFalse);
+  });
 
   test('corrupt, newer-version and bad-rung data start safely', () async {
     final s = MemoryProgressStorage()..data['amc.progress.v1'] = '{nope';

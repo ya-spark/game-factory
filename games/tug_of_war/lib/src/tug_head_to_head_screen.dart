@@ -223,7 +223,7 @@ class _HeadToHeadState extends State<TugOfWarHeadToHeadScreen>
 
   @override
   Widget build(BuildContext context) {
-    final wide = WindowClass.ofContext(context) != WindowClass.compact;
+    final wide = keyHintsFit(context);
     return Scaffold(
       key: TugIds.h2hScreen,
       body: SafeArea(
