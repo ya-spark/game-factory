@@ -26,6 +26,10 @@ game template (`template/flutter-game-template/`). Games are generated from the 
 8. **Pin Flutter** to `.flutter-version`; do not use floating `stable` in workflows.
 9. **Versioning.** `pubspec.yaml` holds only the version name (`x.y.z`, no `+N`) and is the one place it is edited. The Play version code is the `release-to-closed-testing` workflow run number, and the Play release name is always `<version name> (<version code>)`, set by the workflow. Never hand-edit a label in Play Console; `check-play-status` goes red if they drift.
 
+## No living beings (owner, 2026-11-22)
+
+No game uses a person or an animal as a character or in its art. Characters are toys, robots, shapes or objects. Applies to every new game and to rewrites.
+
 ## Workflow
 
 - Sessions, issues and `@claude` runs start only at the `game-studio` root, which also holds the branch/PR rule, the owner-only-issues rule and `docs/DECISIONS.md` (read that first); see its `CLAUDE.md`.
