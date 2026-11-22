@@ -1183,7 +1183,7 @@ class _ParcelTrainScreenState extends State<ParcelTrainScreen>
     // the pieces around the field
     final padH = phone ? 72.0 : 0.0;
     final hudH = short ? 0.0 : 52.0;
-    final hintsH = (!phone && !short) ? 36.0 : 0.0;
+    final hintsH = (!phone && !short) ? 44.0 : 0.0;
     final sideLeft = short ? 170.0 : 0.0;
     final sideRight = short ? 200.0 : 0.0;
     final areaW = w - sideLeft - sideRight - 16;
