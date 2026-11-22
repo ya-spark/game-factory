@@ -8,3 +8,5 @@ export 'layout/frame_ids.dart';
 export 'layout/game_frame.dart';
 export 'layout/window_class.dart';
 export 'layout/game_chrome.dart';
+export 'constellation/constellation_ids.dart';
+export 'constellation/constellation_trail.dart';
