@@ -8,7 +8,10 @@ void main() {
   testWidgets('Wind-up dash opens and closes cleanly', (t) async {
     await t.pumpWidget(
       MaterialApp(
-        home: GameHostScope(host: const NoGameHost(), child: WindUpDashScreen()),
+        home: GameHostScope(
+          host: const NoGameHost(),
+          child: WindUpDashScreen(),
+        ),
       ),
     );
     await t.pump(const Duration(milliseconds: 200));
