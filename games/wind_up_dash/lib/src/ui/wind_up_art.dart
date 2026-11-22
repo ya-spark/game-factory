@@ -211,7 +211,9 @@ class DashWorldPainter extends CustomPainter {
     final view = DashView.of(size, scene.carX);
     final b = scene.backdrop;
     canvas.save();
-    if (scene.shake != Offset.zero) canvas.translate(scene.shake.dx, scene.shake.dy);
+    if (scene.shake != Offset.zero) {
+      canvas.translate(scene.shake.dx, scene.shake.dy);
+    }
     _sky(canvas, size, view, b);
     _layers(canvas, size, view, b);
     _floor(canvas, size, view, b);
@@ -281,11 +283,16 @@ class DashWorldPainter extends CustomPainter {
       ..strokeWidth = max(1.5, u * 0.16)
       ..color = dashInk.withValues(alpha: 0.55);
     // far layer (0.2 of the speed): big soft shapes
-    _tiles(canvas, size, v, 0.2, 22 * u, (c, left, i) {
+    _tiles(canvas, size, v, scene.reduce ? 0.0 : 0.2, 22 * u, (c, left, i) {
       final h = 6 + (i * 7 % 5) * 1.6;
       switch (b.kind) {
         case 0: // shelf with toy blocks
-          final r = Rect.fromLTWH(left + 2 * u, gy - (h + 8) * u, 16 * u, h * u);
+          final r = Rect.fromLTWH(
+            left + 2 * u,
+            gy - (h + 8) * u,
+            16 * u,
+            h * u,
+          );
           c.drawRRect(
             RRect.fromRectAndRadius(r, Radius.circular(u)),
             Paint()..color = b.far,
@@ -298,8 +305,16 @@ class DashWorldPainter extends CustomPainter {
             Paint()..color = b.far,
           );
           c.drawRRect(RRect.fromRectAndRadius(r, Radius.circular(u)), ink);
-          c.drawCircle(r.center.translate(6 * u, 0), u * 0.7, Paint()..color = dashInk.withValues(alpha: 0.5));
-          c.drawCircle(r.center.translate(-6 * u, 0), u * 0.7, Paint()..color = dashInk.withValues(alpha: 0.5));
+          c.drawCircle(
+            r.center.translate(6 * u, 0),
+            u * 0.7,
+            Paint()..color = dashInk.withValues(alpha: 0.5),
+          );
+          c.drawCircle(
+            r.center.translate(-6 * u, 0),
+            u * 0.7,
+            Paint()..color = dashInk.withValues(alpha: 0.5),
+          );
         case 2: // window panes
           final r = Rect.fromLTWH(left + 3 * u, gy - 24 * u, 14 * u, 13 * u);
           c.drawRRect(
@@ -311,8 +326,16 @@ class DashWorldPainter extends CustomPainter {
           c.drawLine(r.topCenter, r.bottomCenter, ink);
         case 3: // moon and stars
           if (i % 2 == 0) {
-            c.drawCircle(Offset(left + 10 * u, gy - 20 * u), 3.2 * u, Paint()..color = const Color(0xFFFFF3C4));
-            c.drawCircle(Offset(left + 11.4 * u, gy - 20.8 * u), 2.8 * u, Paint()..color = b.skyBottom);
+            c.drawCircle(
+              Offset(left + 10 * u, gy - 20 * u),
+              3.2 * u,
+              Paint()..color = const Color(0xFFFFF3C4),
+            );
+            c.drawCircle(
+              Offset(left + 11.4 * u, gy - 20.8 * u),
+              2.8 * u,
+              Paint()..color = b.skyBottom,
+            );
           } else {
             for (var k = 0; k < 4; k++) {
               c.drawCircle(
@@ -327,12 +350,22 @@ class DashWorldPainter extends CustomPainter {
           final bh = 10.0 + (i * 5 % 4) * 2.5;
           for (var k = 0; k < 2; k++) {
             final x = left + (k * 10 + 1) * u;
-            final r = Rect.fromLTWH(x, gy - (bh - k * 3 + 4) * u, bw * u, (bh - k * 3 + 4) * u);
+            final r = Rect.fromLTWH(
+              x,
+              gy - (bh - k * 3 + 4) * u,
+              bw * u,
+              (bh - k * 3 + 4) * u,
+            );
             c.drawRect(r, Paint()..color = b.far);
             c.drawRect(r, ink);
             for (var wy = 0; wy < 3; wy++) {
               c.drawRect(
-                Rect.fromLTWH(x + 1.4 * u, r.top + (1.5 + wy * 3) * u, 1.6 * u, 1.6 * u),
+                Rect.fromLTWH(
+                  x + 1.4 * u,
+                  r.top + (1.5 + wy * 3) * u,
+                  1.6 * u,
+                  1.6 * u,
+                ),
                 Paint()..color = const Color(0xFFFFE9A8),
               );
             }
@@ -340,7 +373,7 @@ class DashWorldPainter extends CustomPainter {
       }
     });
     // mid layer (0.5): smaller props
-    _tiles(canvas, size, v, 0.5, 16 * u, (c, left, i) {
+    _tiles(canvas, size, v, scene.reduce ? 0.0 : 0.5, 16 * u, (c, left, i) {
       final p = Paint()..color = b.mid;
       switch (b.kind) {
         case 0: // a ball and a toy chest
@@ -349,24 +382,41 @@ class DashWorldPainter extends CustomPainter {
             c.drawCircle(Offset(left + 6 * u, gy - 3 * u), 3 * u, ink);
           } else {
             final r = Rect.fromLTWH(left + 3 * u, gy - 6 * u, 9 * u, 6 * u);
-            c.drawRRect(RRect.fromRectAndRadius(r, Radius.circular(u)), Paint()..color = dashBrickColors[i.abs() % 4]);
+            c.drawRRect(
+              RRect.fromRectAndRadius(r, Radius.circular(u)),
+              Paint()..color = dashBrickColors[i.abs() % 4],
+            );
             c.drawRRect(RRect.fromRectAndRadius(r, Radius.circular(u)), ink);
           }
         case 1: // jars
           final r = Rect.fromLTWH(left + 4 * u, gy - 7 * u, 4.5 * u, 7 * u);
           c.drawRRect(RRect.fromRectAndRadius(r, Radius.circular(u)), p);
           c.drawRRect(RRect.fromRectAndRadius(r, Radius.circular(u)), ink);
-          c.drawRect(Rect.fromLTWH(r.left, r.top - 1.2 * u, r.width, 1.2 * u), Paint()..color = dashInk.withValues(alpha: 0.6));
+          c.drawRect(
+            Rect.fromLTWH(r.left, r.top - 1.2 * u, r.width, 1.2 * u),
+            Paint()..color = dashInk.withValues(alpha: 0.6),
+          );
         case 2: // book spines
           for (var k = 0; k < 3; k++) {
             final h = 6 + (k + i) % 3 * 1.5;
-            final r = Rect.fromLTWH(left + (3 + k * 2.3) * u, gy - h * u, 2 * u, h * u);
+            final r = Rect.fromLTWH(
+              left + (3 + k * 2.3) * u,
+              gy - h * u,
+              2 * u,
+              h * u,
+            );
             c.drawRect(r, Paint()..color = dashBrickColors[(i + k).abs() % 4]);
             c.drawRect(r, ink);
           }
         case 3: // desk lamp
           if (i % 2 == 0) {
-            c.drawLine(Offset(left + 5 * u, gy), Offset(left + 5 * u, gy - 9 * u), Paint()..color = dashInk..strokeWidth = u * 0.6);
+            c.drawLine(
+              Offset(left + 5 * u, gy),
+              Offset(left + 5 * u, gy - 9 * u),
+              Paint()
+                ..color = dashInk
+                ..strokeWidth = u * 0.6,
+            );
             c.drawPath(
               Path()
                 ..moveTo(left + 2 * u, gy - 9 * u)
@@ -378,14 +428,23 @@ class DashWorldPainter extends CustomPainter {
             );
           } else {
             final r = Rect.fromLTWH(left + 4 * u, gy - 5 * u, 8 * u, 5 * u);
-            c.drawRRect(RRect.fromRectAndRadius(r, Radius.circular(u * 0.6)), Paint()..color = dashBrickColors[1]);
-            c.drawRRect(RRect.fromRectAndRadius(r, Radius.circular(u * 0.6)), ink);
+            c.drawRRect(
+              RRect.fromRectAndRadius(r, Radius.circular(u * 0.6)),
+              Paint()..color = dashBrickColors[1],
+            );
+            c.drawRRect(
+              RRect.fromRectAndRadius(r, Radius.circular(u * 0.6)),
+              ink,
+            );
           }
         default: // chimneys and antenna
           final r = Rect.fromLTWH(left + 5 * u, gy - 8 * u, 4 * u, 8 * u);
           c.drawRect(r, p);
           c.drawRect(r, ink);
-          c.drawRect(Rect.fromLTWH(left + 4.3 * u, gy - 9 * u, 5.4 * u, 1.2 * u), Paint()..color = dashInk.withValues(alpha: 0.6));
+          c.drawRect(
+            Rect.fromLTWH(left + 4.3 * u, gy - 9 * u, 5.4 * u, 1.2 * u),
+            Paint()..color = dashInk.withValues(alpha: 0.6),
+          );
       }
     });
   }
@@ -405,13 +464,23 @@ class DashWorldPainter extends CustomPainter {
       ..strokeWidth = max(1.5, u * 0.18);
     _tiles(canvas, size, v, 1.0, 12 * u, (c, left, i) {
       c.drawLine(Offset(left, gy), Offset(left, gy + 4 * u), seam);
-      c.drawLine(Offset(left + 6 * u, gy + 4 * u), Offset(left + 6 * u, size.height), seam);
+      c.drawLine(
+        Offset(left + 6 * u, gy + 4 * u),
+        Offset(left + 6 * u, size.height),
+        seam,
+      );
     });
-    canvas.drawLine(Offset(0, gy + 4 * u), Offset(size.width, gy + 4 * u), seam);
+    canvas.drawLine(
+      Offset(0, gy + 4 * u),
+      Offset(size.width, gy + 4 * u),
+      seam,
+    );
     // the gaps: dark slots through the floor
     for (final h in scene.game.track.hazards) {
       if (h.kind != HazardKind.gap) continue;
-      if (h.end < v.cameraX - 2 || h.x > v.cameraX + v.visibleUnits + 2) continue;
+      if (h.end < v.cameraX - 2 || h.x > v.cameraX + v.visibleUnits + 2) {
+        continue;
+      }
       final r = Rect.fromLTRB(v.sx(h.x), gy, v.sx(h.end), size.height);
       canvas.drawRect(
         r,
@@ -441,7 +510,9 @@ class DashWorldPainter extends CustomPainter {
     // re-cut the line over gaps
     for (final h in scene.game.track.hazards) {
       if (h.kind != HazardKind.gap) continue;
-      if (h.end < v.cameraX - 2 || h.x > v.cameraX + v.visibleUnits + 2) continue;
+      if (h.end < v.cameraX - 2 || h.x > v.cameraX + v.visibleUnits + 2) {
+        continue;
+      }
       canvas.drawRect(
         Rect.fromLTRB(v.sx(h.x), gy - max(2, u * 0.25), v.sx(h.end), gy + 1),
         Paint()..color = const Color(0xFF3A2F44),
@@ -455,11 +526,23 @@ class DashWorldPainter extends CustomPainter {
     for (final h in scene.game.track.hazards) {
       n++;
       if (h.kind != HazardKind.block) continue;
-      if (h.end < v.cameraX - 2 || h.x > v.cameraX + v.visibleUnits + 2) continue;
-      final body = Rect.fromLTRB(v.sx(h.x), v.sy(h.height), v.sx(h.end), v.sy(0));
+      if (h.end < v.cameraX - 2 || h.x > v.cameraX + v.visibleUnits + 2) {
+        continue;
+      }
+      final body = Rect.fromLTRB(
+        v.sx(h.x),
+        v.sy(h.height),
+        v.sx(h.end),
+        v.sy(0),
+      );
       // shadow
       canvas.drawOval(
-        Rect.fromLTWH(body.left - u * 0.5, body.bottom - u * 0.4, body.width + u, u * 0.9),
+        Rect.fromLTWH(
+          body.left - u * 0.5,
+          body.bottom - u * 0.4,
+          body.width + u,
+          u * 0.9,
+        ),
         Paint()..color = Colors.black.withValues(alpha: 0.18),
       );
       final color = dashBrickColors[n % dashBrickColors.length];
@@ -467,7 +550,12 @@ class DashWorldPainter extends CustomPainter {
       canvas.drawRRect(rr, Paint()..color = color);
       canvas.drawRRect(
         RRect.fromRectAndRadius(
-          Rect.fromLTWH(body.left + u * 0.4, body.top + u * 0.4, body.width - u * 0.8, u * 0.9),
+          Rect.fromLTWH(
+            body.left + u * 0.4,
+            body.top + u * 0.4,
+            body.width - u * 0.8,
+            u * 0.9,
+          ),
           Radius.circular(u * 0.4),
         ),
         Paint()..color = Colors.white.withValues(alpha: 0.28),
@@ -484,8 +572,15 @@ class DashWorldPainter extends CustomPainter {
       final sw = body.width / studs;
       for (var k = 0; k < studs; k++) {
         final cx = body.left + sw * (k + 0.5);
-        final stud = Rect.fromCenter(center: Offset(cx, body.top - u * 0.35), width: min(sw * 0.7, u * 1.6), height: u * 0.8);
-        canvas.drawRRect(RRect.fromRectAndRadius(stud, Radius.circular(u * 0.3)), Paint()..color = color);
+        final stud = Rect.fromCenter(
+          center: Offset(cx, body.top - u * 0.35),
+          width: min(sw * 0.7, u * 1.6),
+          height: u * 0.8,
+        );
+        canvas.drawRRect(
+          RRect.fromRectAndRadius(stud, Radius.circular(u * 0.3)),
+          Paint()..color = color,
+        );
         canvas.drawRRect(
           RRect.fromRectAndRadius(stud, Radius.circular(u * 0.3)),
           Paint()
@@ -508,14 +603,23 @@ class DashWorldPainter extends CustomPainter {
       final reached = g.checkpoint > k;
       final x = v.sx(f);
       final top = v.sy(11);
-      canvas.drawLine(Offset(x, v.sy(0)), Offset(x, top), Paint()..color = dashInk..strokeWidth = max(2, u * 0.3));
+      canvas.drawLine(
+        Offset(x, v.sy(0)),
+        Offset(x, top),
+        Paint()
+          ..color = dashInk
+          ..strokeWidth = max(2, u * 0.3),
+      );
       final wave = scene.reduce ? 0.0 : sin(scene.time * 5 + k) * u * 0.25;
       final flag = Path()
         ..moveTo(x, top)
         ..lineTo(x + 4.2 * u, top + 1.4 * u + wave)
         ..lineTo(x, top + 3 * u)
         ..close();
-      canvas.drawPath(flag, Paint()..color = reached ? const Color(0xFF2FB36B) : dashGold);
+      canvas.drawPath(
+        flag,
+        Paint()..color = reached ? const Color(0xFF2FB36B) : dashGold,
+      );
       canvas.drawPath(
         flag,
         Paint()
@@ -529,15 +633,30 @@ class DashWorldPainter extends CustomPainter {
     final len = c.length;
     if (len > v.cameraX - 6 && len < v.cameraX + v.visibleUnits + 6) {
       final x = v.sx(len);
-      final p = Paint()..color = dashInk..strokeWidth = max(2.5, u * 0.4);
-      canvas.drawLine(Offset(x - 5 * u, v.sy(0)), Offset(x - 5 * u, v.sy(13)), p);
-      canvas.drawLine(Offset(x + 5 * u, v.sy(0)), Offset(x + 5 * u, v.sy(13)), p);
+      final p = Paint()
+        ..color = dashInk
+        ..strokeWidth = max(2.5, u * 0.4);
+      canvas.drawLine(
+        Offset(x - 5 * u, v.sy(0)),
+        Offset(x - 5 * u, v.sy(13)),
+        p,
+      );
+      canvas.drawLine(
+        Offset(x + 5 * u, v.sy(0)),
+        Offset(x + 5 * u, v.sy(13)),
+        p,
+      );
       final banner = Rect.fromLTRB(x - 5 * u, v.sy(13), x + 5 * u, v.sy(10.5));
       final cols = 10, rows = 2;
       for (var cx = 0; cx < cols; cx++) {
         for (var cy = 0; cy < rows; cy++) {
           canvas.drawRect(
-            Rect.fromLTWH(banner.left + cx * banner.width / cols, banner.top + cy * banner.height / rows, banner.width / cols, banner.height / rows),
+            Rect.fromLTWH(
+              banner.left + cx * banner.width / cols,
+              banner.top + cy * banner.height / rows,
+              banner.width / cols,
+              banner.height / rows,
+            ),
             Paint()..color = (cx + cy).isEven ? dashInk : Colors.white,
           );
         }
@@ -591,8 +710,15 @@ class DashWorldPainter extends CustomPainter {
       if (s.x > v.cameraX + v.visibleUnits + 3) break;
       if (g.taken.contains(i)) continue;
       final bob = scene.reduce ? 0.0 : sin(scene.time * 3 + s.x) * 0.25;
-      final spin = scene.reduce ? 1.0 : (0.55 + 0.45 * cos(scene.time * 2.4 + s.x * 0.7).abs());
-      paintStar(canvas, Offset(v.sx(s.x), v.sy(s.y + bob)), u * 1.7, spin: spin);
+      final spin = scene.reduce
+          ? 1.0
+          : (0.55 + 0.45 * cos(scene.time * 2.4 + s.x * 0.7).abs());
+      paintStar(
+        canvas,
+        Offset(v.sx(s.x), v.sy(s.y + bob)),
+        u * 1.7,
+        spin: spin,
+      );
     }
   }
 
@@ -603,7 +729,11 @@ class DashWorldPainter extends CustomPainter {
       final pos = Offset(v.sx(f.x), v.sy(f.y));
       switch (f.kind) {
         case DashFxKind.dust:
-          canvas.drawCircle(pos, u * f.size * (1.4 - t * 0.6), Paint()..color = Colors.white.withValues(alpha: 0.7 * t));
+          canvas.drawCircle(
+            pos,
+            u * f.size * (1.4 - t * 0.6),
+            Paint()..color = Colors.white.withValues(alpha: 0.7 * t),
+          );
         case DashFxKind.spark:
           final p = Paint()
             ..color = f.color.withValues(alpha: t)
@@ -612,7 +742,11 @@ class DashWorldPainter extends CustomPainter {
           for (var k = 0; k < 8; k++) {
             final a = k * pi / 4;
             final r1 = u * (0.8 + (1 - t) * 2.4) * f.size;
-            canvas.drawLine(pos + Offset(cos(a), sin(a)) * r1, pos + Offset(cos(a), sin(a)) * (r1 + u * 0.8), p);
+            canvas.drawLine(
+              pos + Offset(cos(a), sin(a)) * r1,
+              pos + Offset(cos(a), sin(a)) * (r1 + u * 0.8),
+              p,
+            );
           }
         case DashFxKind.ring:
           canvas.drawCircle(
@@ -627,7 +761,14 @@ class DashWorldPainter extends CustomPainter {
           canvas.save();
           canvas.translate(pos.dx, pos.dy);
           canvas.rotate(f.rot);
-          canvas.drawRect(Rect.fromCenter(center: Offset.zero, width: u * 0.9, height: u * 0.5), Paint()..color = f.color.withValues(alpha: min(1, t * 2)));
+          canvas.drawRect(
+            Rect.fromCenter(
+              center: Offset.zero,
+              width: u * 0.9,
+              height: u * 0.5,
+            ),
+            Paint()..color = f.color.withValues(alpha: min(1, t * 2)),
+          );
           canvas.restore();
         case DashFxKind.speedLine:
           canvas.drawLine(
@@ -660,16 +801,84 @@ class DashWorldPainter extends CustomPainter {
         canvas.drawCircle(Offset.zero, u * 0.8, Paint()..color = dashInk);
         canvas.drawCircle(Offset.zero, u * 0.3, Paint()..color = dashGold);
       case 1: // key
-        canvas.drawOval(Rect.fromCenter(center: Offset(-u * 0.6, 0), width: u * 1.2, height: u * 1.6), Paint()..color = dashGold);
-        canvas.drawOval(Rect.fromCenter(center: Offset(u * 0.6, 0), width: u * 1.2, height: u * 1.6), Paint()..color = dashGold);
-        canvas.drawOval(Rect.fromCenter(center: Offset(-u * 0.6, 0), width: u * 1.2, height: u * 1.6), ink);
-        canvas.drawOval(Rect.fromCenter(center: Offset(u * 0.6, 0), width: u * 1.2, height: u * 1.6), ink);
+        canvas.drawOval(
+          Rect.fromCenter(
+            center: Offset(-u * 0.6, 0),
+            width: u * 1.2,
+            height: u * 1.6,
+          ),
+          Paint()..color = dashGold,
+        );
+        canvas.drawOval(
+          Rect.fromCenter(
+            center: Offset(u * 0.6, 0),
+            width: u * 1.2,
+            height: u * 1.6,
+          ),
+          Paint()..color = dashGold,
+        );
+        canvas.drawOval(
+          Rect.fromCenter(
+            center: Offset(-u * 0.6, 0),
+            width: u * 1.2,
+            height: u * 1.6,
+          ),
+          ink,
+        );
+        canvas.drawOval(
+          Rect.fromCenter(
+            center: Offset(u * 0.6, 0),
+            width: u * 1.2,
+            height: u * 1.6,
+          ),
+          ink,
+        );
       case 2: // bolt
-        canvas.drawRRect(RRect.fromRectAndRadius(Rect.fromCenter(center: Offset.zero, width: u * 1.4, height: u * 0.7), Radius.circular(u * 0.2)), Paint()..color = const Color(0xFF8E8AA8));
-        canvas.drawRRect(RRect.fromRectAndRadius(Rect.fromCenter(center: Offset.zero, width: u * 1.4, height: u * 0.7), Radius.circular(u * 0.2)), ink);
+        canvas.drawRRect(
+          RRect.fromRectAndRadius(
+            Rect.fromCenter(
+              center: Offset.zero,
+              width: u * 1.4,
+              height: u * 0.7,
+            ),
+            Radius.circular(u * 0.2),
+          ),
+          Paint()..color = const Color(0xFF8E8AA8),
+        );
+        canvas.drawRRect(
+          RRect.fromRectAndRadius(
+            Rect.fromCenter(
+              center: Offset.zero,
+              width: u * 1.4,
+              height: u * 0.7,
+            ),
+            Radius.circular(u * 0.2),
+          ),
+          ink,
+        );
       default: // bumper
-        canvas.drawRRect(RRect.fromRectAndRadius(Rect.fromCenter(center: Offset.zero, width: u * 1.6, height: u * 0.9), Radius.circular(u * 0.4)), Paint()..color = const Color(0xFFB8B5CC));
-        canvas.drawRRect(RRect.fromRectAndRadius(Rect.fromCenter(center: Offset.zero, width: u * 1.6, height: u * 0.9), Radius.circular(u * 0.4)), ink);
+        canvas.drawRRect(
+          RRect.fromRectAndRadius(
+            Rect.fromCenter(
+              center: Offset.zero,
+              width: u * 1.6,
+              height: u * 0.9,
+            ),
+            Radius.circular(u * 0.4),
+          ),
+          Paint()..color = const Color(0xFFB8B5CC),
+        );
+        canvas.drawRRect(
+          RRect.fromRectAndRadius(
+            Rect.fromCenter(
+              center: Offset.zero,
+              width: u * 1.6,
+              height: u * 0.9,
+            ),
+            Radius.circular(u * 0.4),
+          ),
+          ink,
+        );
     }
   }
 
@@ -743,7 +952,10 @@ void paintCar(
   );
   canvas.drawRRect(body, Paint()..color = dashRed);
   canvas.drawRRect(
-    RRect.fromRectAndRadius(Rect.fromLTRB(-2.0 * u, -2.2 * u, 2.0 * u, -1.5 * u), Radius.circular(u * 0.4)),
+    RRect.fromRectAndRadius(
+      Rect.fromLTRB(-2.0 * u, -2.2 * u, 2.0 * u, -1.5 * u),
+      Radius.circular(u * 0.4),
+    ),
     Paint()..color = Colors.white.withValues(alpha: 0.25),
   );
   canvas.drawRRect(body, ink);
@@ -755,20 +967,41 @@ void paintCar(
     ..close();
   canvas.drawPath(roof, Paint()..color = const Color(0xFFF7A8AB));
   canvas.drawPath(roof, ink);
-  canvas.drawRect(Rect.fromLTWH(-1.15 * u, -3.35 * u, 1 * u, 0.85 * u), Paint()..color = const Color(0xFFFFF3D6));
-  canvas.drawRect(Rect.fromLTWH(0.15 * u, -3.35 * u, 1 * u, 0.85 * u), Paint()..color = const Color(0xFFFFF3D6));
+  canvas.drawRect(
+    Rect.fromLTWH(-1.15 * u, -3.35 * u, 1 * u, 0.85 * u),
+    Paint()..color = const Color(0xFFFFF3D6),
+  );
+  canvas.drawRect(
+    Rect.fromLTWH(0.15 * u, -3.35 * u, 1 * u, 0.85 * u),
+    Paint()..color = const Color(0xFFFFF3D6),
+  );
   // the key on the back: a stem and two lobes that turn (faster with speed; winds up in the ready beat)
   final angle = windUp >= 0 ? windUp * 3 * pi : time * speed * 0.18;
   final spin = cos(angle);
-  canvas.drawLine(Offset(-2.2 * u, -1.5 * u), Offset(-2.9 * u, -2.6 * u), Paint()..color = dashInk..strokeWidth = max(2.5, u * 0.4)..strokeCap = StrokeCap.round);
+  canvas.drawLine(
+    Offset(-2.2 * u, -1.5 * u),
+    Offset(-2.9 * u, -2.6 * u),
+    Paint()
+      ..color = dashInk
+      ..strokeWidth = max(2.5, u * 0.4)
+      ..strokeCap = StrokeCap.round,
+  );
   final lobeW = u * 0.9 * (0.25 + 0.75 * spin.abs());
   for (final s in const [-1.0, 1.0]) {
-    final lobe = Rect.fromCenter(center: Offset(-2.9 * u + s * lobeW * 0.55, -3.2 * u), width: lobeW, height: u * 1.6);
+    final lobe = Rect.fromCenter(
+      center: Offset(-2.9 * u + s * lobeW * 0.55, -3.2 * u),
+      width: lobeW,
+      height: u * 1.6,
+    );
     canvas.drawOval(lobe, Paint()..color = dashGold);
     canvas.drawOval(lobe, ink);
   }
   // headlights and spring bumper at the front
-  canvas.drawCircle(Offset(2.1 * u, -1.7 * u), u * 0.55, Paint()..color = const Color(0xFFFFF3A8));
+  canvas.drawCircle(
+    Offset(2.1 * u, -1.7 * u),
+    u * 0.55,
+    Paint()..color = const Color(0xFFFFF3A8),
+  );
   canvas.drawCircle(Offset(2.1 * u, -1.7 * u), u * 0.55, ink);
   final bump = Rect.fromLTRB(2.2 * u, -1.1 * u, 3.1 * u, -0.45 * u);
   if (glow) {
@@ -778,12 +1011,21 @@ void paintCar(
       r,
       Paint()
         ..shader = RadialGradient(
-          colors: [dashGold.withValues(alpha: 0.85), dashGold.withValues(alpha: 0)],
+          colors: [
+            dashGold.withValues(alpha: 0.85),
+            dashGold.withValues(alpha: 0),
+          ],
         ).createShader(Rect.fromCircle(center: bump.center, radius: r)),
     );
   }
-  canvas.drawRRect(RRect.fromRectAndRadius(bump, Radius.circular(u * 0.3)), Paint()..color = glow ? dashGold : const Color(0xFFB8B5CC));
-  canvas.drawRRect(RRect.fromRectAndRadius(bump, Radius.circular(u * 0.3)), ink);
+  canvas.drawRRect(
+    RRect.fromRectAndRadius(bump, Radius.circular(u * 0.3)),
+    Paint()..color = glow ? dashGold : const Color(0xFFB8B5CC),
+  );
+  canvas.drawRRect(
+    RRect.fromRectAndRadius(bump, Radius.circular(u * 0.3)),
+    ink,
+  );
   // wheels with turning spokes
   for (final wx in const [-1.4, 1.4]) {
     final w = Offset(wx * u, -0.75 * u);
@@ -793,8 +1035,16 @@ void paintCar(
     final sp = Paint()
       ..color = dashInk
       ..strokeWidth = max(1.5, u * 0.16);
-    canvas.drawLine(w + Offset(cos(a), sin(a)) * u * 0.38, w - Offset(cos(a), sin(a)) * u * 0.38, sp);
-    canvas.drawLine(w + Offset(-sin(a), cos(a)) * u * 0.38, w - Offset(-sin(a), cos(a)) * u * 0.38, sp);
+    canvas.drawLine(
+      w + Offset(cos(a), sin(a)) * u * 0.38,
+      w - Offset(cos(a), sin(a)) * u * 0.38,
+      sp,
+    );
+    canvas.drawLine(
+      w + Offset(-sin(a), cos(a)) * u * 0.38,
+      w - Offset(-sin(a), cos(a)) * u * 0.38,
+      sp,
+    );
   }
   canvas.restore();
 }
@@ -812,17 +1062,43 @@ class DashMenuPainter extends CustomPainter {
       ..color = DashBackdrop.all[0].floorSeam
       ..strokeWidth = max(2, u * 0.2);
     canvas.drawRRect(
-      RRect.fromRectAndRadius(Rect.fromLTRB(size.width * 0.12, gy, size.width * 0.88, gy + u * 0.9), Radius.circular(u * 0.3)),
+      RRect.fromRectAndRadius(
+        Rect.fromLTRB(size.width * 0.12, gy, size.width * 0.88, gy + u * 0.9),
+        Radius.circular(u * 0.3),
+      ),
       Paint()..color = DashBackdrop.all[0].floorTop,
     );
     canvas.drawRRect(
-      RRect.fromRectAndRadius(Rect.fromLTRB(size.width * 0.12, gy, size.width * 0.88, gy + u * 0.9), Radius.circular(u * 0.3)),
+      RRect.fromRectAndRadius(
+        Rect.fromLTRB(size.width * 0.12, gy, size.width * 0.88, gy + u * 0.9),
+        Radius.circular(u * 0.3),
+      ),
       seam..style = PaintingStyle.stroke,
     );
     final bob = sin(time * 6) * u * 0.06;
-    paintCar(canvas, Offset(size.width / 2, gy + bob), u, time: time, speed: 14, glow: false);
-    paintStar(canvas, Offset(size.width / 2 + u * 5.2, gy - u * 3.2 + sin(time * 3) * u * 0.2), u * 1.8, spin: 0.6 + 0.4 * cos(time * 2).abs());
-    paintStar(canvas, Offset(size.width / 2 - u * 5.5, gy - u * 4.6 + sin(time * 3 + 1) * u * 0.2), u * 1.3, spin: 0.6 + 0.4 * cos(time * 2 + 1).abs());
+    paintCar(
+      canvas,
+      Offset(size.width / 2, gy + bob),
+      u,
+      time: time,
+      speed: 14,
+      glow: false,
+    );
+    paintStar(
+      canvas,
+      Offset(size.width / 2 + u * 5.2, gy - u * 3.2 + sin(time * 3) * u * 0.2),
+      u * 1.8,
+      spin: 0.6 + 0.4 * cos(time * 2).abs(),
+    );
+    paintStar(
+      canvas,
+      Offset(
+        size.width / 2 - u * 5.5,
+        gy - u * 4.6 + sin(time * 3 + 1) * u * 0.2,
+      ),
+      u * 1.3,
+      spin: 0.6 + 0.4 * cos(time * 2 + 1).abs(),
+    );
   }
 
   @override
@@ -848,11 +1124,26 @@ class DashSkyPainter extends CustomPainter {
     );
     final floor = Rect.fromLTRB(0, size.height * 0.78, size.width, size.height);
     canvas.drawRect(floor, Paint()..color = b.floorUnder);
-    canvas.drawRect(Rect.fromLTRB(0, floor.top, size.width, floor.top + 18), Paint()..color = b.floorTop);
-    canvas.drawLine(Offset(0, floor.top), Offset(size.width, floor.top), Paint()..color = dashInk..strokeWidth = 3);
-    final seam = Paint()..color = b.floorSeam..strokeWidth = 2;
+    canvas.drawRect(
+      Rect.fromLTRB(0, floor.top, size.width, floor.top + 18),
+      Paint()..color = b.floorTop,
+    );
+    canvas.drawLine(
+      Offset(0, floor.top),
+      Offset(size.width, floor.top),
+      Paint()
+        ..color = dashInk
+        ..strokeWidth = 3,
+    );
+    final seam = Paint()
+      ..color = b.floorSeam
+      ..strokeWidth = 2;
     for (var x = 20.0; x < size.width; x += 90) {
-      canvas.drawLine(Offset(x, floor.top + 18), Offset(x - 12, size.height), seam);
+      canvas.drawLine(
+        Offset(x, floor.top + 18),
+        Offset(x - 12, size.height),
+        seam,
+      );
     }
   }
 
@@ -874,7 +1165,11 @@ class SpringIconPainter extends CustomPainter {
       final lit = i < bulbs || full;
       final c = Offset(w * (i + 0.5), size.height / 2);
       final r = min(w, size.height) * (0.36 + (full ? pulse * 0.08 : 0));
-      canvas.drawCircle(c, r, Paint()..color = lit ? dashGold : Colors.white.withValues(alpha: 0.7));
+      canvas.drawCircle(
+        c,
+        r,
+        Paint()..color = lit ? dashGold : Colors.white.withValues(alpha: 0.7),
+      );
       canvas.drawCircle(
         c,
         r,

@@ -8,12 +8,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 /// A bot that jumps once per hazard, timed so the top of the arc is over the middle of it.
 /// It is the fairness test: if a fair track needs this and nothing else, it never dies.
-DashGame _runBot(
-  DashGame g,
-  double distance, {
-  double lateBy = 0,
-  bool restart = false,
-}) {
+DashGame _runBot(DashGame g, double distance, {double lateBy = 0}) {
   final start = g.course?.startSpeed ?? 32;
   while (!g.over && g.best < distance) {
     final h = g.track.nextFrom(g.x - dashWidth);
