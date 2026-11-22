@@ -5,22 +5,21 @@ import 'package:flutter/services.dart';
 
 import 'package:game_core/game_core.dart';
 
-import 'equation_builder_ids.dart';
+import 'bridge_builder_ids.dart';
 import 'rules/bridge_rules.dart';
-import 'rules/equation_builder_rules.dart';
+import 'rules/bridge_builder_rules.dart';
 import 'ui/bridge_art.dart';
 
-/// Bridge builder (package and id stay `equation_builder`, so saved progress and best scores
-/// survive): plays `numeric` items whose answer is a whole number. A toy robot stops at a gap in
+/// Bridge builder (package and id `bridge_builder`): plays `numeric` items whose answer is a whole number. A toy robot stops at a gap in
 /// a bridge; the child builds any sum that equals the sign's target from number and sign tiles
 /// in the gap's slots. [harder] is for Champion. Spec: `docs/SPEC.md`.
-MiniGame equationBuilderGameFor({bool harder = false}) => MiniGame(
-  id: equationBuilderId,
+MiniGame bridgeBuilderGameFor({bool harder = false}) => MiniGame(
+  id: bridgeBuilderId,
   title: bridgeBuilderTitle,
   itemTypes: const {ItemType.numeric},
-  accepts: (p) => equationTarget(p.item) != null,
+  accepts: (p) => sumTarget(p.item) != null,
   minPool: 4,
-  build: (ctx) => EquationBuilderScreen(
+  build: (ctx) => BridgeBuilderScreen(
     session: ctx.session,
     onExit: ctx.onExit,
     onAnswered: ctx.onAnswered,
@@ -30,7 +29,7 @@ MiniGame equationBuilderGameFor({bool harder = false}) => MiniGame(
   ),
 );
 
-final MiniGame equationBuilderGame = equationBuilderGameFor();
+final MiniGame bridgeBuilderGame = bridgeBuilderGameFor();
 
 /// The name the child sees.
 const String bridgeBuilderTitle = 'Bridge builder';
@@ -41,8 +40,8 @@ const String bridgeBuilderHowTo =
     'slots so it makes the number on the sign. Any sum that works lays a plank '
     'and the robot rolls across.';
 
-class EquationBuilderScreen extends StatefulWidget {
-  const EquationBuilderScreen({
+class BridgeBuilderScreen extends StatefulWidget {
+  const BridgeBuilderScreen({
     super.key,
     required this.session,
     required this.onExit,
@@ -67,16 +66,14 @@ class EquationBuilderScreen extends StatefulWidget {
   final GameReadAloud? reader;
 
   @override
-  State<EquationBuilderScreen> createState() => _EquationBuilderScreenState();
+  State<BridgeBuilderScreen> createState() => _BridgeBuilderScreenState();
 }
-
-typedef BridgeBuilderScreen = EquationBuilderScreen;
 
 enum _Phase { intro, play, results }
 
-class _EquationBuilderScreenState extends State<EquationBuilderScreen>
+class _BridgeBuilderScreenState extends State<BridgeBuilderScreen>
     with TickerProviderStateMixin {
-  static const String _g = equationBuilderId;
+  static const String _g = bridgeBuilderId;
 
   late final BridgeSettings _cfg = BridgeSettings.forLevel(
     widget.level,
@@ -99,7 +96,7 @@ class _EquationBuilderScreenState extends State<EquationBuilderScreen>
   )..addStatusListener(_onWobbleDone);
 
   _Phase _phase = _Phase.intro;
-  EquationPuzzle? _puzzle;
+  SumPuzzle? _puzzle;
   BridgeBoard? _board;
   BridgeStage _stage = bridgeStageFor(0, 1);
   int _round = 0;
@@ -156,7 +153,7 @@ class _EquationBuilderScreenState extends State<EquationBuilderScreen>
   void _beginRound() {
     if (_s.finished) return _toResults();
     final p = _s.items[_s.index];
-    final puzzle = buildEquation(p.item, _cfg.equation, _random);
+    final puzzle = buildSum(p.item, _cfg.sum, _random);
     if (puzzle == null) return _toResults();
     _round = _s.index;
     _puzzle = puzzle;
@@ -785,7 +782,7 @@ class _EquationBuilderScreenState extends State<EquationBuilderScreen>
             ? 48.0
             : (h < 560 ? 52.0 : (widget.level.older ? 60.0 : 68.0));
         Widget tray() => SingleChildScrollView(
-          key: EquationBuilderIds.mgTray(_g),
+          key: BridgeBuilderIds.mgTray(_g),
           padding: const EdgeInsets.fromLTRB(12, 0, 12, 4),
           child: Column(
             mainAxisSize: MainAxisSize.min,
@@ -954,11 +951,7 @@ class _EquationBuilderScreenState extends State<EquationBuilderScreen>
   }
 
   // The scene: backdrop, sign, slots over the gap, the robot.
-  Widget _scene(
-    BuildContext context,
-    EquationPuzzle puzzle,
-    BridgeBoard board,
-  ) {
+  Widget _scene(BuildContext context, SumPuzzle puzzle, BridgeBoard board) {
     return LayoutBuilder(
       builder: (context, box) {
         // Fit the width and the height given; keep the 0.52 aspect, at most 320 tall.
@@ -979,7 +972,7 @@ class _EquationBuilderScreenState extends State<EquationBuilderScreen>
         final stars = done && _stage.endsStage ? _stageStarsNow : 0;
         final endX = _stage.endsStage ? 0.8 : 0.94;
         return SizedBox(
-          key: EquationBuilderIds.mgScene(_g),
+          key: BridgeBuilderIds.mgScene(_g),
           width: w,
           height: h,
           child: ClipRRect(
@@ -1034,7 +1027,7 @@ class _EquationBuilderScreenState extends State<EquationBuilderScreen>
                     width: bank * 1.2,
                     height: deckY,
                     child: Semantics(
-                      key: EquationBuilderIds.mgFlag(_g),
+                      key: BridgeBuilderIds.mgFlag(_g),
                       label: done
                           ? 'Flag reached: $stars of 3 stars'
                           : 'A flag waits at the end of this stage',
@@ -1057,7 +1050,7 @@ class _EquationBuilderScreenState extends State<EquationBuilderScreen>
                   top: rowTop,
                   width: rowW,
                   child: Row(
-                    key: done ? EquationBuilderIds.mgPlank(_g) : null,
+                    key: done ? BridgeBuilderIds.mgPlank(_g) : null,
                     children: [
                       for (var i = 0; i < n; i++) ...[
                         if (i > 0) const SizedBox(width: gapSp),
@@ -1085,7 +1078,7 @@ class _EquationBuilderScreenState extends State<EquationBuilderScreen>
     final theme = Theme.of(context);
     final w = min(sceneW * 0.32, 150.0);
     return Semantics(
-      key: EquationBuilderIds.mgSign(_g),
+      key: BridgeBuilderIds.mgSign(_g),
       container: true,
       label: 'Sign: make $_target',
       child: ExcludeSemantics(
@@ -1201,7 +1194,7 @@ class _EquationBuilderScreenState extends State<EquationBuilderScreen>
         label: label,
         onTap: () => _tapSlot(i),
         child: InkWell(
-          key: EquationBuilderIds.mgSlot(_g, i),
+          key: BridgeBuilderIds.mgSlot(_g, i),
           borderRadius: BorderRadius.circular(10),
           onTap: answered ? null : () => _tapSlot(i),
           child: AnimatedScale(
@@ -1218,7 +1211,7 @@ class _EquationBuilderScreenState extends State<EquationBuilderScreen>
   Widget _ghostRow(double ss, double sp) {
     final tokens = _ghost!;
     return IgnorePointer(
-      key: EquationBuilderIds.mgGhost(_g),
+      key: BridgeBuilderIds.mgGhost(_g),
       child: ExcludeSemantics(
         child: AnimatedBuilder(
           animation: _wobble,
@@ -1264,7 +1257,7 @@ class _EquationBuilderScreenState extends State<EquationBuilderScreen>
       children: [
         Expanded(
           child: OutlinedButton(
-            key: EquationBuilderIds.mgClear(_g),
+            key: BridgeBuilderIds.mgClear(_g),
             onPressed: board.isEmpty ? null : _clear,
             child: const Text('Clear'),
           ),
@@ -1272,7 +1265,7 @@ class _EquationBuilderScreenState extends State<EquationBuilderScreen>
         const SizedBox(width: 12),
         Expanded(
           child: FilledButton(
-            key: EquationBuilderIds.mgCheck(_g),
+            key: BridgeBuilderIds.mgCheck(_g),
             onPressed: board.tokens.length < 3 ? null : _checkNow,
             child: const Text('Lay plank'),
           ),
@@ -1346,7 +1339,7 @@ class _EquationBuilderScreenState extends State<EquationBuilderScreen>
               ),
               childWhenDragging: Opacity(opacity: 0.3, child: face()),
               child: InkWell(
-                key: EquationBuilderIds.mgTile(_g, i),
+                key: BridgeBuilderIds.mgTile(_g, i),
                 borderRadius: BorderRadius.circular(14),
                 onTap: answered ? null : () => _tapTile(i),
                 child: face(),
@@ -1392,7 +1385,7 @@ class _EquationBuilderScreenState extends State<EquationBuilderScreen>
               const SizedBox(height: 4),
               Text(
                 'Stage complete! $_stageStarsNow of 3 stars at the flag.',
-                key: EquationBuilderIds.mgStageStars(_g),
+                key: BridgeBuilderIds.mgStageStars(_g),
                 style: theme.textTheme.titleMedium,
               ),
             ],

@@ -73,6 +73,12 @@ class MemoryProgressStorage implements ProgressStorage {
   }
 }
 
+/// Game ids that were renamed (owner, 2026-11-22: a game's id is its name): old id to new id. Saved data under the
+/// old id is read once and written under the new one (best scores here, the web's `amc.state` in games-web).
+const Map<String, String> renamedGameIds = {
+  'equation_builder': 'bridge_builder',
+};
+
 /// Browser-saved progress of the web games (W3; spec in the studio repo `docs/FEATURE-SPECS.md`).
 ///
 /// Holds the skill progress behind the Constellation (one [SkillProgress] per rung, so stars
@@ -115,10 +121,24 @@ class BrowserProgress extends ChangeNotifier {
         final v = int.tryParse(await _storage.read(k) ?? '');
         if (v != null && v > 0) _best[k.substring(bestPrefix.length)] = v;
       }
+      await _migrateRenamed();
     } on Object {
       _storageOk = false;
     }
     notifyListeners();
+  }
+
+  /// Moves each best score saved under a renamed game's old id to the new id (the higher one wins), once: the old
+  /// key is removed after the new one is written. A failure leaves the old key for the next load.
+  Future<void> _migrateRenamed() async {
+    for (final e in renamedGameIds.entries) {
+      final old = _best.remove(e.key);
+      if (old == null) continue;
+      final best = old > bestScore(e.value) ? old : bestScore(e.value);
+      _best[e.value] = best;
+      await _storage.write('$bestPrefix${e.value}', '$best');
+      await _storage.remove('$bestPrefix${e.key}');
+    }
   }
 
   static Map<String, SkillProgress> _decode(String raw) {

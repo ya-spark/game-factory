@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:game_core/game_core.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:game_equation_builder/equation_builder.dart';
+import 'package:game_bridge_builder/bridge_builder.dart';
 
 Map<String, dynamic> _numeric(int i, int answer) => {
   'id': 'n.$i',
@@ -42,9 +42,9 @@ QuizSession _session(List<Map<String, dynamic>> items, {int year = 4}) {
   );
 }
 
-const String _g = equationBuilderId;
-Finder _tile(int i) => find.byKey(EquationBuilderIds.mgTile(_g, i));
-Finder _slot(int i) => find.byKey(EquationBuilderIds.mgSlot(_g, i));
+const String _g = bridgeBuilderId;
+Finder _tile(int i) => find.byKey(BridgeBuilderIds.mgTile(_g, i));
+Finder _slot(int i) => find.byKey(BridgeBuilderIds.mgSlot(_g, i));
 
 void main() {
   final items = [for (var i = 1; i <= 4; i++) _numeric(i, 5 + i)];
@@ -68,7 +68,7 @@ void main() {
       for (var b = 0; b < n; b++) {
         for (var c = 0; c < n; c++) {
           if ({a, b, c}.length < 3) continue;
-          final ok = equationHitsTarget([texts[a], texts[b], texts[c]], target);
+          final ok = sumHitsTarget([texts[a], texts[b], texts[c]], target);
           final shaped =
               !isOperator(texts[a]) &&
               isOperator(texts[b]) &&
@@ -117,7 +117,7 @@ void main() {
             textScaler: TextScaler.linear(scale),
             size: size,
           ),
-          child: EquationBuilderScreen(
+          child: BridgeBuilderScreen(
             session: _session(items, year: year),
             level: level,
             study: study,
@@ -147,7 +147,7 @@ void main() {
         addTearDown(t.view.reset);
         await t.pumpWidget(
           MaterialApp(
-            home: EquationBuilderScreen(
+            home: BridgeBuilderScreen(
               session: _session(items, year: 1),
               level: const MiniGameLevel.younger(),
               onExit: () {},
@@ -158,11 +158,11 @@ void main() {
         // The host shows the name; the game draws no title strip of its own.
         expect(find.text('Bridge builder'), findsNothing);
         expect(find.byKey(GameIds.mgExit(_g)), findsOneWidget);
-        expect(find.text('Equation builder'), findsNothing);
+        expect(find.text('Bridge builder'), findsNothing);
         expect(find.byType(AppBar), findsNothing);
         expect(find.textContaining('stuck at a gap'), findsOneWidget);
-        expect(equationBuilderGame.title, 'Bridge builder');
-        expect(equationBuilderGame.id, 'equation_builder');
+        expect(bridgeBuilderGame.title, 'Bridge builder');
+        expect(bridgeBuilderGame.id, 'bridge_builder');
       },
     );
 
@@ -179,7 +179,7 @@ void main() {
         );
         expect(find.byKey(GameIds.mgTimer(_g)), findsNothing);
         expect(find.byKey(GameIds.mgBanner(_g)), findsNothing);
-        expect(find.byKey(EquationBuilderIds.mgSign(_g)), findsOneWidget);
+        expect(find.byKey(BridgeBuilderIds.mgSign(_g)), findsOneWidget);
         expect(find.text('6'), findsWidgets); // the sign
         for (var i = 0; i < 3; i++) {
           expect(_slot(i), findsOneWidget);
@@ -188,7 +188,7 @@ void main() {
         // A wrong full sum wobbles and the planks fall back; no penalty.
         await fill(t, sum(tileTexts(t, 4), 6, hit: false));
         expect(log, isEmpty);
-        expect(find.byKey(EquationBuilderIds.mgGhost(_g)), findsOneWidget);
+        expect(find.byKey(BridgeBuilderIds.mgGhost(_g)), findsOneWidget);
         expect(find.textContaining('Not yet'), findsOneWidget);
         for (var i = 0; i < 3; i++) {
           expect(
@@ -204,14 +204,14 @@ void main() {
           );
         }
         await t.pump(const Duration(seconds: 1));
-        expect(find.byKey(EquationBuilderIds.mgGhost(_g)), findsNothing);
+        expect(find.byKey(BridgeBuilderIds.mgGhost(_g)), findsNothing);
         await solve(t, 6);
         expect(log, hasLength(1));
         expect(
           log.single.correct,
           isFalse,
         ); // a miss first, so not a first pass
-        expect(find.byKey(EquationBuilderIds.mgPlank(_g)), findsOneWidget);
+        expect(find.byKey(BridgeBuilderIds.mgPlank(_g)), findsOneWidget);
         expect(find.textContaining('Plank laid'), findsOneWidget);
         for (var q = 2; q <= 4; q++) {
           await t.tap(find.byKey(GameIds.mgNext(_g)));
@@ -233,7 +233,7 @@ void main() {
         await open(t, level: const MiniGameLevel.younger());
         for (var q = 1; q <= 3; q++) {
           expect(
-            find.byKey(EquationBuilderIds.mgFlag(_g)),
+            find.byKey(BridgeBuilderIds.mgFlag(_g)),
             q == 3 ? findsOneWidget : findsNothing,
           );
           await solve(t, 5 + q);
@@ -242,7 +242,7 @@ void main() {
             await t.pump();
           }
         }
-        expect(find.byKey(EquationBuilderIds.mgStageStars(_g)), findsOneWidget);
+        expect(find.byKey(BridgeBuilderIds.mgStageStars(_g)), findsOneWidget);
         expect(find.textContaining('3 of 3 stars'), findsOneWidget);
         expect(find.text('Next stage'), findsOneWidget);
         await t.tap(find.byKey(GameIds.mgNext(_g)));
@@ -264,7 +264,7 @@ void main() {
       }
       expect(
         t
-            .widget<FilledButton>(find.byKey(EquationBuilderIds.mgCheck(_g)))
+            .widget<FilledButton>(find.byKey(BridgeBuilderIds.mgCheck(_g)))
             .onPressed,
         isNull,
       );
@@ -292,7 +292,7 @@ void main() {
           findsNothing,
         );
         await put(t, 0, 0);
-        await t.tap(find.byKey(EquationBuilderIds.mgClear(_g)));
+        await t.tap(find.byKey(BridgeBuilderIds.mgClear(_g)));
         await t.pump();
         expect(
           find.descendant(of: _slot(0), matching: find.text(texts[0])),
@@ -417,7 +417,7 @@ void main() {
         }
         final bad = sum(tileTexts(t, 6), 6, hit: false);
         await fill(t, bad);
-        await t.tap(find.byKey(EquationBuilderIds.mgCheck(_g)));
+        await t.tap(find.byKey(BridgeBuilderIds.mgCheck(_g)));
         await t.pump();
         expect(log, isEmpty);
         expect(find.textContaining('Not yet'), findsOneWidget);
@@ -480,9 +480,7 @@ void main() {
               expect(find.byKey(GameIds.mgExit(_g)), findsOneWidget);
               expect(find.byKey(GameIds.mgPause(_g)), findsOneWidget);
               expect(t.getSize(find.byKey(GameIds.mgPause(_g))).width, 44);
-              final scene = t.getRect(
-                find.byKey(EquationBuilderIds.mgScene(_g)),
-              );
+              final scene = t.getRect(find.byKey(BridgeBuilderIds.mgScene(_g)));
               expect(scene.top, greaterThanOrEqualTo(0));
               expect(scene.bottom, lessThanOrEqualTo(game.height));
               expect(scene.right, lessThanOrEqualTo(game.width));
@@ -498,7 +496,7 @@ void main() {
               if (scale == 1.0) {
                 final st = t.state<ScrollableState>(
                   find.descendant(
-                    of: find.byKey(EquationBuilderIds.mgTray(_g)),
+                    of: find.byKey(BridgeBuilderIds.mgTray(_g)),
                     matching: find.byType(Scrollable),
                   ),
                 );

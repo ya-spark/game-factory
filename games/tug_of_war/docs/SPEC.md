@@ -14,7 +14,7 @@ The text below was collected from the apps' docs when the game moved; refine it 
   - Take a breath between questions. A wrong answer is just a chance to learn.
 
 ## From the app spec
-- Levels: Foundation to Year 6 see every game above except Tug of war, Bridge builder (was Equation builder) and Word search and
+- Levels: Foundation to Year 6 see every game above except Tug of war, Bridge builder and Word search and
 - **Start:** a "Play with a sibling" button on the Tug of war start screen. Shown only when Tug of war is
 - Family Tug of war shows it once for the first player and marks both players seen. Review rounds (Today's review, Practise my mistakes) open games as normal first plays. Reading rules earns no coins, stars or achievements. Parent area is unchanged. Test IDs: `rules.dialog`, `rules.gotIt`, `rules.button`, `rules.<game id>`.
 

@@ -1,10 +1,10 @@
 /// Bridge builder rules (U3): the gap's slots, stages and scenery. Pure Dart, no Flutter.
-/// The sum itself is judged by `equation_builder_rules.dart` (any sum equal to the target is right).
+/// The sum itself is judged by `bridge_builder_rules.dart` (any sum equal to the target is right).
 library;
 
 import 'package:game_core/engine/engine.dart';
 
-import 'equation_builder_rules.dart';
+import 'bridge_builder_rules.dart';
 
 /// The three backdrops; a stage uses one.
 enum Scenery { river, canyon, sky }
@@ -13,14 +13,14 @@ enum Scenery { river, canyon, sky }
 class BridgeSettings {
   const BridgeSettings({
     required this.slots,
-    required this.equation,
+    required this.sum,
     required this.secondsPerQuestion,
     this.gapsPerStage = 3,
   });
 
   /// Slots in the gap (a sum is at least 3 of them: number, sign, number).
   final int slots;
-  final EquationSettings equation;
+  final SumSettings sum;
 
   /// 0 means no timer (younger levels and study mode).
   final int secondsPerQuestion;
@@ -30,10 +30,10 @@ class BridgeSettings {
 
   /// Younger: 3 slots, no timer. Older: 5 slots and a gentle timer; [study] never has a timer.
   factory BridgeSettings.forLevel(MiniGameLevel l, {bool study = false}) {
-    final eq = EquationSettings.forLevel(l);
+    final eq = SumSettings.forLevel(l);
     return BridgeSettings(
       slots: l.older ? 5 : 3,
-      equation: eq,
+      sum: eq,
       secondsPerQuestion: study ? 0 : eq.secondsPerQuestion,
     );
   }
@@ -167,9 +167,7 @@ class BridgeBoard {
   BridgeVerdict check(int target) {
     final t = tokens;
     if (t.length < 3) return BridgeVerdict.tooShort;
-    return equationHitsTarget(t, target)
-        ? BridgeVerdict.right
-        : BridgeVerdict.wrong;
+    return sumHitsTarget(t, target) ? BridgeVerdict.right : BridgeVerdict.wrong;
   }
 
   /// What the board does by itself after a tile is placed: a sum that hits the target is right at

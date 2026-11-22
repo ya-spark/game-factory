@@ -37,6 +37,33 @@ void main() {
     expect(s.data.keys, containsAll(['amc.progress.v1', 'amc.best.snake']));
   });
 
+  test(
+    'a best score saved under a renamed game id moves to the new id once',
+    () async {
+      final s = MemoryProgressStorage()
+        ..data['amc.best.equation_builder'] = '7'
+        ..data['amc.best.snake'] = '3';
+      var p = BrowserProgress(s);
+      await p.load();
+      expect(p.bestScore('bridge_builder'), 7);
+      expect(p.bestScore('equation_builder'), 0);
+      expect(p.bestScore('snake'), 3);
+      expect(s.data.containsKey('amc.best.equation_builder'), isFalse);
+      expect(s.data['amc.best.bridge_builder'], '7');
+      // a new score already under the new id wins over the old one
+      s.data['amc.best.equation_builder'] = '5';
+      s.data['amc.best.bridge_builder'] = '9';
+      p = BrowserProgress(s);
+      await p.load();
+      expect(p.bestScore('bridge_builder'), 9);
+      expect(s.data.containsKey('amc.best.equation_builder'), isFalse);
+      // loading again changes nothing
+      p = BrowserProgress(s);
+      await p.load();
+      expect(p.bestScore('bridge_builder'), 9);
+    },
+  );
+
   test('corrupt, newer-version and bad-rung data start safely', () async {
     final s = MemoryProgressStorage()..data['amc.progress.v1'] = '{nope';
     var p = BrowserProgress(s);

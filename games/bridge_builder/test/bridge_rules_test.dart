@@ -2,7 +2,7 @@ import 'dart:math';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:game_core/game_core.dart';
-import 'package:game_equation_builder/equation_builder.dart';
+import 'package:game_bridge_builder/bridge_builder.dart';
 
 void main() {
   group('Bridge builder rules (SPEC: Rules)', () {
@@ -93,7 +93,7 @@ void main() {
         const MiniGameLevel.younger(),
         const MiniGameLevel.older(),
       ]) {
-        final s = BridgeSettings.forLevel(l).equation;
+        final s = BridgeSettings.forLevel(l).sum;
         final item = ContentItem({
           'id': 'n',
           'seq': 1,
@@ -104,8 +104,8 @@ void main() {
           'answer': 18,
         });
         expect(
-          buildEquation(item, s, Random(4))!.tiles,
-          buildEquation(item, s, Random(4))!.tiles,
+          buildSum(item, s, Random(4))!.tiles,
+          buildSum(item, s, Random(4))!.tiles,
         );
       }
     });

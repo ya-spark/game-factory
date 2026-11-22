@@ -108,7 +108,7 @@ abstract final class HowToPlayCatalogue {
       ],
     ),
     HowToPlay(
-      'equation_builder',
+      'bridge_builder',
       'Bridge builder',
       [
         'The toy robot is stuck at a gap. Build a sum from the tiles so that it equals the number on the sign.',

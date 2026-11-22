@@ -1,10 +1,10 @@
-# Bridge builder (game package `game_equation_builder`, id `equation_builder`)
+# Bridge builder (game package `game_bridge_builder`, id `bridge_builder`)
 
-Status: REWRITTEN as Bridge builder (U3, owner 2026-11-22). The game lives once in `game-factory/games/equation_builder/` (SH1); apps and the web list it in their registry and bring content, theme and services. It asks its container only through `GameHost` (`game_core/lib/host`).
+Status: REWRITTEN as Bridge builder (U3, owner 2026-11-22). The game lives once in `game-factory/games/bridge_builder/` (SH1); apps and the web list it in their registry and bring content, theme and services. It asks its container only through `GameHost` (`game_core/lib/host`).
 
-**Name.** The child sees "Bridge builder" (start screen, how to play, catalogue and web cards; the game itself draws no title). The package, the folder and the game id `equation_builder` are kept on purpose: saved progress and best scores are keyed by the id.
+**Name.** The child sees "Bridge builder" (start screen, how to play, catalogue and web cards; the game itself draws no title). The package, the folder and the game id are the name (`bridge_builder`; owner 2026-11-22). The id was `equation_builder` before the rename; the web moves a saved best score and last-played entry from the old id to the new one once (see game_core `renamedGameIds`).
 
-Rules code and the accepts declaration are unchanged from the earlier Equation builder: `lib/src/rules/equation_builder_rules.dart`. New pure-Dart rules for the bridge: `lib/src/rules/bridge_rules.dart`. The screen is `lib/src/equation_builder_screen.dart`, the art `lib/src/ui/bridge_art.dart` (drawn in code; no asset files), test IDs `EquationBuilderIds` here and `GameIds` in game_core.
+Rules code and the accepts declaration are unchanged from the earlier sum game: `lib/src/rules/bridge_builder_rules.dart`. New pure-Dart rules for the bridge: `lib/src/rules/bridge_rules.dart`. The screen is `lib/src/bridge_builder_screen.dart`, the art `lib/src/ui/bridge_art.dart` (drawn in code; no asset files), test IDs `BridgeBuilderIds` here and `GameIds` in game_core.
 
 ## How to play (as shown to the child)
 - The toy robot is stuck at a gap. Build a sum from the tiles so that it equals the number on the sign.
@@ -20,9 +20,9 @@ Rules code and the accepts declaration are unchanged from the earlier Equation b
 - Stage stars: all gaps of the stage right on the first go = 3; at least half = 2; otherwise 1 (the stage is finished). Stage stars are a game reward on screen only; skill stars and coins still come from `QuizSession.answer`.
 
 ## Rules (exact values)
-- Item: a `numeric` item whose answer is a whole number from 0 to 999 (`accepts`, minPool 4, unchanged; FORMAT-CONSTRAINTS size class unchanged). Any sum equal to the target is right (`equationHitsTarget`, usual order of operations, × and ÷ before + and −, no division by zero).
+- Item: a `numeric` item whose answer is a whole number from 0 to 999 (`accepts`, minPool 4, unchanged; FORMAT-CONSTRAINTS size class unchanged). Any sum equal to the target is right (`sumHitsTarget`, usual order of operations, × and ÷ before + and −, no division by zero).
 - A sum needs at least 3 tiles (number, sign, number). One number alone never counts, even if it equals the target. Tiles are read left to right from the filled slots (empty slots are skipped).
-- Tiles (`buildEquation`, unchanged): younger = the 3 solution tiles + 1 extra number, plus and minus only; older = + 2 extra numbers and 1 extra sign (× added; ÷ too for harder); harder older = 3 extra numbers. Each tile is used once.
+- Tiles (`buildSum`, unchanged): younger = the 3 solution tiles + 1 extra number, plus and minus only; older = + 2 extra numbers and 1 extra sign (× added; ÷ too for harder); harder older = 3 extra numbers. Each tile is used once.
 - Slots: younger 3, older 5 (`BridgeSettings.slots`).
 - Placing: a slot gets a tile by drag-and-drop onto it, by tapping a tile (it lifts and is highlighted) and then a slot, or by keyboard. A tile dropped on a filled slot replaces it (the old tile goes back to the bank). Tapping a placed tile or a filled slot takes it back.
 - Judging: after each placement a sum of 3 or more tiles that hits the target is right at once; a full board that misses is wrong. The "Lay plank" button judges a partial sum (3 or more tiles); "Clear" empties the slots.
@@ -61,8 +61,8 @@ Backspace and Delete are not in the shared map; the screen reads them in a `Focu
 
 ## Test map (names in `test/`)
 - `bridge_rules_test.dart`: settings per level, stages and scenery, stage stars, board place/remove, verdicts (any sum, single number, full miss), seeds, purity.
-- `equation_builder_rules_test.dart` (unchanged): evaluation order, any equal sum counts, target from whole-number items, every puzzle solvable, younger tiles, seed.
-- `equation_builder_screens_test.dart`: Flow (how to play, no title text, four bridges to results with score, stage flag and stars, single number is not a sum), Input (drag, tap, take back, Clear; keyboard arrows, Enter, 1 to 4, Backspace; Space Next and pause; Esc; hints; labels), Levels (older five slots and timer, timeout lays a working sum, study has no timer, pause stops the timer), Layout (360x640, 390x844, 844x390, 1280x720, 1440x900, 1920x1080 less the 44 px web bar, younger and older, text 1.0 and 1.5: no title text, exit and pause 44 dp, no overflow, stage inside the height, no tray scroll at 1.0).
+- `bridge_builder_rules_test.dart` (unchanged): evaluation order, any equal sum counts, target from whole-number items, every puzzle solvable, younger tiles, seed.
+- `bridge_builder_screens_test.dart`: Flow (how to play, no title text, four bridges to results with score, stage flag and stars, single number is not a sum), Input (drag, tap, take back, Clear; keyboard arrows, Enter, 1 to 4, Backspace; Space Next and pause; Esc; hints; labels), Levels (older five slots and timer, timeout lays a working sum, study has no timer, pause stops the timer), Layout (360x640, 390x844, 844x390, 1280x720, 1440x900, 1920x1080 less the 44 px web bar, younger and older, text 1.0 and 1.5: no title text, exit and pause 44 dp, no overflow, stage inside the height, no tray scroll at 1.0).
 - Not testable on the VM (left for the owner's check on a device or in the browser): the look and feel of the art and the wobble and roll animation, read-aloud audio.
 
 ## Art

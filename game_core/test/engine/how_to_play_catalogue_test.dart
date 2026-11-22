@@ -20,7 +20,7 @@ void main() {
         'word_builder',
         'true_false',
         'cloze_fix',
-        'equation_builder',
+        'bridge_builder',
         'word_grid',
         'balloon_pop',
         'shooter',

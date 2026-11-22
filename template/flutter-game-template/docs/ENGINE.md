@@ -1,6 +1,6 @@
 # Learning engine: minigames, rewards and access (issue 1C1)
 
-> Also see "Shared minigames: Equation builder, Cloze fix, Word grid (issue M4b)" at the end.
+> Also see "Shared minigames: Bridge builder, Cloze fix, Word grid (issue M4b)" at the end.
 
 Code lives in `game_core/lib/engine/` (SH1: the engine is a package; the games below are packages in `games/`) (pure Dart, no Flutter except the screens in `lib/ui/`). Content, release
 and the item selector are described in `CONTENT_FORMAT.md`.
@@ -235,18 +235,18 @@ turns it on after the first working build.
 - `MiniGameContext.onScore` reports the game's own score; the Play tab stores the best one per game.
 - Not yet: item pictures (`image`) are not shown in these games, since the UI has no pack image loader.
 
-## Shared minigames: Equation builder, Cloze fix, Word grid (issue M4b)
+## Shared minigames: Bridge builder, Cloze fix, Word grid (issue M4b)
 
 All three are free with ads, play in Game and Study mode, appear only when `minPool` (4) items of their
 types are open, and use `...For(harder: true)` for Champion. Rules are pure Dart under
 `lib/engine/minigames/<game>/rules/`; views are in `lib/ui/minigames/`. Study mode has no timer and lets
 the child retry after a wrong try.
 
-- **Equation builder** (`equationBuilderGame`, `equation_builder_screen.dart`): plays `numeric` items
+- **Bridge builder** (`bridgeBuilderGame`, `bridge_builder_screen.dart`): plays `numeric` items
   whose answer is a whole number from 0 to 999. The game builds the tiles from a known solution plus
   distractors (younger: + and −; older: adds ×; harder: adds ÷). `evaluateTokens` computes with the usual
-  order; `equationHitsTarget` accepts **any** expression that equals the target. It reuses
-  `ChoiceGameScreen` (timer, score, results), with the equation field as the play field.
+  order; `sumHitsTarget` accepts **any** expression that equals the target. It reuses
+  `ChoiceGameScreen` (timer, score, results), with the sum field as the play field.
 - **Cloze fix** (`clozeFixGame`, `cloze_fix_screen.dart`): plays `cloze` items (first gap blanked, other
   gaps filled, wrong words borrowed from other items' gaps) and `mcq` items whose topic or id contains
   `grammar` or `punctuation` (choose the corrected sentence). `clozeFixPlays` is the filter.
@@ -298,7 +298,7 @@ sharing, no export, no backend.
 
 - Text: `HowToPlayCatalogue` (`lib/engine/minigames/how_to_play_catalogue.dart`, pure Dart) holds 1 to 3 short rules and
   2 or 3 tips for Quick quiz, Memory match, Sort into bins, Series builder, Word builder, True or false, Cloze fix,
-  Equation builder, Word grid, Balloon pop, Door runner, Tug of war and Flash review. A game registered in a Craft app
+  Bridge builder, Word grid, Balloon pop, Door runner, Tug of war and Flash review. A game registered in a Craft app
   needs an entry (checked by `test/ui/rules_dialog_test.dart`). The same text is kept in each app's `docs/SPEC.md`
   ("How to play").
 - Dialog and button: `lib/ui/rules_dialog.dart`. `RulesGate` wraps a minigame screen with a thin top bar (above the game,

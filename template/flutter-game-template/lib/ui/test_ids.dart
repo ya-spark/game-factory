@@ -191,7 +191,7 @@ abstract final class TestIds {
   static const familyExit = Key('family.exit');
   static Key familyChoice(int i) => Key('family.choice.$i');
 
-  // Equation builder, Cloze fix, Word grid (M4b)
+  // Bridge builder, Cloze fix, Word grid (M4b)
   static Key mgTile(String g, int i) => Key('$g.tile.$i');
   static Key mgSlot(String g, int i) => Key('$g.slot.$i');
   static Key mgCheck(String g) => Key('$g.check');

@@ -1,8 +1,7 @@
 import 'package:flutter/widgets.dart';
 
-/// Bridge builder's own test IDs (package and id stay `equation_builder`; the shared ones are
-/// `GameIds` in game_core).
-abstract final class EquationBuilderIds {
+/// Bridge builder's own test IDs (the shared ones are `GameIds` in game_core).
+abstract final class BridgeBuilderIds {
   static Key mgCheck(String g) => Key('$g.check');
   static Key mgClear(String g) => Key('$g.clear');
   static Key mgSlot(String g, int i) => Key('$g.slot.$i');

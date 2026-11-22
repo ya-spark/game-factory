@@ -1,4 +1,4 @@
-/// Equation builder rules: build an expression from number and operator tiles that equals the
+/// Bridge builder rules: build an expression from number and operator tiles that equals the
 /// target (the `numeric` item's answer). Any valid expression counts, not only the one the
 /// game made the tiles from. Pure Dart, random is injected.
 library;
@@ -7,7 +7,7 @@ import 'dart:math';
 
 import 'package:game_core/engine/engine.dart';
 
-const String equationBuilderId = 'equation_builder';
+const String bridgeBuilderId = 'bridge_builder';
 
 const String opAdd = '+';
 const String opSub = '−';
@@ -17,8 +17,8 @@ const String opDiv = '÷';
 bool isOperator(String t) =>
     t == opAdd || t == opSub || t == opMul || t == opDiv;
 
-class EquationSettings {
-  const EquationSettings({
+class SumSettings {
+  const SumSettings({
     required this.operators,
     required this.extraNumbers,
     required this.extraOperators,
@@ -33,14 +33,14 @@ class EquationSettings {
   /// 0 means no timer.
   final int secondsPerQuestion;
 
-  factory EquationSettings.forLevel(MiniGameLevel l) => !l.older
-      ? const EquationSettings(
+  factory SumSettings.forLevel(MiniGameLevel l) => !l.older
+      ? const SumSettings(
           operators: [opAdd, opSub],
           extraNumbers: 1,
           extraOperators: 0,
           secondsPerQuestion: 0,
         )
-      : EquationSettings(
+      : SumSettings(
           operators: l.harder
               ? const [opAdd, opSub, opMul, opDiv]
               : const [opAdd, opSub, opMul],
@@ -89,13 +89,13 @@ double? evaluateTokens(List<String> tokens) {
 }
 
 /// True when the tokens form a valid expression equal to [target].
-bool equationHitsTarget(List<String> tokens, num target) {
+bool sumHitsTarget(List<String> tokens, num target) {
   final v = evaluateTokens(tokens);
   return v != null && numbersMatch(v, target.toDouble());
 }
 
-class EquationPuzzle {
-  const EquationPuzzle({
+class SumPuzzle {
+  const SumPuzzle({
     required this.target,
     required this.tiles,
     required this.solution,
@@ -112,7 +112,7 @@ class EquationPuzzle {
 }
 
 /// The target of a `numeric` item when it is a whole number from 0 to 999, else null.
-int? equationTarget(ContentItem item) {
+int? sumTarget(ContentItem item) {
   if (item.type != ItemType.numeric) return null;
   final v = numericFromJson(item.json['answer']);
   if (v == null || v != v.roundToDouble() || v < 0 || v > 999) return null;
@@ -120,12 +120,8 @@ int? equationTarget(ContentItem item) {
 }
 
 /// Builds the tiles for one item: a known solution plus distractor tiles.
-EquationPuzzle? buildEquation(
-  ContentItem item,
-  EquationSettings s,
-  Random random,
-) {
-  final t = equationTarget(item);
+SumPuzzle? buildSum(ContentItem item, SumSettings s, Random random) {
+  final t = sumTarget(item);
   if (t == null) return null;
   final options = <List<String>>[];
   for (final op in s.operators) {
@@ -165,7 +161,7 @@ EquationPuzzle? buildEquation(
   ]..shuffle(random);
   tiles.addAll(spare.take(s.extraOperators));
   tiles.shuffle(random);
-  return EquationPuzzle(target: t, tiles: tiles, solution: solution);
+  return SumPuzzle(target: t, tiles: tiles, solution: solution);
 }
 
 /// Screen-reader wording for a tile.
