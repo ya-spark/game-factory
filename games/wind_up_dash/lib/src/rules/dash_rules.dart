@@ -1,23 +1,23 @@
-/// Runner rules. Pure Dart: no Flutter, Flame or Android imports. The track is generated from a
+/// Wind-up dash rules. Pure Dart: no Flutter, Flame or Android imports. The track is generated from a
 /// seed, so it is the same every time for a seed and can be tested for fairness. Fixed step: the
-/// screen calls [RunnerGame.step] with [runnerStep] seconds each time.
+/// screen calls [DashGame.step] with [dashStep] seconds each time.
 library;
 
 import 'dart:math';
 
-const double runnerStep = 1 / 120;
+const double dashStep = 1 / 120;
 
 /// Jump: a fixed arc, so what can be cleared is known. Gravity 180 units/s squared, launch speed
 /// 70 units/s: 0.78 s in the air, 13.6 units high at the top.
-const double runnerGravity = 180;
-const double runnerJumpSpeed = 70;
-const double runnerAirTime = 2 * runnerJumpSpeed / runnerGravity;
+const double dashGravity = 180;
+const double dashJumpSpeed = 70;
+const double dashAirTime = 2 * dashJumpSpeed / dashGravity;
 
-/// The runner is [runnerWidth] wide; its position is its centre.
-const double runnerWidth = 4;
+/// The car is [dashWidth] wide; its position is its centre.
+const double dashWidth = 4;
 
 /// Run speed in units/s after [distance] units: 32, rising to 60 at 1400 units.
-double runnerSpeed(double distance) => min(32 + distance / 50, 60);
+double dashSpeed(double distance) => min(32 + distance / 50, 60);
 
 enum HazardKind { gap, block }
 
@@ -45,11 +45,11 @@ const double blockMaxHeight = 6;
 
 /// The least free ground between two hazards at [distance]: a full jump plus 0.3 s to react.
 double minSpacing(double distance) =>
-    runnerSpeed(distance) * (runnerAirTime + 0.3);
+    dashSpeed(distance) * (dashAirTime + 0.3);
 
 /// The track of a seed, generated as far as it is asked for.
-class RunnerTrack {
-  RunnerTrack(int seed) : _random = Random(seed);
+class DashTrack {
+  DashTrack(int seed) : _random = Random(seed);
   final Random _random;
   final List<Hazard> hazards = [];
   double _frontier = firstHazardAt;
@@ -58,9 +58,9 @@ class RunnerTrack {
   void extendTo(double distance) {
     while (_frontier < distance) {
       final d = _frontier;
-      final v = runnerSpeed(d);
+      final v = dashSpeed(d);
       if (_random.nextDouble() < 0.45) {
-        final reach = v * runnerAirTime * maxGapShare;
+        final reach = v * dashAirTime * maxGapShare;
         final w = 10 + _random.nextDouble() * (reach - 10);
         hazards.add(Hazard(HazardKind.gap, d, w));
         _frontier = d + w;
@@ -88,24 +88,24 @@ class RunnerTrack {
   }
 }
 
-enum RunnerEnd { none, fell, hit }
+enum DashEnd { none, fell, hit }
 
-class RunnerGame {
-  RunnerGame({required int seed}) : track = RunnerTrack(seed) {
+class DashGame {
+  DashGame({required int seed}) : track = DashTrack(seed) {
     track.extendTo(600);
   }
 
-  final RunnerTrack track;
+  final DashTrack track;
 
-  /// Centre of the runner along the track, and its height above the ground.
+  /// Centre of the car along the track, and its height above the ground.
   double x = 0;
   double y = 0;
   double _vy = 0;
   double best = 0; // furthest distance
-  RunnerEnd end = RunnerEnd.none;
+  DashEnd end = DashEnd.none;
   Hazard? _killer;
 
-  bool get over => end != RunnerEnd.none;
+  bool get over => end != DashEnd.none;
   bool get grounded => y <= 0 && _vy == 0;
 
   /// 1 point per 10 units run.
@@ -114,19 +114,19 @@ class RunnerGame {
   /// Starts a jump when on the ground. Returns true when it started.
   bool jump() {
     if (over || !grounded) return false;
-    _vy = runnerJumpSpeed;
+    _vy = dashJumpSpeed;
     return true;
   }
 
-  /// One fixed step of [runnerStep] seconds.
+  /// One fixed step of [dashStep] seconds.
   void step() {
     if (over) return;
-    const dt = runnerStep;
-    x += runnerSpeed(x) * dt;
+    const dt = dashStep;
+    x += dashSpeed(x) * dt;
     if (x > best) best = x;
     track.extendTo(x + 600);
     if (_vy != 0 || y > 0) {
-      _vy -= runnerGravity * dt;
+      _vy -= dashGravity * dt;
       y += _vy * dt;
       if (y <= 0) {
         y = 0;
@@ -137,38 +137,38 @@ class RunnerGame {
   }
 
   void _check() {
-    final left = x - runnerWidth / 2;
-    final right = x + runnerWidth / 2;
+    final left = x - dashWidth / 2;
+    final right = x + dashWidth / 2;
     for (final h in track.hazards) {
       if (h.end < left - 1) continue;
       if (h.x > right + 1) break;
       switch (h.kind) {
         case HazardKind.block:
           if (right > h.x && left < h.end && y < h.height) {
-            _die(RunnerEnd.hit, h);
+            _die(DashEnd.hit, h);
             return;
           }
         case HazardKind.gap:
           // Standing on the ground with the centre over the gap: falls.
           if (y <= 0 && x > h.x && x < h.end) {
-            _die(RunnerEnd.fell, h);
+            _die(DashEnd.fell, h);
             return;
           }
       }
     }
   }
 
-  void _die(RunnerEnd how, Hazard h) {
+  void _die(DashEnd how, Hazard h) {
     end = how;
     _killer = h;
   }
 
-  /// A Continue after a crash: the runner starts again on safe ground 20 units before the hazard
+  /// A Continue after a crash: the car starts again on safe ground 20 units before the hazard
   /// that stopped it; the distance reached is kept.
   void grantContinue() {
     final h = _killer;
     if (!over || h == null) return;
-    end = RunnerEnd.none;
+    end = DashEnd.none;
     x = max(0, h.x - 20);
     y = 0;
     _vy = 0;

@@ -78,7 +78,7 @@ void main() {
         'parcel_train',
         'bricks',
         'stack',
-        'runner',
+        'wind_up_dash',
       ]) {
         expect(gameSkill.containsKey(id), isTrue, reason: id);
       }
@@ -239,7 +239,7 @@ void main() {
     test(
       'with fewer skills than slots the rest is topped up from other games',
       () {
-        final presto = ['wingy', 'parcel_train', 'bricks', 'stack', 'runner'];
+        final presto = ['wingy', 'parcel_train', 'bricks', 'stack', 'wind_up_dash'];
         final w = DailyWorkout.plan(
           const GameStats(),
           today: 5,

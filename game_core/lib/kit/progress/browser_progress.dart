@@ -78,6 +78,7 @@ class MemoryProgressStorage implements ProgressStorage {
 const Map<String, String> renamedGameIds = {
   'equation_builder': 'bridge_builder',
   'snake': 'parcel_train',
+  'runner': 'wind_up_dash',
   'series_builder': 'domino_chain',
 };
 

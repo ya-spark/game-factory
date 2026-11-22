@@ -5,17 +5,17 @@ import 'package:flutter/scheduler.dart';
 
 import 'package:game_core/game_core.dart';
 
-import 'rules/runner_rules.dart';
+import 'rules/dash_rules.dart';
 
 /// Best-score thresholds for 1, 2 and 3 stars on the Games tab tile (docs/SPEC.md, 4.6):
 /// 1000, 2500 and 5000 units run.
-const List<int> runnerStarScores = [100, 250, 500];
+const List<int> dashStarScores = [100, 250, 500];
 
-const String _g = 'runner';
+const String _g = 'wind_up_dash';
 
-/// Runner: one tap to jump over gaps and blocks. Coin-locked in the hub (300 coins).
-class RunnerScreen extends StatelessWidget {
-  const RunnerScreen({super.key, this.onScore, this.seedFor});
+/// Wind-up dash: one tap to jump over gaps and blocks. Coin-locked in the hub (300 coins).
+class WindUpDashScreen extends StatelessWidget {
+  const WindUpDashScreen({super.key, this.onScore, this.seedFor});
   final void Function(int score)? onScore;
 
   /// The track seed of each round; default a random one. Injected in tests.
@@ -25,19 +25,19 @@ class RunnerScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return ArcadeFrame(
       id: _g,
-      title: 'Runner',
+      title: 'Wind-up dash',
       howTo:
           'Tap to jump. Clear the gaps and the blocks and run as far as you '
           'can. The track gets faster. Every track is fair: a well-timed jump '
           'always works.',
-      starScores: runnerStarScores,
+      starScores: dashStarScores,
       coinsPerPoints: 25,
       hasContinue: true,
       hintActions: const [GameAction.up, GameAction.action],
       hintWords: const {GameAction.up: 'jump', GameAction.action: 'jump'},
       onScore: onScore,
-      buildPlay: (context, run, round) => _RunnerPlay(
-        key: ValueKey('runner.round.$round'),
+      buildPlay: (context, run, round) => _DashPlay(
+        key: ValueKey('wind_up_dash.round.$round'),
         run: run,
         seed: seedFor?.call() ?? Random().nextInt(1 << 30),
       ),
@@ -45,20 +45,20 @@ class RunnerScreen extends StatelessWidget {
   }
 }
 
-class _RunnerPlay extends StatefulWidget {
-  const _RunnerPlay({super.key, required this.run, required this.seed});
+class _DashPlay extends StatefulWidget {
+  const _DashPlay({super.key, required this.run, required this.seed});
   final ArcadeRun run;
   final int seed;
 
   @override
-  State<_RunnerPlay> createState() => _RunnerPlayState();
+  State<_DashPlay> createState() => _DashPlayState();
 }
 
-class _RunnerPlayState extends State<_RunnerPlay>
+class _DashPlayState extends State<_DashPlay>
     with SingleTickerProviderStateMixin {
-  late final RunnerGame _game = RunnerGame(seed: widget.seed);
+  late final DashGame _game = DashGame(seed: widget.seed);
   late final Ticker _ticker = createTicker(_tick);
-  final FixedStepper _stepper = FixedStepper(dt: runnerStep);
+  final FixedStepper _stepper = FixedStepper(dt: dashStep);
   Duration _last = Duration.zero;
 
   @override
@@ -115,7 +115,7 @@ class _RunnerPlayState extends State<_RunnerPlay>
       children: [
         ArcadeHud(
           game: _g,
-          text: 'Score ${_game.score}   Speed ${runnerSpeed(_game.x).round()}',
+          text: 'Score ${_game.score}   Speed ${dashSpeed(_game.x).round()}',
         ),
         Expanded(
           child: Padding(
@@ -128,9 +128,9 @@ class _RunnerPlayState extends State<_RunnerPlay>
                   behavior: HitTestBehavior.opaque,
                   onTapDown: (_) => _game.jump(),
                   child: Semantics(
-                    label: 'Runner track, score ${_game.score}. Tap to jump.',
+                    label: 'Wind-up dash track, score ${_game.score}. Tap to jump.',
                     child: CustomPaint(
-                      painter: _RunnerPainter(_game, pal),
+                      painter: _DashPainter(_game, pal),
                       size: Size.infinite,
                     ),
                   ),
@@ -155,9 +155,9 @@ class _RunnerPlayState extends State<_RunnerPlay>
   }
 }
 
-class _RunnerPainter extends CustomPainter {
-  _RunnerPainter(this.game, this.pal);
-  final RunnerGame game;
+class _DashPainter extends CustomPainter {
+  _DashPainter(this.game, this.pal);
+  final DashGame game;
   final ArcadePalette pal;
 
   static const double _viewW = 100;
@@ -201,14 +201,14 @@ class _RunnerPainter extends CustomPainter {
         );
       }
     }
-    // The runner: a rounded square (a shape, not a figure).
+    // The car: a rounded square (a shape, not a figure).
     canvas.drawRRect(
       RRect.fromRectAndRadius(
         Rect.fromLTWH(
-          (game.x - camera - runnerWidth / 2) * sx,
-          (_groundY - game.y - runnerWidth) * sy,
-          runnerWidth * sx,
-          runnerWidth * sy,
+          (game.x - camera - dashWidth / 2) * sx,
+          (_groundY - game.y - dashWidth) * sy,
+          dashWidth * sx,
+          dashWidth * sy,
         ),
         const Radius.circular(3),
       ),
@@ -245,5 +245,5 @@ class _RunnerPainter extends CustomPainter {
   }
 
   @override
-  bool shouldRepaint(covariant _RunnerPainter old) => true;
+  bool shouldRepaint(covariant _DashPainter old) => true;
 }

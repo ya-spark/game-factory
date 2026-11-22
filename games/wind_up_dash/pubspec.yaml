@@ -1,5 +1,5 @@
-name: game_runner
-description: "Runner: a Mind hub game in game-factory/games; the hubs are containers that list it."
+name: game_wind_up_dash
+description: "Wind-up dash: a Mind hub game in game-factory/games; the hubs are containers that list it."
 publish_to: 'none'
 version: 1.0.0
 environment:

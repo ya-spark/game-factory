@@ -37,7 +37,7 @@ const Map<String, CognitiveSkill> gameSkill = {
   'parcel_train': CognitiveSkill.spatial,
   'bricks': CognitiveSkill.speed,
   'stack': CognitiveSkill.attention,
-  'runner': CognitiveSkill.speed,
+  'wind_up_dash': CognitiveSkill.speed,
 };
 
 /// Levels in a skill's journey.
