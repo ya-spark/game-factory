@@ -33,18 +33,19 @@ One key map for every game and app, in `game_core` (`lib/kit/keys/`, import `pac
 
 | Game | Keys (player 1; the left hand also plays in a one-player game) |
 |---|---|
-| Choose-one games (Tug of war, True or false, Cloze fix, Balloon pop, Shooter shell) | 1 to 4 answer, Enter start / next, Q read the question, Space pause, Esc pause or leave |
+| Choose-one games (Tug of war, Cloze fix, Balloon pop, Shooter shell) | 1 to 4 answer, Enter start / next, Q read the question, Space pause, Esc pause or leave |
 | Bridge builder (id `bridge_builder`) | left and right choose a tile, Enter or Space places it in the next slot (or takes it back; B-01: Space selects, it does not pause), 1 to 9 place that tile, Backspace or Down takes the last tile back, Q reads the target, Space or Enter is Next after a result, Esc pauses or leaves |
 | Domino chain (id `domino_chain`) | left and right choose a domino, Enter places it in the next slot (or takes it back), 1 to 4 place that domino, Backspace, Delete or Down takes the last one back, H hint, Space is Go when every slot is full (else pause), Space or Enter is Next after a solve, Q reads the steps, Esc pauses or leaves; every button shows its key |
 | Memory match | arrows over the cards, Enter turns a card (or goes on), Q reads, Space pause, Esc pause or leave |
 | Door runner | left and right steer, up zaps, down slows while held, 1 to 4 pick a door, Enter or Q the question, Space or Esc pause |
 | Blockfall | left and right move (held keys repeat), up rotates, down soft-drops while held, Enter hard-drops, Q holds, 1 to 3 power-ups, Space or Esc pause |
+| Judge bot (id `judge_bot`, own screen; was True or false) | T or 1 judges TRUE, F or 2 judges FALSE, Left and Right move a highlight and Enter or Space confirm it (B-01: Space never pauses), Enter or Space is Next after the verdict, P or Esc pauses (P, Esc, Enter or Space resume), Esc leaves from the start, verdict and results screens, L leaves from anywhere, H how to play (Enter, Space or Esc close it), Q reads the ticket or the verdict; every button shows its key (T and F are printed on the lamps; the hint row is shown on windows 600 by 520 and up); the screen reads T F P H L itself |
 | Parcel train (id `parcel_train`) | arrows and W A S D steer (queued in the ready beat), Enter or Space starts and goes on, Space or P or Esc pauses (any of them or Enter resumes), 1 to 5 open a course, F Free ride, H how to play, T tunnel edges, R replay, Left and Right choose Next or Replay, Q reads where the parcel is; every button shows its key; the screen reads F H T R P and 5 itself (F is the map's left-hand Action key) |
 
 ## U2: Space goes on (2026-11-22)
 - Space (the shared pause key) does what Enter does in the non-play states: after an answer or round result it is Next (or See results), on the intro or start screen it starts, on the results screen it leaves. In play it still pauses, and it never both pauses and goes on: while a result or Next shows, Space is Next. Enter keeps working.
 - In code: accept `GameAction.pause` where the code accepts `GameAction.action` for next, start and leave, only in the non-play states, with `!i.repeat`. Pass `spaceGoesOn: true` to `KeyedBody` or `KeyHints` for those states, so the action chip reads "Enter / Space".
-- Done in: the choice-game kit (Tug of war, True or false, Cloze fix, Balloon pop, Shooter shell), `ArcadeFrame` menu and over screens, Series builder, Sort into bins, Word builder, Flash review, Word grid, Memory match (one and two players), Door runner (race and wrong-answer Next), Tug of war head to head, Ball sort, Merge, Mahjong, Sudoku, Solitaire, Blockfall (choice and versus). Bridge builder already did it.
+- Done in: the choice-game kit (Tug of war, Cloze fix, Balloon pop, Shooter shell), `ArcadeFrame` menu and over screens, Series builder, Sort into bins, Word builder, Flash review, Word grid, Memory match (one and two players), Door runner (race and wrong-answer Next), Tug of war head to head, Ball sort, Merge, Mahjong, Sudoku, Solitaire, Blockfall (choice and versus). Bridge builder already did it.
 
 ## K1: every game has keys (2026-11-22, for the web)
 - `ArcadeFrame` (Runner, Stack tower, Brick breaker) takes the keys: Enter start or play again, Space and Esc pause (Resume, Leave), the game registers `run.onInput` and `run.onRelease` for its own keys and `hintActions` for the hints.
@@ -78,6 +79,6 @@ How it is built (game_core, `lib/kit/keys/key_labels.dart`):
 - Choice buttons wrap their label in `ChoiceLabel(index: i, child: ...)` (a key cap 1 to 4).
 - Shared screens already do it: `ChoiceGameScreen`, `ArcadeFrame` (Play, Play again, Done "(Esc)", Continue "(C)", L leaves a round), `CalmResults`, `MiniGameSummary`.
 - A dialog needs its own `GameKeyboard` (a dialog is a new route; the game's keyboard does not see its keys) or an autofocused primary button (the web how-to dialog: "Got it (Enter / Esc)").
-- Not changed on purpose: Space-vs-pause in Runner, True or false, Stack tower and Parcel train (their rewrite specs decide). Blockfall, Block puzzle and Wingy are app games (apps paused) and not on the web; they are not part of B-09 yet. Setting switches (Hints, Show mistakes, Winnable deals) and level chips on menus are reached with Tab and Space or Enter.
+- Not changed on purpose: Space-vs-pause in Runner, Stack tower and Parcel train (their rewrite specs decide). Blockfall, Block puzzle and Wingy are app games (apps paused) and not on the web; they are not part of B-09 yet. Setting switches (Hints, Show mistakes, Winnable deals) and level chips on menus are reached with Tab and Space or Enter.
 - The hint row (`KeyHints`) shows only when the window is 600 dp wide and 520 dp tall (`keyHintsFit(context)`); on a short window the play area keeps the height, the keys still work and every button prints its own key.
 - The audit of every game's screens and buttons is in `docs/queue/B-09-shortcut-keys.md` in game-studio.
