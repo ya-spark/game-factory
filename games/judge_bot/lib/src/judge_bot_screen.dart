@@ -285,7 +285,7 @@ class _JudgeBotScreenState extends State<JudgeBotScreen>
     final c = _claim;
     if (c == null) return '';
     return c.derived
-        ? 'Question: ${c.question} Claim: ${c.shown} True or false?'
+        ? 'Question: ${c.question.trim().replaceFirst(RegExp(r'[?.!:\s]+$'), '')}. Claim: ${c.shown} True or false?'
         : 'Statement: ${c.shown} True or false?';
   }
 
@@ -602,6 +602,7 @@ class _JudgeBotScreenState extends State<JudgeBotScreen>
       height: height,
       width: height * 1.25,
       child: Semantics(
+        container: true,
         image: true,
         label: robotLabel(mood),
         child: ExcludeSemantics(
@@ -683,11 +684,12 @@ class _JudgeBotScreenState extends State<JudgeBotScreen>
                     ),
                   ),
                   const SizedBox(height: 8),
-                  Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: const [
+                  const Wrap(
+                    alignment: WrapAlignment.center,
+                    spacing: 10,
+                    runSpacing: 6,
+                    children: [
                       _MiniLamp('TRUE', 'T', judgeTrueGreen, Icons.check),
-                      SizedBox(width: 10),
                       _MiniLamp('FALSE', 'F', judgeFalseRed, Icons.close),
                     ],
                   ),
@@ -699,13 +701,13 @@ class _JudgeBotScreenState extends State<JudgeBotScreen>
                     onPressed: _start,
                     style: FilledButton.styleFrom(
                       minimumSize: const Size(240, 64),
-                      padding: const EdgeInsets.symmetric(horizontal: 28),
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
                     ),
                     child: KeyedText(
                       'Start',
                       GameAction.action,
                       alsoSpace: true,
-                      style: theme.textTheme.titleLarge?.copyWith(
+                      style: theme.textTheme.titleMedium?.copyWith(
                         color: theme.colorScheme.onPrimary,
                         fontWeight: FontWeight.w800,
                       ),
@@ -1069,6 +1071,7 @@ class _JudgeBotScreenState extends State<JudgeBotScreen>
                       CurvedAnimation(parent: _slide, curve: Curves.easeOut),
                     ),
                 child: FadeTransition(
+                  alwaysIncludeSemantics: true,
                   opacity: _slide,
                   child: _ticketCard(claim, younger),
                 ),
@@ -1214,28 +1217,22 @@ class _JudgeBotScreenState extends State<JudgeBotScreen>
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Row(
+                    Wrap(
+                      crossAxisAlignment: WrapCrossAlignment.center,
+                      spacing: 6,
                       children: [
                         Icon(
                           ok ? Icons.check_circle : Icons.info_outline,
                           size: 20,
                         ),
-                        const SizedBox(width: 6),
-                        Flexible(
-                          child: Text(
-                            _headline(),
-                            style: theme.textTheme.titleMedium,
-                          ),
-                        ),
-                        if (_fast) ...[
-                          const SizedBox(width: 8),
+                        Text(_headline(), style: theme.textTheme.titleMedium),
+                        if (_fast)
                           Chip(
                             key: JudgeBotIds.fast(_g),
                             avatar: const Icon(Icons.bolt, size: 16),
                             label: Text('Fast +$judgeFastBonus'),
                             visualDensity: VisualDensity.compact,
                           ),
-                        ],
                       ],
                     ),
                     Text(claim.feedback),
@@ -1249,17 +1246,20 @@ class _JudgeBotScreenState extends State<JudgeBotScreen>
           ),
         ),
         const SizedBox(width: 8),
-        FilledButton(
-          key: GameIds.mgNext(_g),
-          onPressed: _next,
-          style: FilledButton.styleFrom(
-            minimumSize: const Size(120, 56),
-            padding: const EdgeInsets.symmetric(horizontal: 12),
-          ),
-          child: KeyedText(
-            _s.finished ? 'See results' : 'Next',
-            GameAction.action,
-            alsoSpace: true,
+        SizedBox(
+          width: 150,
+          child: FilledButton(
+            key: GameIds.mgNext(_g),
+            onPressed: _next,
+            style: FilledButton.styleFrom(
+              minimumSize: const Size(150, 56),
+              padding: const EdgeInsets.symmetric(horizontal: 12),
+            ),
+            child: KeyedText(
+              _s.finished ? 'See results' : 'Next',
+              GameAction.action,
+              alsoSpace: true,
+            ),
           ),
         ),
       ],
@@ -1380,21 +1380,27 @@ class _LampState extends State<_Lamp> {
             onTap: widget.enabled ? widget.onTap : null,
             child: Stack(
               children: [
-                Center(
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(widget.icon, color: Colors.white, size: 30),
-                      const SizedBox(width: 8),
-                      Text(
-                        widget.label,
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontWeight: FontWeight.w900,
-                          fontSize: 24,
-                        ),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 6),
+                  child: Center(
+                    child: FittedBox(
+                      fit: BoxFit.scaleDown,
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(widget.icon, color: Colors.white, size: 30),
+                          const SizedBox(width: 8),
+                          Text(
+                            widget.label,
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontWeight: FontWeight.w900,
+                              fontSize: 24,
+                            ),
+                          ),
+                        ],
                       ),
-                    ],
+                    ),
                   ),
                 ),
                 Positioned(

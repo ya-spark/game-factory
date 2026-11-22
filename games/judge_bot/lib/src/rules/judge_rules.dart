@@ -221,7 +221,9 @@ List<bool> planVerdicts(List<bool?> fixed, Random random, {int tries = 400}) {
   final n = free.length;
   var lo = (0.4 * n).ceil();
   var hi = (0.6 * n).floor();
-  if (lo > hi) lo = hi = (0.5 * n).round(); // 1, 3 or 6 tickets: no whole number fits
+  if (lo > hi) {
+    lo = hi = (0.5 * n).round(); // 1, 3 or 6 tickets: no whole number fits
+  }
   List<bool>? best;
   var bestRun = 1 << 30;
   for (var t = 0; t < tries; t++) {

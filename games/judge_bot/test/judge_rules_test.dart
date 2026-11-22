@@ -34,7 +34,8 @@ void main() {
   group('Judge bot rules: levels', () {
     test('younger no timer, older 10 s, hard 6 s, study never timed', () {
       expect(
-        JudgeSettings.forLevel(const MiniGameLevel.younger()).secondsPerQuestion,
+        JudgeSettings.forLevel(const MiniGameLevel.younger())
+            .secondsPerQuestion,
         0,
       );
       expect(
@@ -55,8 +56,14 @@ void main() {
     });
 
     test('only the older level moves on by itself', () {
-      expect(JudgeSettings.forLevel(const MiniGameLevel.younger()).autoMove, isFalse);
-      expect(JudgeSettings.forLevel(const MiniGameLevel.older()).autoMove, isTrue);
+      expect(
+        JudgeSettings.forLevel(const MiniGameLevel.younger()).autoMove,
+        isFalse,
+      );
+      expect(
+        JudgeSettings.forLevel(const MiniGameLevel.older()).autoMove,
+        isTrue,
+      );
       expect(judgeAutoMove, const Duration(milliseconds: 1200));
     });
   });
@@ -105,22 +112,25 @@ void main() {
       expect(t.shown, isNot(contains(' Answer: ')));
     });
 
-    test('a plain maths question becomes "10 x 7 = 70?" and the feedback names it', () {
-      final item = mcq(
-        prompt: 'What is 10 x 7?',
-        options: ['63', '70', '77', '17'],
-        correct: 1,
-      );
-      final t = buildClaim(item, Random(1), wantTrue: true)!;
-      expect(t.shown, '10 x 7 = 70?');
-      expect(t.question, 'What is 10 x 7?');
-      expect(t.feedback, 'True. 10 x 7 is 70.');
-      final f = buildClaim(item, Random(1), wantTrue: false)!;
-      expect(f.shown, matches(RegExp(r'^10 x 7 = (63|77|17)\?$')));
-      expect(f.feedback, startsWith('False. The claim was '));
-      expect(f.feedback, endsWith('10 x 7 is 70.'));
-      expect(f.rightAnswer, '70');
-    });
+    test(
+      'a plain maths question becomes "10 x 7 = 70?" and the feedback names it',
+      () {
+        final item = mcq(
+          prompt: 'What is 10 x 7?',
+          options: ['63', '70', '77', '17'],
+          correct: 1,
+        );
+        final t = buildClaim(item, Random(1), wantTrue: true)!;
+        expect(t.shown, '10 x 7 = 70?');
+        expect(t.question, 'What is 10 x 7?');
+        expect(t.feedback, 'True. 10 x 7 is 70.');
+        final f = buildClaim(item, Random(1), wantTrue: false)!;
+        expect(f.shown, matches(RegExp(r'^10 x 7 = (63|77|17)\?$')));
+        expect(f.feedback, startsWith('False. The claim was '));
+        expect(f.feedback, endsWith('10 x 7 is 70.'));
+        expect(f.rightAnswer, '70');
+      },
+    );
 
     test('other questions say "The answer is" and the feedback quotes the question', () {
       final c = buildClaim(
@@ -155,7 +165,13 @@ void main() {
     });
 
     test('items that cannot be used give null and are not claimable', () {
-      expect(buildClaim(other({'type': 'numeric', 'prompt': 'p', 'answer': 3}), Random(1)), isNull);
+      expect(
+        buildClaim(
+          other({'type': 'numeric', 'prompt': 'p', 'answer': 3}),
+          Random(1),
+        ),
+        isNull,
+      );
       expect(buildClaim(mcq(options: ['only']), Random(1)), isNull);
       expect(isClaimable(mcq(correct: 9)), isFalse);
       expect(isClaimable(mcq()), isTrue);
@@ -165,19 +181,26 @@ void main() {
   group('Judge bot rules: balance', () {
     List<ContentItem> derived(int n) => [for (var i = 0; i < n; i++) mcq()];
 
-    test('derived tickets are 40 to 60 percent true and no verdict runs over 3', () {
-      for (var seed = 0; seed < 60; seed++) {
-        for (final n in [4, 5, 8, 10, 12]) {
-          final d = ClaimDealer(derived(n), Random(seed));
-          final trues = d.plan.where((x) => x).length;
-          expect(trues / n, inInclusiveRange(0.4 - 1e-9, 0.6 + 1e-9), reason: 'n=$n seed=$seed');
-          expect(longestRun(d.plan), lessThanOrEqualTo(judgeMaxRun));
-          for (var i = 0; i < n; i++) {
-            expect(d.claimAt(i)!.isTrue, d.plan[i]);
+    test(
+      'derived tickets are 40 to 60 percent true and no verdict runs over 3',
+      () {
+        for (var seed = 0; seed < 60; seed++) {
+          for (final n in [4, 5, 8, 10, 12]) {
+            final d = ClaimDealer(derived(n), Random(seed));
+            final trues = d.plan.where((x) => x).length;
+            expect(
+              trues / n,
+              inInclusiveRange(0.4 - 1e-9, 0.6 + 1e-9),
+              reason: 'n=$n seed=$seed',
+            );
+            expect(longestRun(d.plan), lessThanOrEqualTo(judgeMaxRun));
+            for (var i = 0; i < n; i++) {
+              expect(d.claimAt(i)!.isTrue, d.plan[i]);
+            }
           }
         }
-      }
-    });
+      },
+    );
 
     test('native items keep their truth inside the plan', () {
       final items = [
@@ -191,17 +214,20 @@ void main() {
       expect(d.claimAt(2)!.isTrue, isFalse);
     });
 
-    test('the same seed deals the same tickets, and a dealt ticket never changes', () {
-      List<String> run(int seed) {
-        final d = ClaimDealer(derived(8), Random(seed));
-        return [for (var i = 0; i < 8; i++) d.claimAt(i)!.shown];
-      }
+    test(
+      'the same seed deals the same tickets, and a dealt ticket never changes',
+      () {
+        List<String> run(int seed) {
+          final d = ClaimDealer(derived(8), Random(seed));
+          return [for (var i = 0; i < 8; i++) d.claimAt(i)!.shown];
+        }
 
-      expect(run(7), run(7));
-      final d = ClaimDealer(derived(8), Random(1));
-      final first = d.claimAt(3)!;
-      expect(identical(d.claimAt(3), first), isTrue);
-    });
+        expect(run(7), run(7));
+        final d = ClaimDealer(derived(8), Random(1));
+        final first = d.claimAt(3)!;
+        expect(identical(d.claimAt(3), first), isTrue);
+      },
+    );
   });
 
   group('Judge bot rules: score, streak, evidence', () {
@@ -249,17 +275,20 @@ void main() {
       expect(src, isNot(contains('dart:ui')));
     });
 
-    test('the lamp colours give white text at least 4.5:1 and the ticket 7:1', () {
-      double lum(Color c) => c.computeLuminance();
-      double ratio(Color a, Color b) {
-        final l1 = max(lum(a), lum(b)), l2 = min(lum(a), lum(b));
-        return (l1 + 0.05) / (l2 + 0.05);
-      }
+    test(
+      'the lamp colours give white text at least 4.5:1 and the ticket 7:1',
+      () {
+        double lum(Color c) => c.computeLuminance();
+        double ratio(Color a, Color b) {
+          final l1 = max(lum(a), lum(b)), l2 = min(lum(a), lum(b));
+          return (l1 + 0.05) / (l2 + 0.05);
+        }
 
-      const white = Color(0xFFFFFFFF);
-      expect(ratio(white, judgeTrueGreen), greaterThanOrEqualTo(4.5));
-      expect(ratio(white, judgeFalseRed), greaterThanOrEqualTo(4.5));
-      expect(ratio(judgeInk, judgeTicket), greaterThanOrEqualTo(7));
-    });
+        const white = Color(0xFFFFFFFF);
+        expect(ratio(white, judgeTrueGreen), greaterThanOrEqualTo(4.5));
+        expect(ratio(white, judgeFalseRed), greaterThanOrEqualTo(4.5));
+        expect(ratio(judgeInk, judgeTicket), greaterThanOrEqualTo(7));
+      },
+    );
   });
 }
