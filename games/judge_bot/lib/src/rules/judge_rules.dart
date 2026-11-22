@@ -6,16 +6,16 @@ import 'dart:math';
 
 import 'package:game_core/engine/engine.dart';
 
-const String trueFalseId = 'true_false';
+const String judgeBotId = 'judge_bot';
 
-class TrueFalseSettings {
-  const TrueFalseSettings({required this.secondsPerQuestion});
+class JudgeSettings {
+  const JudgeSettings({required this.secondsPerQuestion});
 
   /// 0 means no timer.
   final int secondsPerQuestion;
 
-  factory TrueFalseSettings.forLevel(MiniGameLevel l) =>
-      TrueFalseSettings(secondsPerQuestion: l.older ? (l.harder ? 6 : 10) : 0);
+  factory JudgeSettings.forLevel(MiniGameLevel l) =>
+      JudgeSettings(secondsPerQuestion: l.older ? (l.harder ? 6 : 10) : 0);
 }
 
 class Statement {
@@ -26,7 +26,7 @@ class Statement {
 
 /// True when the item's two options are "True" and "False" (any case): the prompt already is
 /// the statement.
-bool isTrueFalseItem(ContentItem item) {
+bool isJudgeBotItem(ContentItem item) {
   if (item.type != ItemType.mcq) return false;
   final o = [for (final s in mcqOptions(item)) s.trim().toLowerCase()];
   return o.length == 2 && o.contains('true') && o.contains('false');
@@ -42,7 +42,7 @@ Statement? buildStatement(ContentItem item, Random random) {
   if (right.isEmpty || options.length < 2) return null;
   if (right.any((i) => i < 0 || i >= options.length)) return null;
   final prompt = mcqPrompt(item);
-  if (isTrueFalseItem(item)) {
+  if (isJudgeBotItem(item)) {
     final isTrue = options[right.first].trim().toLowerCase() == 'true';
     return Statement(prompt, isTrue);
   }

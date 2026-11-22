@@ -80,6 +80,7 @@ const Map<String, String> renamedGameIds = {
   'snake': 'parcel_train',
   'runner': 'wind_up_dash',
   'series_builder': 'domino_chain',
+  'true_false': 'judge_bot',
 };
 
 /// Browser-saved progress of the web games (W3; spec in the studio repo `docs/FEATURE-SPECS.md`).

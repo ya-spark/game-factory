@@ -2,7 +2,7 @@ import 'dart:math';
 
 import 'package:game_core/game_core.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:game_true_false/true_false.dart';
+import 'package:game_judge_bot/judge_bot.dart';
 
 ContentItem mcq({
   Object correct = 1,
@@ -30,20 +30,18 @@ void main() {
   group('True or false rules', () {
     test('settings: no timer for younger, harder is quicker', () {
       expect(
-        TrueFalseSettings.forLevel(const MiniGameLevel.younger())
+        JudgeSettings.forLevel(const MiniGameLevel.younger())
             .secondsPerQuestion,
         0,
       );
-      final o = TrueFalseSettings.forLevel(const MiniGameLevel.older());
-      final h = TrueFalseSettings.forLevel(
-        const MiniGameLevel.older(harder: true),
-      );
+      final o = JudgeSettings.forLevel(const MiniGameLevel.older());
+      final h = JudgeSettings.forLevel(const MiniGameLevel.older(harder: true));
       expect(h.secondsPerQuestion, lessThan(o.secondsPerQuestion));
     });
 
     test('a True/False item keeps its prompt and answer', () {
       final item = mcq(options: ['True', 'False'], correct: 1);
-      expect(isTrueFalseItem(item), isTrue);
+      expect(isJudgeBotItem(item), isTrue);
       final s = buildStatement(item, Random(1))!;
       expect(s.text, 'Pick');
       expect(s.isTrue, isFalse);

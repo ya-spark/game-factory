@@ -4,16 +4,16 @@ import 'package:flutter/material.dart';
 
 import 'package:game_core/game_core.dart';
 
-import 'rules/true_false_rules.dart';
+import 'rules/judge_rules.dart';
 
 /// True or false: free with ads, Game and Study mode, plays `mcq` items. Choice 0 is True,
 /// choice 1 is False. [harder] is for Champion.
-MiniGame trueFalseGameFor({bool harder = false}) => MiniGame(
-  id: trueFalseId,
-  title: 'True or false',
+MiniGame judgeBotGameFor({bool harder = false}) => MiniGame(
+  id: judgeBotId,
+  title: 'Judge bot',
   itemTypes: const {ItemType.mcq},
   minPool: 4,
-  build: (ctx) => TrueFalseScreen(
+  build: (ctx) => JudgeBotScreen(
     session: ctx.session,
     onExit: ctx.onExit,
     onAnswered: ctx.onAnswered,
@@ -22,10 +22,10 @@ MiniGame trueFalseGameFor({bool harder = false}) => MiniGame(
   ),
 );
 
-final MiniGame trueFalseGame = trueFalseGameFor();
+final MiniGame judgeBotGame = judgeBotGameFor();
 
-class TrueFalseScreen extends StatefulWidget {
-  const TrueFalseScreen({
+class JudgeBotScreen extends StatefulWidget {
+  const JudgeBotScreen({
     super.key,
     required this.session,
     required this.onExit,
@@ -42,19 +42,19 @@ class TrueFalseScreen extends StatefulWidget {
   final Random? random;
 
   @override
-  State<TrueFalseScreen> createState() => _TrueFalseScreenState();
+  State<JudgeBotScreen> createState() => _JudgeBotScreenState();
 }
 
-class _TrueFalseScreenState extends State<TrueFalseScreen> {
+class _JudgeBotScreenState extends State<JudgeBotScreen> {
   final Map<String, Statement> _statements = {};
 
   @override
   Widget build(BuildContext context) {
     final older = widget.level.older;
-    final st = TrueFalseSettings.forLevel(widget.level);
+    final st = JudgeSettings.forLevel(widget.level);
     return ChoiceGameScreen(
-      gameId: trueFalseId,
-      title: 'True or false',
+      gameId: judgeBotId,
+      title: 'Judge bot',
       howTo: older
           ? 'Read the statement and tap True or False. Quick answers keep your streak going.'
           : 'Read the statement and tap True or False. If it is not that one, try the other.',
@@ -76,13 +76,13 @@ class _TrueFalseScreenState extends State<TrueFalseScreen> {
           ChoiceOption('False', !s.isTrue),
         ];
       },
-      fieldBuilder: (context, f) => _TrueFalseField(field: f),
+      fieldBuilder: (context, f) => _JudgeBotField(field: f),
     );
   }
 }
 
-class _TrueFalseField extends StatelessWidget {
-  const _TrueFalseField({required this.field});
+class _JudgeBotField extends StatelessWidget {
+  const _JudgeBotField({required this.field});
   final ChoiceField field;
 
   @override

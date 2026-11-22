@@ -18,7 +18,7 @@ void main() {
         'sort_bins',
         'domino_chain',
         'word_builder',
-        'true_false',
+        'judge_bot',
         'cloze_fix',
         'bridge_builder',
         'word_grid',

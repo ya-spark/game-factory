@@ -1,5 +1,5 @@
-name: game_true_false
-description: "TrueFalse: a game in game-factory/games; apps and the web are containers that list it."
+name: game_judge_bot
+description: "JudgeBot: a game in game-factory/games; apps and the web are containers that list it."
 publish_to: 'none'
 version: 1.0.0
 environment:

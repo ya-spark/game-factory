@@ -101,15 +101,17 @@ abstract final class HowToPlayCatalogue {
       ],
     ),
     HowToPlay(
-      'true_false',
-      'True or false',
+      'judge_bot',
+      'Judge bot',
       [
-        'Read each statement, then choose True or False.',
-        'After each answer you often see why.',
+        'Judge bot reads a ticket. Is it true or false? Press TRUE (T) or FALSE (F), or tap a lamp.',
+        'The stamp shows the right verdict and the bot tells you why. Press Next (Enter or Space) to go on.',
+        'Older levels have a clock on the bot\'s eye, and a right answer with no explanation moves on by itself.',
       ],
       [
-        'Read the whole statement before you answer.',
+        'Read the whole ticket before you judge it.',
         'Look for words like always, never and only.',
+        'P or Esc pauses. Space never pauses.',
       ],
     ),
     HowToPlay(

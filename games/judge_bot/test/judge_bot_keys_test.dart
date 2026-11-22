@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:game_core/game_core.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:game_true_false/true_false.dart';
+import 'package:game_judge_bot/judge_bot.dart';
 
 Map<String, dynamic> _item(int i) => {
   'id': 'q.$i',
@@ -59,7 +59,7 @@ void main() {
     addTearDown(t.view.resetDevicePixelRatio);
     await t.pumpWidget(
       _app(
-        TrueFalseScreen(
+        JudgeBotScreen(
           session: _session(),
           level: const MiniGameLevel.younger(),
           onExit: onExit ?? () {},

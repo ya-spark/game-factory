@@ -3,7 +3,7 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:game_core/game_core.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:game_true_false/true_false.dart';
+import 'package:game_judge_bot/judge_bot.dart';
 
 Map<String, dynamic> _item(int i) => {
   'id': 'q.$i',
@@ -58,7 +58,7 @@ void main() {
     int? score;
     await t.pumpWidget(
       _app(
-        TrueFalseScreen(
+        JudgeBotScreen(
           session: _session(),
           level: const MiniGameLevel.older(),
           onExit: () {},
@@ -68,22 +68,22 @@ void main() {
         ),
       ),
     );
-    await t.tap(find.byKey(GameIds.mgStart('true_false')));
+    await t.tap(find.byKey(GameIds.mgStart('judge_bot')));
     await t.pump();
-    expect(find.byKey(GameIds.mgTimer('true_false')), findsOneWidget);
+    expect(find.byKey(GameIds.mgTimer('judge_bot')), findsOneWidget);
     for (var q = 0; q < 4; q++) {
       final text =
-          (t.widget(find.byKey(GameIds.mgPrompt('true_false'))) as Text).data!;
+          (t.widget(find.byKey(GameIds.mgPrompt('judge_bot'))) as Text).data!;
       expect(text, startsWith('Question number'));
       expect(text, contains('Answer: '));
       final stmtTrue = text.endsWith('Answer: Beta');
-      await t.tap(find.byKey(GameIds.mgChoice('true_false', stmtTrue ? 0 : 1)));
+      await t.tap(find.byKey(GameIds.mgChoice('judge_bot', stmtTrue ? 0 : 1)));
       await t.pump();
       expect(log.last.correct, isTrue);
-      await t.tap(find.byKey(GameIds.mgNext('true_false')));
+      await t.tap(find.byKey(GameIds.mgNext('judge_bot')));
       await t.pump();
     }
-    expect(find.byKey(GameIds.mgResults('true_false')), findsOneWidget);
+    expect(find.byKey(GameIds.mgResults('judge_bot')), findsOneWidget);
     expect(score, 10 + 12 + 14 + 16);
     await t.pumpWidget(const SizedBox());
   });
@@ -92,7 +92,7 @@ void main() {
     final log = <AnswerResult>[];
     await t.pumpWidget(
       _app(
-        TrueFalseScreen(
+        JudgeBotScreen(
           session: _session(year: 1),
           level: const MiniGameLevel.younger(),
           onExit: () {},
@@ -102,17 +102,17 @@ void main() {
         scale: 1.5,
       ),
     );
-    await t.tap(find.byKey(GameIds.mgStart('true_false')));
+    await t.tap(find.byKey(GameIds.mgStart('judge_bot')));
     await t.pump();
-    expect(find.byKey(GameIds.mgTimer('true_false')), findsNothing);
+    expect(find.byKey(GameIds.mgTimer('judge_bot')), findsNothing);
     final text =
-        (t.widget(find.byKey(GameIds.mgPrompt('true_false'))) as Text).data!;
+        (t.widget(find.byKey(GameIds.mgPrompt('judge_bot'))) as Text).data!;
     final isTrue = text.endsWith('Answer: Beta');
-    await t.tap(find.byKey(GameIds.mgChoice('true_false', isTrue ? 1 : 0)));
+    await t.tap(find.byKey(GameIds.mgChoice('judge_bot', isTrue ? 1 : 0)));
     await t.pump();
     expect(log, isEmpty);
     expect(find.text('Not that one. Try another!'), findsOneWidget);
-    await t.tap(find.byKey(GameIds.mgChoice('true_false', isTrue ? 0 : 1)));
+    await t.tap(find.byKey(GameIds.mgChoice('judge_bot', isTrue ? 0 : 1)));
     await t.pump();
     expect(log, hasLength(1));
   });

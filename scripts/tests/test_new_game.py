@@ -419,13 +419,13 @@ class ProfileTest(unittest.TestCase):
         self.assertIn("RegistryEntry(flashReviewGame)", reg)
 
     def test_games_flag_lists_each_game(self):
-        out = self.gen(games="true_false,door_runner", ref=REF)
+        out = self.gen(games="judge_bot,door_runner", ref=REF)
         pub = (out / "pubspec.yaml").read_text()
-        for g in ("true_false", "door_runner", "flash_review"):
+        for g in ("judge_bot", "door_runner", "flash_review"):
             self.assertIn(f"  game_{g}:\n    git:", pub)
             self.assertIn(f"      path: games/{g}\n      ref: {REF}\n", pub)
         reg = (out / "lib/ui/game_registry.dart").read_text()
-        self.assertIn("RegistryEntry(trueFalseGame)", reg)
+        self.assertIn("RegistryEntry(judgeBotGame)", reg)
         self.assertIn("RegistryEntry(doorRunnerGame)", reg)
         self.assertEqual(reg.count("RegistryEntry(quickQuizGame)"), 1)
 
@@ -444,7 +444,7 @@ class ProfileTest(unittest.TestCase):
         with self.assertRaises(new_game.GenError):
             new_game.parse_games("not_a_game")
         with self.assertRaises(new_game.GenError):
-            self.gen(games="true_false", ref="abc")
+            self.gen(games="judge_bot", ref="abc")
 
     def test_every_arcade_game_is_a_package_with_its_screen_and_stars(self):
         import re
