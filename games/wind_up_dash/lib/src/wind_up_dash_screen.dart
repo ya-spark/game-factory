@@ -1009,7 +1009,7 @@ class _WindUpDashScreenState extends State<WindUpDashScreen>
     final hint = Padding(
       padding: const EdgeInsets.only(top: 4),
       child: Text(
-        'Space or tap: jump.  Left / Right and 1 to 5 pick a course.',
+        'Space or tap: jump.  1 to 5: course.',
         textAlign: TextAlign.center,
         style: TextStyle(
           color: _ink.withValues(alpha: 0.85),

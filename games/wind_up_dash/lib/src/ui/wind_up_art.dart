@@ -275,6 +275,9 @@ class DashWorldPainter extends CustomPainter {
     }
   }
 
+  /// Background props are pale and outline-free so they never read as a hazard.
+  Color _fade(Color c, DashBackdrop b) => Color.lerp(c, b.wall, 0.62)!;
+
   void _layers(Canvas canvas, Size size, DashView v, DashBackdrop b) {
     final u = v.scale;
     final gy = v.groundY;
@@ -374,24 +377,21 @@ class DashWorldPainter extends CustomPainter {
     });
     // mid layer (0.5): smaller props
     _tiles(canvas, size, v, scene.reduce ? 0.0 : 0.5, 16 * u, (c, left, i) {
-      final p = Paint()..color = b.mid;
+      final p = Paint()..color = _fade(b.mid, b);
       switch (b.kind) {
         case 0: // a ball and a toy chest
           if (i % 2 == 0) {
             c.drawCircle(Offset(left + 6 * u, gy - 3 * u), 3 * u, p);
-            c.drawCircle(Offset(left + 6 * u, gy - 3 * u), 3 * u, ink);
           } else {
             final r = Rect.fromLTWH(left + 3 * u, gy - 6 * u, 9 * u, 6 * u);
             c.drawRRect(
               RRect.fromRectAndRadius(r, Radius.circular(u)),
-              Paint()..color = dashBrickColors[i.abs() % 4],
+              Paint()..color = _fade(dashBrickColors[i.abs() % 4], b),
             );
-            c.drawRRect(RRect.fromRectAndRadius(r, Radius.circular(u)), ink);
           }
         case 1: // jars
           final r = Rect.fromLTWH(left + 4 * u, gy - 7 * u, 4.5 * u, 7 * u);
           c.drawRRect(RRect.fromRectAndRadius(r, Radius.circular(u)), p);
-          c.drawRRect(RRect.fromRectAndRadius(r, Radius.circular(u)), ink);
           c.drawRect(
             Rect.fromLTWH(r.left, r.top - 1.2 * u, r.width, 1.2 * u),
             Paint()..color = dashInk.withValues(alpha: 0.6),
@@ -405,8 +405,10 @@ class DashWorldPainter extends CustomPainter {
               2 * u,
               h * u,
             );
-            c.drawRect(r, Paint()..color = dashBrickColors[(i + k).abs() % 4]);
-            c.drawRect(r, ink);
+            c.drawRect(
+              r,
+              Paint()..color = _fade(dashBrickColors[(i + k).abs() % 4], b),
+            );
           }
         case 3: // desk lamp
           if (i % 2 == 0) {
@@ -430,7 +432,7 @@ class DashWorldPainter extends CustomPainter {
             final r = Rect.fromLTWH(left + 4 * u, gy - 5 * u, 8 * u, 5 * u);
             c.drawRRect(
               RRect.fromRectAndRadius(r, Radius.circular(u * 0.6)),
-              Paint()..color = dashBrickColors[1],
+              Paint()..color = _fade(dashBrickColors[1], b),
             );
             c.drawRRect(
               RRect.fromRectAndRadius(r, Radius.circular(u * 0.6)),
@@ -440,7 +442,6 @@ class DashWorldPainter extends CustomPainter {
         default: // chimneys and antenna
           final r = Rect.fromLTWH(left + 5 * u, gy - 8 * u, 4 * u, 8 * u);
           c.drawRect(r, p);
-          c.drawRect(r, ink);
           c.drawRect(
             Rect.fromLTWH(left + 4.3 * u, gy - 9 * u, 5.4 * u, 1.2 * u),
             Paint()..color = dashInk.withValues(alpha: 0.6),
@@ -1122,7 +1123,7 @@ class DashSkyPainter extends CustomPainter {
           colors: [b.skyTop, b.skyBottom],
         ).createShader(Offset.zero & size),
     );
-    final floor = Rect.fromLTRB(0, size.height * 0.78, size.width, size.height);
+    final floor = Rect.fromLTRB(0, size.height * 0.93, size.width, size.height);
     canvas.drawRect(floor, Paint()..color = b.floorUnder);
     canvas.drawRect(
       Rect.fromLTRB(0, floor.top, size.width, floor.top + 18),
