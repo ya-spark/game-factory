@@ -1333,31 +1333,34 @@ class _WindUpDashScreenState extends State<WindUpDashScreen>
           child: SizedBox(
             width: 76,
             height: 76,
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                const Icon(
-                  Icons.arrow_upward_rounded,
-                  color: Colors.white,
-                  size: 26,
-                ),
-                const Text(
-                  'Jump',
-                  style: TextStyle(
+            child: FittedBox(
+              fit: BoxFit.scaleDown,
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Icon(
+                    Icons.arrow_upward_rounded,
                     color: Colors.white,
-                    fontWeight: FontWeight.w800,
-                    fontSize: 14,
+                    size: 26,
                   ),
-                ),
-                Text(
-                  _spaceKey,
-                  style: const TextStyle(
-                    color: Colors.white70,
-                    fontSize: 11,
-                    fontWeight: FontWeight.w700,
+                  const Text(
+                    'Jump',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.w800,
+                      fontSize: 14,
+                    ),
                   ),
-                ),
-              ],
+                  Text(
+                    _spaceKey,
+                    style: const TextStyle(
+                      color: Colors.white70,
+                      fontSize: 11,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
         ),
