@@ -870,7 +870,7 @@ class _JudgeBotScreenState extends State<JudgeBotScreen>
               c.shown,
               style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w700),
             ),
-            Text('Right verdict: ${c.verdict}. ${c.feedback}'),
+            Text(c.derived ? c.feedback : 'Right verdict: ${c.verdict}.'),
             if (c.explanation.isNotEmpty) Text(c.explanation),
           ],
         ),
@@ -918,7 +918,7 @@ class _JudgeBotScreenState extends State<JudgeBotScreen>
               Expanded(child: _art(claim, scale)),
               const SizedBox(height: 6),
               SizedBox(
-                height: h < 600 ? 92 : (h < 760 ? 112 : 128),
+                height: h < 600 ? 92 : (h < 760 ? 112 : 150),
                 child: _feedback(claim),
               ),
               const SizedBox(height: 6),
