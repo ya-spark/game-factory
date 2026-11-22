@@ -121,7 +121,9 @@ class _MergeScreenState extends State<MergeScreen> {
         final zen = ZenScope.of(context).zen;
         if (a == GameAction.exit) {
           Navigator.of(context).maybePop();
-        } else if (a == GameAction.action || a == GameAction.pick1) {
+        } else if (a == GameAction.action ||
+            a == GameAction.pause ||
+            a == GameAction.pick1) {
           _start(zen);
         } else if (a == GameAction.pick2) {
           _start(true);
@@ -142,7 +144,7 @@ class _MergeScreenState extends State<MergeScreen> {
         }
       case _Phase.result:
         if (i.repeat) return;
-        if (a == GameAction.action) {
+        if (a == GameAction.action || a == GameAction.pause) {
           _start(_relaxed);
         } else if (a == GameAction.exit) {
           setState(() => _phase = _Phase.menu);
@@ -191,6 +193,7 @@ class _MergeScreenState extends State<MergeScreen> {
       body: SafeArea(
         child: KeyedBody(
           onInput: _onKey,
+          spaceGoesOn: _phase != _Phase.play,
           hints: _hints,
           child: switch (_phase) {
             _Phase.menu => _menu(context),

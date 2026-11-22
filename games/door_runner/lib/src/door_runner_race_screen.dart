@@ -207,16 +207,20 @@ class _DoorRunnerRaceScreenState extends State<DoorRunnerRaceScreen>
       _phase == _Phase.play ? _togglePause() : widget.onExit();
       return;
     }
-    if (i.action == GameAction.pause) {
+    // Enter or Space (the pause key) starts, plays again and goes on after a question; in play
+    // Space pauses, never while Next is showing (U2).
+    final goOn = i.action == GameAction.action || i.action == GameAction.pause;
+    final nextShowing = _phase == _Phase.play && _st.questionOver && !_paused;
+    if (i.action == GameAction.pause && _phase == _Phase.play && !nextShowing) {
       if (!i.repeat) _togglePause();
       return;
     }
     if (_paused || i.repeat) return;
     switch (_phase) {
       case _Phase.intro:
-        if (i.action == GameAction.action) _start();
+        if (goOn) _start();
       case _Phase.over:
-        if (i.action == GameAction.action) _start();
+        if (goOn) _start();
       case _Phase.play:
         final n = i.action.pickNumber;
         if (n != null) {
@@ -231,6 +235,8 @@ class _DoorRunnerRaceScreenState extends State<DoorRunnerRaceScreen>
           case GameAction.up:
             _pick(i.player);
           case GameAction.action:
+            if (_st.questionOver) _afterQuestion();
+          case GameAction.pause:
             if (_st.questionOver) _afterQuestion();
           default:
             break;

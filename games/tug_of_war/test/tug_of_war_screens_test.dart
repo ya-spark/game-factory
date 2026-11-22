@@ -191,6 +191,39 @@ void main() {
       expect(find.byKey(GameIds.mgFeedback('tug_of_war')), findsNothing);
     });
 
+    testWidgets('Space starts, goes on after a result, never pauses then', (
+      t,
+    ) async {
+      final log = await start(t);
+      await t.sendKeyEvent(LogicalKeyboardKey.space);
+      await t.pump();
+      expect(find.byKey(GameIds.mgRope('tug_of_war')), findsOneWidget);
+      for (var n = 1; n <= 4; n++) {
+        final f = find.byKey(GameIds.mgChoice('tug_of_war', n - 1));
+        if (find
+            .descendant(of: f, matching: find.text('Beta'))
+            .evaluate()
+            .isNotEmpty) {
+          await t.sendKeyEvent(
+            [
+              LogicalKeyboardKey.digit1,
+              LogicalKeyboardKey.digit2,
+              LogicalKeyboardKey.digit3,
+              LogicalKeyboardKey.digit4,
+            ][n - 1],
+          );
+          break;
+        }
+      }
+      await t.pump();
+      expect(log.single.correct, isTrue);
+      expect(find.byKey(GameIds.mgFeedback('tug_of_war')), findsOneWidget);
+      await t.sendKeyEvent(LogicalKeyboardKey.space);
+      await t.pump();
+      expect(find.byKey(GameIds.mgFeedback('tug_of_war')), findsNothing);
+      expect(find.byKey(GameIds.mgPaused('tug_of_war')), findsNothing);
+    });
+
     testWidgets('Esc leaves from the start screen, pauses in a round', (
       t,
     ) async {

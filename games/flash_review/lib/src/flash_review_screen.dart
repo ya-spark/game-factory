@@ -76,19 +76,22 @@ class _FlashReviewScreenState extends State<FlashReviewScreen> {
     }
     switch (_phase) {
       case _Phase.intro:
-        if (a == GameAction.action) _start();
+        if (_goesOn(a)) _start();
       case _Phase.card:
         if (!_flipped) {
-          if (a == GameAction.action) setState(() => _flipped = true);
+          if (_goesOn(a)) setState(() => _flipped = true);
         } else if (a == GameAction.pick1 || a == GameAction.right) {
           _mark(true);
         } else if (a == GameAction.pick2 || a == GameAction.left) {
           _mark(false);
         }
       case _Phase.results:
-        if (a == GameAction.action) widget.onExit();
+        if (_goesOn(a)) widget.onExit();
     }
   }
+
+  /// Enter or Space (the shared pause key; this game has no pause) starts, flips and leaves.
+  bool _goesOn(GameAction a) => a == GameAction.action || a == GameAction.pause;
 
   List<GameAction> get _hints => switch (_phase) {
     _Phase.card when _flipped => const [
@@ -143,6 +146,7 @@ class _FlashReviewScreenState extends State<FlashReviewScreen> {
         child: KeyedBody(
           onInput: _onKey,
           hints: _hints,
+          spaceGoesOn: _phase != _Phase.card || !_flipped,
           words: const {
             GameAction.pick1: 'knew it / not yet',
             GameAction.action: 'go',

@@ -623,9 +623,11 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
     final f = _flame;
     if (f == null) return;
     if (_choosing) {
-      // Enter or 1 starts one player, 2 opens versus (the buttons work too).
+      // Enter, Space or 1 starts one player, 2 opens versus (the buttons work too).
       if (i.repeat) return;
-      if (i.action == GameAction.action || i.action == GameAction.pick1) {
+      if (i.action == GameAction.action ||
+          i.action == GameAction.pause ||
+          i.action == GameAction.pick1) {
         _chooseOnePlayer();
       } else if (i.action == GameAction.pick2) {
         _chooseVersus();

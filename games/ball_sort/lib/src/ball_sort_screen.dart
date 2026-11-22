@@ -189,7 +189,9 @@ class _BallSortScreenState extends State<BallSortScreen> {
         if (i.repeat) return;
         if (a == GameAction.exit) {
           Navigator.of(context).maybePop();
-        } else if (a == GameAction.action || a == GameAction.pick1) {
+        } else if (a == GameAction.action ||
+            a == GameAction.pause ||
+            a == GameAction.pick1) {
           _start(_level);
         }
       case _Phase.play:
@@ -219,7 +221,7 @@ class _BallSortScreenState extends State<BallSortScreen> {
         }
       case _Phase.result:
         if (i.repeat) return;
-        if (a == GameAction.action) {
+        if (a == GameAction.action || a == GameAction.pause) {
           widget.daily != null ? _leaveDaily() : _start(_level);
         } else if (a == GameAction.exit) {
           widget.daily != null
@@ -276,6 +278,7 @@ class _BallSortScreenState extends State<BallSortScreen> {
       body: SafeArea(
         child: KeyedBody(
           onInput: _onKey,
+          spaceGoesOn: _phase != _Phase.play,
           hints: _hints,
           child: switch (_phase) {
             _Phase.menu => _menu(context),

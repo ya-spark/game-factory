@@ -198,7 +198,9 @@ class _SudokuScreenState extends State<SudokuScreen> {
         if (i.repeat) return;
         if (a == GameAction.exit) {
           _leave();
-        } else if (a == GameAction.action || a.pickNumber != null) {
+        } else if (a == GameAction.action ||
+            a == GameAction.pause ||
+            a.pickNumber != null) {
           final n = a.pickNumber ?? 1;
           if (n <= SudokuLevel.values.length) {
             final l = SudokuLevel.values[n - 1];
@@ -225,7 +227,7 @@ class _SudokuScreenState extends State<SudokuScreen> {
         }
       case _Phase.result:
         if (i.repeat) return;
-        if (a == GameAction.action) {
+        if (a == GameAction.action || a == GameAction.pause) {
           widget.daily != null
               ? _leaveDaily()
               : _start(_game!.puzzle.level, fresh: true);
@@ -389,6 +391,7 @@ class _SudokuScreenState extends State<SudokuScreen> {
           onKeyEvent: _rawKey,
           child: KeyedBody(
             onInput: _onKey,
+            spaceGoesOn: _phase != _Phase.play,
             hints: _phase == _Phase.play
                 ? const [
                     GameAction.left,

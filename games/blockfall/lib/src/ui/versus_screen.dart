@@ -136,13 +136,16 @@ class _VersusState extends State<BlockfallVersusScreen>
       _phase == _Phase.play ? _togglePause() : widget.onExit();
       return;
     }
-    if (i.action == GameAction.pause) {
+    if (i.action == GameAction.pause && _phase == _Phase.play) {
       if (!i.repeat) _togglePause();
       return;
     }
     if (_paused) return;
     if (_phase != _Phase.play) {
-      if (i.action == GameAction.action && !i.repeat) _start();
+      // Enter or Space starts and plays again; Space only pauses in play (U2).
+      final goOn =
+          i.action == GameAction.action || i.action == GameAction.pause;
+      if (goOn && !i.repeat) _start();
       return;
     }
     final p = i.player;

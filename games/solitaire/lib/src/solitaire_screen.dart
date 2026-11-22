@@ -203,7 +203,9 @@ class _SolitaireScreenState extends State<SolitaireScreen> {
         if (i.repeat) return;
         if (a == GameAction.exit) {
           Navigator.of(context).maybePop();
-        } else if (a == GameAction.action || a == GameAction.pick1) {
+        } else if (a == GameAction.action ||
+            a == GameAction.pause ||
+            a == GameAction.pick1) {
           _start();
         }
       case _Phase.play:
@@ -256,7 +258,7 @@ class _SolitaireScreenState extends State<SolitaireScreen> {
         }
       case _Phase.result:
         if (i.repeat) return;
-        if (a == GameAction.action) {
+        if (a == GameAction.action || a == GameAction.pause) {
           widget.daily != null ? _leaveDaily() : _start();
         } else if (a == GameAction.exit) {
           _leave();
@@ -341,6 +343,7 @@ class _SolitaireScreenState extends State<SolitaireScreen> {
       body: SafeArea(
         child: KeyedBody(
           onInput: _onKey,
+          spaceGoesOn: _phase != _Phase.play,
           hints: _phase == _Phase.play
               ? const [
                   GameAction.left,

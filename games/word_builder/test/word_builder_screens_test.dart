@@ -1,6 +1,7 @@
 import 'dart:math';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:game_core/game_core.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:game_word_builder/word_builder.dart';
@@ -174,5 +175,42 @@ void main() {
     expect(scores.length, 1);
     expect(t.takeException(), isNull);
     await t.pumpWidget(const SizedBox());
+  });
+
+  testWidgets('Space goes on after a result and leaves from the results', (
+    t,
+  ) async {
+    final s = _session([_word(1, 'dog'), _word(2, 'cat'), _word(3, 'pig')]);
+    var exited = false;
+    await t.pumpWidget(
+      _wrap(
+        WordBuilderScreen(
+          session: s,
+          mode: MiniGameMode.game,
+          onExit: () => exited = true,
+          level: WordLevel.younger,
+          random: Random(1),
+        ),
+        scale: 1.5,
+      ),
+    );
+    final round = WordRound.fromItem(
+      s.items.first.item,
+      WordLevel.younger,
+      Random(1),
+    );
+    final tiles = round.current!.tiles;
+    for (final ch in ['d', 'o', 'g']) {
+      await t.tap(
+        find.byKey(WordBuilderIds.wordBuilderTile(tiles.indexOf(ch))),
+      );
+      await t.pump();
+    }
+    expect(find.byKey(WordBuilderIds.wordBuilderFeedback), findsOneWidget);
+    await t.sendKeyEvent(LogicalKeyboardKey.space);
+    await t.pump();
+    expect(find.byKey(WordBuilderIds.wordBuilderSummary), findsOneWidget);
+    await t.sendKeyEvent(LogicalKeyboardKey.space);
+    expect(exited, isTrue);
   });
 }

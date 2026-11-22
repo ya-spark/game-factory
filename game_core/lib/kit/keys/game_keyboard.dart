@@ -123,7 +123,12 @@ class KeyHints extends StatelessWidget {
     this.player = 1,
     this.style,
     this.words = const {},
+    this.spaceGoesOn = false,
   });
+
+  /// True where Space also does what the action key does (start, Next, leave): the action chip
+  /// then reads "Enter / Space". False in play, where Space pauses (U2).
+  final bool spaceGoesOn;
 
   /// Replaces the short word of an action (Door runner says "zap" for up and "slow" for down).
   final Map<GameAction, String> words;
@@ -183,6 +188,12 @@ class KeyHints extends StatelessWidget {
         shown.add((
           '${key(GameAction.pick1)}-${key(lastPick)}',
           words[GameAction.pick1] ?? 'answer',
+          a,
+        ));
+      } else if (a == GameAction.action && spaceGoesOn) {
+        shown.add((
+          '${key(a)} / ${key(GameAction.pause)}',
+          words[a] ?? _word(a),
           a,
         ));
       } else {

@@ -194,21 +194,24 @@ class _HeadToHeadState extends State<TugOfWarHeadToHeadScreen>
       _playing ? _togglePause() : widget.onExit();
       return;
     }
-    if (i.action == GameAction.pause) {
+    // Enter or Space (the pause key) goes on from intro, between rounds and results; Space only
+    // pauses while a question is open (U2).
+    final goOn = i.action == GameAction.action || i.action == GameAction.pause;
+    if (i.action == GameAction.pause && _phase == _Phase.question) {
       if (!i.repeat) _togglePause();
       return;
     }
     if (_paused || i.repeat) return;
     switch (_phase) {
       case _Phase.intro:
-        if (i.action == GameAction.action) _start();
+        if (goOn) _start();
       case _Phase.question:
         final n = i.action.pickNumber;
         if (n != null) _press(i.player, n - 1);
       case _Phase.between:
-        if (i.action == GameAction.action) _after();
+        if (goOn) _after();
       case _Phase.over:
-        if (i.action == GameAction.action) _start();
+        if (goOn) _start();
     }
   }
 

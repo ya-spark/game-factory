@@ -145,12 +145,16 @@ class _SeriesBuilderScreenState extends State<SeriesBuilderScreen> {
     }
     final done = _s.finished && _result == null;
     if (done) {
-      if (!i.repeat && a == GameAction.action) widget.onExit();
+      if (!i.repeat && (a == GameAction.action || a == GameAction.pause)) {
+        widget.onExit();
+      }
       return;
     }
     final r = _round;
     if (_result != null) {
-      if (!i.repeat && a == GameAction.action) _next();
+      if (!i.repeat && (a == GameAction.action || a == GameAction.pause)) {
+        _next();
+      }
       return;
     }
     if (r == null) return;
@@ -206,6 +210,7 @@ class _SeriesBuilderScreenState extends State<SeriesBuilderScreen> {
       body: SafeArea(
         child: KeyedBody(
           onInput: _onKey,
+          spaceGoesOn: done || _result != null,
           hints: const [
             GameAction.left,
             GameAction.right,

@@ -36,5 +36,6 @@ Calm. Rules are pure Dart in `lib/engine/minigames/merge/rules/`; the screen is
 
 ## Keyboard (K1, 2026-11-22)
 - Arrows slide the board. On the menu Enter or 1 starts Classic (Zen: the garden), 2 starts Relaxed. On the results Enter plays again. The game has no timer, so no pause: Esc goes back (a game to its menu, the menu leaves; a Daily Challenge leaves).
+- Space (the shared pause key) is the same as Enter on the start and results screens (U2, 2026-11-22; the game has no pause); the key hints print "Enter / Space" there.
 - Keys come from the shared key map (`docs/KEYBOARD.md` in game-factory; remappable; W A S D and Z X C V also play in a one-player game). Tab and Enter or Space press any button. Key hints show under the game on windows 600 dp and wider.
 - Tests: the keys are covered by a widget or unit test where the screen can be built on the VM (see `test/`).

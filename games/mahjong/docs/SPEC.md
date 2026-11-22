@@ -56,5 +56,6 @@ Calm and untimed. Rules are pure Dart in `lib/engine/minigames/mahjong/rules/`; 
 
 ## Keyboard (K1, 2026-11-22)
 - Left, up and right, down step over the free tiles in reading order (a highlighted cursor), Enter picks or drops the tile (the same as a tap), 1 hint, 2 undo, 3 shuffle. Menu: Enter or 1 to 4 pick the layout. The game has no timer, so no pause: Esc goes back (a game to its menu, the menu leaves; a Daily Challenge leaves).
+- Space (the shared pause key) is the same as Enter on the start and results screens (U2, 2026-11-22; the game has no pause); the key hints print "Enter / Space" there.
 - Keys come from the shared key map (`docs/KEYBOARD.md` in game-factory; remappable; W A S D and Z X C V also play in a one-player game). Tab and Enter or Space press any button. Key hints show under the game on windows 600 dp and wider.
 - Tests: the keys are covered by a widget or unit test where the screen can be built on the VM (see `test/`).

@@ -39,6 +39,11 @@ One key map for every game and app, in `game_core` (`lib/kit/keys/`, import `pac
 | Door runner | left and right steer, up zaps, down slows while held, 1 to 4 pick a door, Enter or Q the question, Space or Esc pause |
 | Blockfall | left and right move (held keys repeat), up rotates, down soft-drops while held, Enter hard-drops, Q holds, 1 to 3 power-ups, Space or Esc pause |
 
+## U2: Space goes on (2026-11-22)
+- Space (the shared pause key) does what Enter does in the non-play states: after an answer or round result it is Next (or See results), on the intro or start screen it starts, on the results screen it leaves. In play it still pauses, and it never both pauses and goes on: while a result or Next shows, Space is Next. Enter keeps working.
+- In code: accept `GameAction.pause` where the code accepts `GameAction.action` for next, start and leave, only in the non-play states, with `!i.repeat`. Pass `spaceGoesOn: true` to `KeyedBody` or `KeyHints` for those states, so the action chip reads "Enter / Space".
+- Done in: the choice-game kit (Tug of war, True or false, Cloze fix, Balloon pop, Shooter shell), `ArcadeFrame` menu and over screens, Series builder, Sort into bins, Word builder, Flash review, Word grid, Memory match (one and two players), Door runner (race and wrong-answer Next), Tug of war head to head, Ball sort, Merge, Mahjong, Sudoku, Solitaire, Blockfall (choice and versus). Bridge builder already did it.
+
 ## K1: every game has keys (2026-11-22, for the web)
 - `ArcadeFrame` (Snake, Runner, Stack tower, Brick breaker) takes the keys: Enter start or play again, Space and Esc pause (Resume, Leave), the game registers `run.onInput` and `run.onRelease` for its own keys and `hintActions` for the hints.
 - `KeyedBody(onInput:, hints:, words:, child:)` (game_core, `kit/keys/keyed_body.dart`) is `GameKeyboard` plus the hint row for every other screen. Untimed games have no pause: Esc goes back.

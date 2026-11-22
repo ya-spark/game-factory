@@ -169,7 +169,9 @@ class _MahjongScreenState extends State<MahjongScreen> {
         if (i.repeat) return;
         if (a == GameAction.exit) {
           Navigator.of(context).maybePop();
-        } else if (a == GameAction.action || a.pickNumber != null) {
+        } else if (a == GameAction.action ||
+            a == GameAction.pause ||
+            a.pickNumber != null) {
           final n = (a.pickNumber ?? 1) - 1;
           if (n < _tier.layouts.length) _start(n);
         }
@@ -214,7 +216,7 @@ class _MahjongScreenState extends State<MahjongScreen> {
         }
       case _Phase.result:
         if (i.repeat) return;
-        if (a == GameAction.action) {
+        if (a == GameAction.action || a == GameAction.pause) {
           widget.daily != null ? _leaveDaily() : _start(_layout);
         } else if (a == GameAction.exit) {
           _leave();
@@ -298,6 +300,7 @@ class _MahjongScreenState extends State<MahjongScreen> {
       body: SafeArea(
         child: KeyedBody(
           onInput: _onKey,
+          spaceGoesOn: _phase != _Phase.play,
           hints: _phase == _Phase.play
               ? const [
                   GameAction.left,

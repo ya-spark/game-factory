@@ -223,6 +223,8 @@ class _DoorRunnerScreenState extends State<DoorRunnerScreen>
     if (mounted) setState(() {});
   }
 
+  bool get _nextShowing => _result != null && !_result!.correct;
+
   void _next() {
     _result = null;
     _advanceIn = null;
@@ -596,8 +598,9 @@ class _DoorRunnerScreenState extends State<DoorRunnerScreen>
       onRight: () => _move(1),
       onZap: _zap,
       onSlow: _slow,
-      onPause: _togglePause,
-      onQuestion: _openQuestion,
+      // Space (and Enter) is Next while the wrong-answer feedback shows; Space pauses otherwise (U2).
+      onPause: () => _nextShowing ? _next() : _togglePause(),
+      onQuestion: () => _nextShowing ? _next() : _openQuestion(),
       onDoor: (i) => _zap(i),
       child: DoorRunnerFrame(
         world: view.world,

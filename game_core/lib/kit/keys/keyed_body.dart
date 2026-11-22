@@ -15,6 +15,7 @@ class KeyedBody extends StatelessWidget {
     this.hints = const [],
     this.words = const {},
     this.enabled = true,
+    this.spaceGoesOn = false,
   });
 
   final void Function(GameInput input) onInput;
@@ -24,6 +25,9 @@ class KeyedBody extends StatelessWidget {
   /// Replaces the short word of a hint (see [KeyHints.words]).
   final Map<GameAction, String> words;
   final bool enabled;
+
+  /// Space also goes on (see [KeyHints.spaceGoesOn]): pass true on intro, results and Next states.
+  final bool spaceGoesOn;
   final Widget child;
 
   @override
@@ -41,7 +45,11 @@ class KeyedBody extends StatelessWidget {
                 if (hints.isNotEmpty)
                   Padding(
                     padding: const EdgeInsets.only(bottom: 8),
-                    child: KeyHints(actions: hints, words: words),
+                    child: KeyHints(
+                      actions: hints,
+                      words: words,
+                      spaceGoesOn: spaceGoesOn,
+                    ),
                   ),
               ],
             ),

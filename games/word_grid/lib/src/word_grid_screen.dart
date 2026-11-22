@@ -175,13 +175,18 @@ class _WordGridScreenState extends State<WordGridScreen> {
         if (i.repeat) return;
         if (a == GameAction.exit) {
           widget.onExit();
-        } else if (a == GameAction.action || a == GameAction.pick1) {
+        } else if (a == GameAction.action ||
+            a == GameAction.pause ||
+            a == GameAction.pick1) {
           _start(GridKind.wordSearch);
         } else if (a == GameAction.pick2) {
           _start(GridKind.crossword);
         }
       case _Phase.results:
-        if (!i.repeat && (a == GameAction.action || a == GameAction.exit)) {
+        if (!i.repeat &&
+            (a == GameAction.action ||
+                a == GameAction.pause ||
+                a == GameAction.exit)) {
           widget.onExit();
         }
       case _Phase.play:
@@ -339,6 +344,7 @@ class _WordGridScreenState extends State<WordGridScreen> {
         child: KeyedBody(
           onInput: _onKey,
           hints: _hints,
+          spaceGoesOn: _phase != _Phase.play,
           words: const {GameAction.action: 'pick'},
           child: switch (_phase) {
             _Phase.intro => _intro(context),

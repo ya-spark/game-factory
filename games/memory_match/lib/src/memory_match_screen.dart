@@ -174,12 +174,22 @@ class _MemoryMatchScreenState extends State<MemoryMatchScreen> {
       return;
     }
     if (_s.finished && _result == null) {
-      if (i.action == GameAction.action && !i.repeat) widget.onExit();
+      // Enter or Space (the pause key) leaves from the results.
+      if ((i.action == GameAction.action || i.action == GameAction.pause) &&
+          !i.repeat) {
+        widget.onExit();
+      }
       return;
     }
     if (b == null) return;
     if (i.action == GameAction.pause) {
-      if (!i.repeat) _togglePause();
+      if (i.repeat) return;
+      // Space is Next while a result shows; it never pauses then (U2).
+      if (_result != null) {
+        _next();
+      } else {
+        _togglePause();
+      }
       return;
     }
     if (_paused) return;
@@ -295,6 +305,7 @@ class _MemoryMatchScreenState extends State<MemoryMatchScreen> {
                   Padding(
                     padding: const EdgeInsets.only(bottom: 8),
                     child: KeyHints(
+                      spaceGoesOn: done || _result != null,
                       actions: [
                         if (!done) ...[
                           GameAction.left,

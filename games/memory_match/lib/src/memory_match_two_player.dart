@@ -168,13 +168,16 @@ class _MemoryMatchTwoPlayerScreenState
       }
       return;
     }
-    if (i.action == GameAction.pause) {
+    if (i.action == GameAction.pause && _playing) {
       if (!i.repeat) _togglePause();
       return;
     }
     if (_paused) return;
     if (!_playing) {
-      if (i.action == GameAction.action && !i.repeat) {
+      // Enter or Space goes on (Next board, See results, play again); never pauses here (U2).
+      final goOn =
+          i.action == GameAction.action || i.action == GameAction.pause;
+      if (goOn && !i.repeat) {
         _roundOver ? _playAgain() : _next();
       }
       return;

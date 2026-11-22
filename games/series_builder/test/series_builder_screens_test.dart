@@ -1,6 +1,7 @@
 import 'dart:math';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:game_core/game_core.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:game_series_builder/series_builder.dart';
@@ -119,5 +120,41 @@ void main() {
     );
     expect(find.byKey(SeriesBuilderIds.seriesTimer), findsOneWidget);
     await t.pumpWidget(const SizedBox());
+  });
+
+  testWidgets('Space goes on after a result and leaves from the results', (
+    t,
+  ) async {
+    final s = _session([_series(1), _series(2), _series(3)]);
+    var exited = false;
+    await t.pumpWidget(
+      _wrap(
+        SeriesBuilderScreen(
+          session: s,
+          mode: MiniGameMode.game,
+          onExit: () => exited = true,
+          level: SeriesLevel.younger,
+          random: Random(1),
+        ),
+        scale: 1.5,
+      ),
+    );
+    final round = SeriesRound.fromItem(
+      s.items.first.item,
+      SeriesLevel.younger,
+      Random(1),
+    );
+    for (final step in round.steps) {
+      final i = round.tiles.indexOf(step);
+      await t.ensureVisible(find.byKey(SeriesBuilderIds.seriesTile(i)));
+      await t.tap(find.byKey(SeriesBuilderIds.seriesTile(i)));
+      await t.pump();
+    }
+    expect(find.byKey(SeriesBuilderIds.seriesFeedback), findsOneWidget);
+    await t.sendKeyEvent(LogicalKeyboardKey.space);
+    await t.pump();
+    expect(find.byKey(SeriesBuilderIds.seriesSummary), findsOneWidget);
+    await t.sendKeyEvent(LogicalKeyboardKey.space);
+    expect(exited, isTrue);
   });
 }

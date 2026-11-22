@@ -129,12 +129,16 @@ class _SortBinsScreenState extends State<SortBinsScreen> {
       return;
     }
     if (_s.finished && _result == null) {
-      if (!i.repeat && a == GameAction.action) widget.onExit();
+      if (!i.repeat && (a == GameAction.action || a == GameAction.pause)) {
+        widget.onExit();
+      }
       return;
     }
     final r = _round;
     if (_result != null) {
-      if (!i.repeat && a == GameAction.action) _next();
+      if (!i.repeat && (a == GameAction.action || a == GameAction.pause)) {
+        _next();
+      }
       return;
     }
     if (r == null) return;
@@ -185,6 +189,7 @@ class _SortBinsScreenState extends State<SortBinsScreen> {
       body: SafeArea(
         child: KeyedBody(
           onInput: _onKey,
+          spaceGoesOn: done || _result != null,
           hints: const [
             GameAction.up,
             GameAction.down,

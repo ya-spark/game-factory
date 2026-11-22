@@ -1,6 +1,7 @@
 import 'dart:math';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:game_core/game_core.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:game_sort_bins/sort_bins.dart';
@@ -127,5 +128,42 @@ void main() {
     );
     expect(find.byKey(SortBinsIds.sortBin(2)), findsOneWidget);
     expect(find.byKey(SortBinsIds.sortTimer), findsOneWidget);
+  });
+
+  testWidgets('Space goes on after a result and leaves from the results', (
+    t,
+  ) async {
+    final s = _session([_cat(1), _cat(2), _cat(3)], take: 1);
+    var exited = false;
+    await t.pumpWidget(
+      _wrap(
+        SortBinsScreen(
+          session: s,
+          mode: MiniGameMode.game,
+          onExit: () => exited = true,
+          level: SortLevel.younger,
+          random: Random(2),
+        ),
+        scale: 1.5,
+      ),
+    );
+    final round = SortRound.fromItem(
+      s.items.first.item,
+      SortLevel.younger,
+      Random(2),
+    );
+    while (!round.complete) {
+      final bin = round.current!.bin;
+      round.drop(bin);
+      await t.ensureVisible(find.byKey(SortBinsIds.sortBin(bin)));
+      await t.tap(find.byKey(SortBinsIds.sortBin(bin)));
+      await t.pump();
+    }
+    expect(find.byKey(SortBinsIds.sortFeedback), findsOneWidget);
+    await t.sendKeyEvent(LogicalKeyboardKey.space);
+    await t.pump();
+    expect(find.byKey(SortBinsIds.sortSummary), findsOneWidget);
+    await t.sendKeyEvent(LogicalKeyboardKey.space);
+    expect(exited, isTrue);
   });
 }

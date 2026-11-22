@@ -302,11 +302,14 @@ class _ChoiceGameScreenState extends State<ChoiceGameScreen>
     }
     switch (_phase) {
       case _Phase.intro:
-        if (i.action == GameAction.action) _start();
+        if (_goesOn(i)) _start();
       case _Phase.results:
-        if (i.action == GameAction.action) widget.onExit();
+        if (_goesOn(i)) widget.onExit();
       case _Phase.play:
-        if (i.action == GameAction.pause) {
+        if (i.action == GameAction.pause && _result != null) {
+          // Space is Next while a result shows; it never pauses then (U2).
+          _next();
+        } else if (i.action == GameAction.pause) {
           _togglePause();
         } else if (_paused) {
           return;
@@ -324,6 +327,10 @@ class _ChoiceGameScreenState extends State<ChoiceGameScreen>
         }
     }
   }
+
+  /// Enter or Space (the shared pause key) starts, goes on or leaves; in play Space pauses.
+  bool _goesOn(GameInput i) =>
+      i.action == GameAction.action || i.action == GameAction.pause;
 
   void _togglePause() {
     if (_phase != _Phase.play || _result != null) return;
@@ -401,7 +408,10 @@ class _ChoiceGameScreenState extends State<ChoiceGameScreen>
                 if (wide)
                   Padding(
                     padding: const EdgeInsets.only(bottom: 8),
-                    child: KeyHints(actions: _hintActions),
+                    child: KeyHints(
+                      actions: _hintActions,
+                      spaceGoesOn: _phase != _Phase.play || _result != null,
+                    ),
                   ),
               ],
             ),

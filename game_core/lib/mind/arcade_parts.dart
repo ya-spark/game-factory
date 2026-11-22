@@ -186,14 +186,14 @@ class _ArcadeFrameState extends State<ArcadeFrame> {
     switch (_phase) {
       case _Phase.menu:
         if (i.repeat) return;
-        if (i.action == GameAction.action) {
+        if (i.action == GameAction.action || i.action == GameAction.pause) {
           _start();
         } else if (i.action == GameAction.exit) {
           Navigator.of(context).maybePop();
         }
       case _Phase.over:
         if (i.repeat) return;
-        if (i.action == GameAction.action) {
+        if (i.action == GameAction.action || i.action == GameAction.pause) {
           _start();
         } else if (i.action == GameAction.exit) {
           _toMenu();
@@ -273,7 +273,10 @@ class _ArcadeFrameState extends State<ArcadeFrame> {
               if (wide)
                 Padding(
                   padding: const EdgeInsets.only(bottom: 8),
-                  child: KeyHints(actions: _hints),
+                  child: KeyHints(
+                    actions: _hints,
+                    spaceGoesOn: _phase != _Phase.play,
+                  ),
                 ),
             ],
           ),
