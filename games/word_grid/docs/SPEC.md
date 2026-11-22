@@ -12,7 +12,7 @@ The text below was collected from the apps' docs when the game moved; refine it 
   - There is no need to hurry.
 
 ## From the app spec
-- Levels: Foundation to Year 6 see every game above except Tug of war, Equation builder and Word search and
+- Levels: Foundation to Year 6 see every game above except Tug of war, Bridge builder (was Equation builder) and Word search and
 
 ## Keyboard (K1, 2026-11-22)
 - Arrows move a highlighted cursor. Word search: Enter taps the first letter, then the last letter, of a word (Esc clears the first tap). Crossword: up and down choose a clue, Enter picks it, left and right move over the letters, Enter adds the letter, Esc drops the clue. Intro: 1 word search, 2 crossword. Esc leaves.

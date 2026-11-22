@@ -109,14 +109,14 @@ abstract final class HowToPlayCatalogue {
     ),
     HowToPlay(
       'equation_builder',
-      'Equation builder',
+      'Bridge builder',
       [
-        'Build a sum from the tiles so that it equals the target number.',
-        'Any sum that works is a right answer.',
+        'The toy robot is stuck at a gap. Build a sum from the tiles so that it equals the number on the sign.',
+        'Drag a tile into a slot, or tap a tile and then a slot. Any sum that works lays a plank and the robot rolls across.',
       ],
       [
         'Start with the biggest tile that fits.',
-        'Try different tiles if you get stuck.',
+        'A sum that is not right falls back and you can try again.',
       ],
     ),
     HowToPlay(
