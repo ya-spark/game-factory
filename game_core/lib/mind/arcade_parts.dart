@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../engine/minigames/fixed_step/fixed_step.dart';
@@ -56,7 +57,11 @@ class ArcadeFrame extends StatefulWidget {
     this.prefs,
     this.scoreLabel = 'Score',
     this.hintActions = const [],
+    this.hintWords = const {},
   });
+
+  /// Replaces the short word of a play hint (Runner says "jump" for up).
+  final Map<GameAction, String> hintWords;
 
   /// The keys the play view uses, shown under the game on windows 600 dp and wider.
   final List<GameAction> hintActions;
@@ -240,6 +245,15 @@ class _ArcadeFrameState extends State<ArcadeFrame> {
         child: GameKeyboard(
           onInput: _onInput,
           onRelease: _onRelease,
+          // L leaves the round to the menu (the pause screen's Leave shows it); C is Continue on the results.
+          shortcuts: {
+            LogicalKeyboardKey.keyL: () {
+              if (_phase == _Phase.play) _toMenu();
+            },
+            LogicalKeyboardKey.keyC: () {
+              if (_phase == _Phase.over && _offerContinue) _continue();
+            },
+          },
           child: Column(
             children: [
               Expanded(
@@ -275,7 +289,13 @@ class _ArcadeFrameState extends State<ArcadeFrame> {
                   padding: const EdgeInsets.only(bottom: 8),
                   child: KeyHints(
                     actions: _hints,
+                    words: widget.hintWords,
                     spaceGoesOn: _phase != _Phase.play,
+                    extra: [
+                      if (_phase == _Phase.play && _paused) ('L', 'leave'),
+                      if (_phase == _Phase.over && _offerContinue)
+                        ('C', 'continue'),
+                    ],
                   ),
                 ),
             ],
@@ -321,7 +341,11 @@ class _ArcadeFrameState extends State<ArcadeFrame> {
                 child: FilledButton(
                   key: MindIds.arcade(widget.id, 'play'),
                   onPressed: _start,
-                  child: const Text('Play'),
+                  child: const KeyedText(
+                    'Play',
+                    GameAction.action,
+                    alsoSpace: true,
+                  ),
                 ),
               ),
               if (widget.menuExtras != null) ...[
@@ -393,17 +417,23 @@ class _ArcadeFrameState extends State<ArcadeFrame> {
                         FilledButton.tonal(
                           key: MindIds.arcade(widget.id, 'continue'),
                           onPressed: _continue,
-                          child: const Text('Continue'),
+                          child: Text(withKey('Continue', 'C')),
                         ),
                       FilledButton(
                         key: MindIds.arcade(widget.id, 'again'),
                         onPressed: _start,
-                        child: const Text('Play again'),
+                        child: const KeyedText(
+                          'Play again',
+                          GameAction.action,
+                          alsoSpace: true,
+                        ),
                       ),
                       OutlinedButton(
                         key: MindIds.arcade(widget.id, 'done'),
                         onPressed: () => setState(() => _phase = _Phase.menu),
-                        child: const Text('Done'),
+                        child: Text(
+                          keyedLabel(context, 'Done', GameAction.exit),
+                        ),
                       ),
                     ],
                   ),

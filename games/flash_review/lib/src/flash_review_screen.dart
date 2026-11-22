@@ -78,7 +78,9 @@ class _FlashReviewScreenState extends State<FlashReviewScreen> {
       case _Phase.intro:
         if (_goesOn(a)) _start();
       case _Phase.card:
-        if (!_flipped) {
+        if (a == GameAction.question) {
+          _readCard();
+        } else if (!_flipped) {
           if (_goesOn(a)) setState(() => _flipped = true);
         } else if (a == GameAction.pick1 || a == GameAction.right) {
           _mark(true);
@@ -90,6 +92,15 @@ class _FlashReviewScreenState extends State<FlashReviewScreen> {
     }
   }
 
+  void _readCard() {
+    final p = _s.current;
+    if (p == null || _reader == null) return;
+    _reader!.read(
+      _flipped ? flashAnswer(p.item) : flashPrompt(p.item),
+      audioRef: _flipped ? null : p.item.audio,
+    );
+  }
+
   /// Enter or Space (the shared pause key; this game has no pause) starts, flips and leaves.
   bool _goesOn(GameAction a) => a == GameAction.action || a == GameAction.pause;
 
@@ -97,6 +108,12 @@ class _FlashReviewScreenState extends State<FlashReviewScreen> {
     _Phase.card when _flipped => const [
       GameAction.pick1,
       GameAction.pick2,
+      GameAction.question,
+      GameAction.exit,
+    ],
+    _Phase.card => const [
+      GameAction.action,
+      GameAction.question,
       GameAction.exit,
     ],
     _ => const [GameAction.action, GameAction.exit],
@@ -135,10 +152,11 @@ class _FlashReviewScreenState extends State<FlashReviewScreen> {
       key: GameIds.mgScreen(_g),
       appBar: AppBar(
         title: const Text('Flash review'),
-        leading: IconButton(
+        leadingWidth: KeyedBackButton.width,
+        leading: KeyedBackButton(
           key: GameIds.mgExit(_g),
           tooltip: 'Leave Flash review',
-          icon: const Icon(Icons.close),
+          icon: Icons.close,
           onPressed: widget.onExit,
         ),
       ),
@@ -189,7 +207,11 @@ class _FlashReviewScreenState extends State<FlashReviewScreen> {
                   FilledButton(
                     key: GameIds.mgStart(_g),
                     onPressed: _start,
-                    child: const Text('Start'),
+                    child: KeyedText(
+                      'Start',
+                      GameAction.action,
+                      alsoSpace: true,
+                    ),
                   ),
                 ],
               ),
@@ -223,10 +245,11 @@ class _FlashReviewScreenState extends State<FlashReviewScreen> {
                 ),
               ),
               if (_reader != null)
-                IconButton(
+                KeyedIconButton(
                   key: GameIds.mgSpeak(_g),
                   tooltip: 'Read the card aloud',
-                  icon: const Icon(Icons.volume_up),
+                  icon: Icons.volume_up,
+                  keyName: keyNameOf(context, GameAction.question),
                   onPressed: () => _reader!.read(
                     shown,
                     audioRef: _flipped ? null : p.item.audio,
@@ -299,19 +322,23 @@ class _FlashReviewScreenState extends State<FlashReviewScreen> {
                     FilledButton(
                       key: GameIds.mgKnew(_g),
                       onPressed: () => _mark(true),
-                      child: const Text('I knew it'),
+                      child: Text(withKey('I knew it', '1 / →')),
                     ),
                     OutlinedButton(
                       key: GameIds.mgNotYet(_g),
                       onPressed: () => _mark(false),
-                      child: const Text('Not yet'),
+                      child: Text(withKey('Not yet', '2 / ←')),
                     ),
                   ],
                 )
               : FilledButton(
                   key: GameIds.mgFlip(_g),
                   onPressed: () => setState(() => _flipped = true),
-                  child: const Text('Flip the card'),
+                  child: KeyedText(
+                    'Flip the card',
+                    GameAction.action,
+                    alsoSpace: true,
+                  ),
                 ),
         ),
       ],
@@ -353,7 +380,11 @@ class _FlashReviewScreenState extends State<FlashReviewScreen> {
                   FilledButton(
                     key: GameIds.mgDone(_g),
                     onPressed: widget.onExit,
-                    child: const Text('Done'),
+                    child: KeyedText(
+                      'Done',
+                      GameAction.action,
+                      alsoSpace: true,
+                    ),
                   ),
                 ],
               ),

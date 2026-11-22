@@ -29,6 +29,7 @@ class DoorRunnerHud extends StatelessWidget {
             child: DrRoundButton(
               icon: Icons.close,
               tooltip: 'Exit',
+              keyName: 'L',
               onPressed: onExit,
             ),
           ),
@@ -38,6 +39,7 @@ class DoorRunnerHud extends StatelessWidget {
             child: DrRoundButton(
               icon: view.paused ? Icons.play_arrow : Icons.pause,
               tooltip: view.paused ? 'Resume' : 'Pause',
+              keyName: 'Esc',
               onPressed: onPause,
             ),
           ),

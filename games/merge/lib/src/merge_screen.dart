@@ -179,7 +179,8 @@ class _MergeScreenState extends State<MergeScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Merge'),
-        leading: BackButton(
+        leadingWidth: KeyedBackButton.width,
+        leading: KeyedBackButton(
           key: MindIds.calmControl(_g, 'back'),
           onPressed: () {
             if (_phase == _Phase.play) {
@@ -195,6 +196,11 @@ class _MergeScreenState extends State<MergeScreen> {
           onInput: _onKey,
           spaceGoesOn: _phase != _Phase.play,
           hints: _hints,
+          words: const {
+            GameAction.left: 'slide left / right',
+            GameAction.up: 'slide up',
+            GameAction.down: 'slide down',
+          },
           child: switch (_phase) {
             _Phase.menu => _menu(context),
             _Phase.play => _play(context),
@@ -232,7 +238,7 @@ class _MergeScreenState extends State<MergeScreen> {
                 FilledButton(
                   key: MindIds.calmControl(_g, 'relaxed'),
                   onPressed: () => _start(true),
-                  child: const Text('Play'),
+                  child: KeyedText('Play', GameAction.action, alsoSpace: true),
                 ),
                 const SizedBox(height: 12),
                 Text(
@@ -248,12 +254,17 @@ class _MergeScreenState extends State<MergeScreen> {
                     FilledButton(
                       key: MindIds.calmControl(_g, 'classic'),
                       onPressed: () => _start(false),
-                      child: Text('Classic (best $_bestClassic)'),
+                      child: Text(
+                        withKey(
+                          'Classic (best $_bestClassic)',
+                          'Enter / Space / 1',
+                        ),
+                      ),
                     ),
                     FilledButton(
                       key: MindIds.calmControl(_g, 'relaxed'),
                       onPressed: () => _start(true),
-                      child: Text('Relaxed (best $_bestRelaxed)'),
+                      child: Text(withKey('Relaxed (best $_bestRelaxed)', '2')),
                     ),
                   ],
                 ),

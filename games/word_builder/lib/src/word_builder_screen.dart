@@ -1,6 +1,7 @@
 import 'dart:math';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 import 'package:game_core/game_core.dart';
 
@@ -210,6 +211,12 @@ class _WordBuilderScreenState extends State<WordBuilderScreen> {
     } else if (a == GameAction.action) {
       setState(() => _keyed = true);
       if (!r.isUsed(_cursor) && !r.isGreyed(_cursor)) _tap(r, _cursor);
+    } else if (a == GameAction.question) {
+      final p = _s.items[_s.index];
+      _reader?.read(
+        (r.hintText ?? '').replaceAll('____', 'blank'),
+        audioRef: p.item.audio,
+      );
     } else if (a == GameAction.pick1) {
       if (r.built.isNotEmpty) _check(r);
     } else if (a == GameAction.pick2) {
@@ -217,6 +224,33 @@ class _WordBuilderScreenState extends State<WordBuilderScreen> {
     } else if (a == GameAction.pick3) {
       _clear(r);
     }
+  }
+
+  /// Typing a letter picks the first free tile that shows it; Backspace takes the last letter back.
+  KeyShortcuts get _shortcuts {
+    final r = _round;
+    if (r == null || r.current == null || _result != null) return const {};
+    final tiles = r.current!.tiles;
+    final map = <LogicalKeyboardKey, VoidCallback>{
+      LogicalKeyboardKey.backspace: () => _undo(r),
+    };
+    for (var i = 0; i < tiles.length; i++) {
+      final t = tiles[i];
+      if (t.length != 1 || r.isUsed(i) || r.isGreyed(i)) continue;
+      final key = LogicalKeyboardKey.findKeyByKeyId(
+        t.toLowerCase().codeUnitAt(0),
+      );
+      if (key == null || map.containsKey(key)) continue;
+      final at = i;
+      map[key] = () {
+        setState(() {
+          _keyed = true;
+          _cursor = at;
+        });
+        _tap(r, at);
+      };
+    }
+    return map;
   }
 
   void _next() {
@@ -240,16 +274,21 @@ class _WordBuilderScreenState extends State<WordBuilderScreen> {
       key: WordBuilderIds.wordBuilderScreen,
       appBar: AppBar(
         title: Text(_study ? 'Word builder: study' : 'Word builder'),
-        leading: IconButton(
+        leadingWidth: KeyedBackButton.width,
+        leading: KeyedBackButton(
           key: WordBuilderIds.wordBuilderExit,
           tooltip: 'Leave the game',
-          icon: const Icon(Icons.close),
+          icon: Icons.close,
           onPressed: widget.onExit,
         ),
       ),
       body: SafeArea(
         child: KeyedBody(
           onInput: _onKey,
+          shortcuts: _shortcuts,
+          extraHints: done || _result != null
+              ? const []
+              : const [('A-Z', 'pick that letter'), ('Backspace', 'undo')],
           spaceGoesOn: done || _result != null,
           hints: const [
             GameAction.left,
@@ -258,6 +297,7 @@ class _WordBuilderScreenState extends State<WordBuilderScreen> {
             GameAction.pick1,
             GameAction.pick2,
             GameAction.pick3,
+            GameAction.question,
             GameAction.exit,
           ],
           words: const {
@@ -315,10 +355,11 @@ class _WordBuilderScreenState extends State<WordBuilderScreen> {
                   ),
                 ),
               if (_reader != null)
-                IconButton(
+                KeyedIconButton(
                   key: WordBuilderIds.wordBuilderSpeak,
                   tooltip: 'Read the hint aloud',
-                  icon: const Icon(Icons.volume_up),
+                  icon: Icons.volume_up,
+                  keyName: keyNameOf(context, GameAction.question),
                   onPressed: () => _reader!.read(
                     hint.replaceAll('____', 'blank'),
                     audioRef: p.item.audio,
@@ -384,18 +425,18 @@ class _WordBuilderScreenState extends State<WordBuilderScreen> {
                 FilledButton(
                   key: WordBuilderIds.wordBuilderCheck,
                   onPressed: r.built.isEmpty ? null : () => _check(r),
-                  child: const Text('Check'),
+                  child: Text(withKey('Check', '1')),
                 ),
                 OutlinedButton.icon(
                   key: WordBuilderIds.wordBuilderUndo,
                   onPressed: r.built.isEmpty ? null : () => _undo(r),
                   icon: const Icon(Icons.backspace_outlined),
-                  label: const Text('Undo'),
+                  label: Text(withKey('Undo', 'Backspace / 2')),
                 ),
                 OutlinedButton(
                   key: WordBuilderIds.wordBuilderClear,
                   onPressed: r.built.isEmpty ? null : () => _clear(r),
-                  child: const Text('Clear'),
+                  child: Text(withKey('Clear', '3')),
                 ),
               ],
             ),
@@ -409,7 +450,7 @@ class _WordBuilderScreenState extends State<WordBuilderScreen> {
                   key: WordBuilderIds.wordBuilderUndo,
                   onPressed: () => _undo(r),
                   icon: const Icon(Icons.backspace_outlined),
-                  label: const Text('Undo'),
+                  label: Text(withKey('Undo', 'Backspace / 2')),
                 ),
               ),
             ),
@@ -550,7 +591,11 @@ class _WordBuilderScreenState extends State<WordBuilderScreen> {
       FilledButton(
         key: WordBuilderIds.wordBuilderNext,
         onPressed: _next,
-        child: Text(_s.finished ? 'See results' : 'Next'),
+        child: KeyedText(
+          _s.finished ? 'See results' : 'Next',
+          GameAction.action,
+          alsoSpace: true,
+        ),
       ),
     ];
   }

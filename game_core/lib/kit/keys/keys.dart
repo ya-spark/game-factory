@@ -5,4 +5,5 @@ export 'game_key_store.dart';
 export 'game_keyboard.dart';
 export 'game_keys_scope.dart';
 export 'key_ids.dart';
+export 'key_labels.dart';
 export 'keyed_body.dart';

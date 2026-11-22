@@ -36,18 +36,24 @@ class DrRoundButton extends StatelessWidget {
     required this.icon,
     required this.tooltip,
     required this.onPressed,
+    this.keyName,
   });
   final IconData icon;
   final String tooltip;
   final VoidCallback onPressed;
 
+  /// The key that presses it, printed under the button ("Esc", "L"); B-09.
+  final String? keyName;
+
   @override
   Widget build(BuildContext context) {
-    return Tooltip(
-      message: tooltip,
+    final k = keyName;
+    final label = k == null ? tooltip : '$tooltip ($k)';
+    final button = Tooltip(
+      message: label,
       child: Semantics(
         button: true,
-        label: tooltip,
+        label: label,
         excludeSemantics: true,
         onTap: onPressed,
         child: GestureDetector(
@@ -69,6 +75,21 @@ class DrRoundButton extends StatelessWidget {
           ),
         ),
       ),
+    );
+    if (k == null) return button;
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        button,
+        Text(
+          k,
+          style: TextStyle(
+            color: Colors.white.withValues(alpha: 0.8),
+            fontSize: 11,
+            fontWeight: FontWeight.w700,
+          ),
+        ),
+      ],
     );
   }
 }

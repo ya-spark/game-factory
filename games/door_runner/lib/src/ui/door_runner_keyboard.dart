@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:game_core/game_core.dart';
 
 /// Wraps the play area and turns the player's keys (the shared key map: `docs/KEYBOARD.md`) into
@@ -15,7 +16,11 @@ class DoorRunnerKeyboard extends StatelessWidget {
     required this.onPause,
     required this.onQuestion,
     required this.onDoor,
+    this.onLeave,
   });
+
+  /// L leaves the game (the exit button shows it).
+  final VoidCallback? onLeave;
   final Widget child;
   final VoidCallback onLeft;
   final VoidCallback onRight;
@@ -54,8 +59,12 @@ class DoorRunnerKeyboard extends StatelessWidget {
   }
 
   @override
-  Widget build(BuildContext context) =>
-      GameKeyboard(onInput: _input, onRelease: _release, child: child);
+  Widget build(BuildContext context) => GameKeyboard(
+    onInput: _input,
+    onRelease: _release,
+    shortcuts: {LogicalKeyboardKey.keyL: ?onLeave},
+    child: child,
+  );
 }
 
 /// The key hint line under the field (shown on a wide window), with the player's real keys.

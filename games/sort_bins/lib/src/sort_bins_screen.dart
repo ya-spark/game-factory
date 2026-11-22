@@ -134,6 +134,12 @@ class _SortBinsScreenState extends State<SortBinsScreen> {
       }
       return;
     }
+    if (a == GameAction.question) {
+      if (!i.repeat && _result == null && _round != null) {
+        _readItem(_s.items[_s.index], _round!);
+      }
+      return;
+    }
     final r = _round;
     if (_result != null) {
       if (!i.repeat && (a == GameAction.action || a == GameAction.pause)) {
@@ -164,6 +170,15 @@ class _SortBinsScreenState extends State<SortBinsScreen> {
     }
   }
 
+  void _readItem(PoolItem p, SortRound r) {
+    final prompt = (p.item.json['prompt'] as String?) ?? 'Sort each one.';
+    final item = r.current;
+    _reader?.read(
+      item == null ? prompt : '$prompt ${item.text}',
+      audioRef: p.item.audio,
+    );
+  }
+
   void _next() => setState(() {
     _result = null;
     _round = null;
@@ -179,10 +194,11 @@ class _SortBinsScreenState extends State<SortBinsScreen> {
       key: SortBinsIds.sortScreen,
       appBar: AppBar(
         title: Text(_study ? 'Sort into bins: study' : 'Sort into bins'),
-        leading: IconButton(
+        leadingWidth: KeyedBackButton.width,
+        leading: KeyedBackButton(
           key: SortBinsIds.sortExit,
           tooltip: 'Leave the game',
-          icon: const Icon(Icons.close),
+          icon: Icons.close,
           onPressed: widget.onExit,
         ),
       ),
@@ -194,6 +210,7 @@ class _SortBinsScreenState extends State<SortBinsScreen> {
             GameAction.up,
             GameAction.down,
             GameAction.action,
+            GameAction.question,
             GameAction.exit,
           ],
           words: const {GameAction.up: 'bins', GameAction.action: 'drop'},
@@ -247,14 +264,12 @@ class _SortBinsScreenState extends State<SortBinsScreen> {
                   ),
                 ),
               if (_reader != null)
-                IconButton(
+                KeyedIconButton(
                   key: SortBinsIds.sortSpeak,
                   tooltip: 'Read the instructions and the item aloud',
-                  icon: const Icon(Icons.volume_up),
-                  onPressed: () => _reader!.read(
-                    item == null ? prompt : '$prompt ${item.text}',
-                    audioRef: p.item.audio,
-                  ),
+                  icon: Icons.volume_up,
+                  keyName: keyNameOf(context, GameAction.question),
+                  onPressed: () => _readItem(p, r),
                 ),
             ],
           ),
@@ -379,6 +394,10 @@ class _SortBinsScreenState extends State<SortBinsScreen> {
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
+                    if (i < 4) ...[
+                      KeyCap(label: '${i + 1}'),
+                      const SizedBox(width: 8),
+                    ],
                     Icon(Icons.inventory_2_outlined, color: cs.onSurface),
                     const SizedBox(width: 8),
                     Flexible(
@@ -444,7 +463,11 @@ class _SortBinsScreenState extends State<SortBinsScreen> {
       FilledButton(
         key: SortBinsIds.sortNext,
         onPressed: _next,
-        child: Text(_s.finished ? 'See results' : 'Next'),
+        child: KeyedText(
+          _s.finished ? 'See results' : 'Next',
+          GameAction.action,
+          alsoSpace: true,
+        ),
       ),
     ];
   }

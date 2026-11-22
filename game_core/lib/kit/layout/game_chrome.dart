@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../keys/key_labels.dart';
+
 /// The small controls over a game, instead of a title bar: exit on the left, the game's name,
 /// and a pause button while a round is on. Keys come from the game (hard rule 4).
 class GameTopBar extends StatelessWidget {
@@ -12,7 +14,13 @@ class GameTopBar extends StatelessWidget {
     this.pauseKey,
     this.paused = false,
     this.trailing = const [],
+    this.exitKeyName = 'L',
+    this.pauseKeyName = 'Esc',
   });
+
+  /// The keys printed on the buttons (B-09). The game must wire them: L leaves, Esc pauses.
+  final String exitKeyName;
+  final String pauseKeyName;
 
   final String title;
   final VoidCallback onExit;
@@ -30,10 +38,11 @@ class GameTopBar extends StatelessWidget {
   Widget build(BuildContext context) {
     return Row(
       children: [
-        IconButton(
+        KeyedIconButton(
           key: exitKey,
           tooltip: 'Leave $title',
-          icon: const Icon(Icons.close),
+          icon: Icons.close,
+          keyName: exitKeyName,
           onPressed: onExit,
         ),
         Expanded(
@@ -45,10 +54,11 @@ class GameTopBar extends StatelessWidget {
         ),
         ...trailing,
         if (onPause != null)
-          IconButton(
+          KeyedIconButton(
             key: pauseKey,
             tooltip: paused ? 'Resume' : 'Pause',
-            icon: Icon(paused ? Icons.play_arrow : Icons.pause),
+            icon: paused ? Icons.play_arrow : Icons.pause,
+            keyName: pauseKeyName,
             onPressed: onPause,
           ),
       ],
@@ -65,7 +75,13 @@ class PauseOverlay extends StatelessWidget {
     this.overlayKey,
     this.onLeave,
     this.leaveKey,
+    this.resumeKeyName = 'Esc / Space',
+    this.leaveKeyName = 'L',
   });
+
+  /// The keys printed on the buttons (B-09). The game must wire them: Esc or Space resumes, L leaves.
+  final String resumeKeyName;
+  final String leaveKeyName;
 
   final VoidCallback onResume;
   final Key? resumeKey;
@@ -98,16 +114,16 @@ class PauseOverlay extends StatelessWidget {
               FilledButton(
                 key: resumeKey,
                 onPressed: onResume,
-                child: const Text('Resume'),
+                child: Text(withKey('Resume', resumeKeyName)),
               ),
               if (onLeave != null) ...[
                 const SizedBox(height: 8),
                 TextButton(
                   key: leaveKey,
                   onPressed: onLeave,
-                  child: const Text(
-                    'Leave game',
-                    style: TextStyle(color: Colors.white),
+                  child: Text(
+                    withKey('Leave game', leaveKeyName),
+                    style: const TextStyle(color: Colors.white),
                   ),
                 ),
               ],

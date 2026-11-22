@@ -146,11 +146,14 @@ class _OptionList extends StatelessWidget {
             child: Padding(
               padding: const EdgeInsets.all(12),
               child: Center(
-                child: Text(
-                  o.label,
-                  textAlign: TextAlign.center,
-                  style: Theme.of(context).textTheme.titleLarge
-                      ?.copyWith(color: fg, fontWeight: FontWeight.bold),
+                child: ChoiceLabel(
+                  index: i,
+                  child: Text(
+                    o.label,
+                    textAlign: TextAlign.center,
+                    style: Theme.of(context).textTheme.titleLarge
+                        ?.copyWith(color: fg, fontWeight: FontWeight.bold),
+                  ),
                 ),
               ),
             ),

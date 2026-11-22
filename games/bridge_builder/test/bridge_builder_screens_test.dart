@@ -244,7 +244,7 @@ void main() {
         }
         expect(find.byKey(BridgeBuilderIds.mgStageStars(_g)), findsOneWidget);
         expect(find.textContaining('3 of 3 stars'), findsOneWidget);
-        expect(find.text('Next stage'), findsOneWidget);
+        expect(find.textContaining('Next stage'), findsOneWidget);
         await t.tap(find.byKey(GameIds.mgNext(_g)));
         await t.pump();
         expect(find.textContaining('Stage 2'), findsOneWidget);
@@ -451,7 +451,7 @@ void main() {
       await t.pump();
       expect(
         (t.widget<Text>(find.byKey(GameIds.mgPrompt(_g)))).data,
-        contains('press 1 to 4, then Enter'),
+        contains('press a tile number, then Enter'),
       );
     });
 
@@ -488,6 +488,21 @@ void main() {
       },
     );
 
+    testWidgets(
+      'B-17: with five or more tiles the hint says 1-5 or more, not 1-4',
+      (t) async {
+        await open(
+          t,
+          level: const MiniGameLevel.older(),
+          size: const Size(1000, 800),
+        );
+        expect(find.text('1-4'), findsNothing);
+        expect(find.textContaining(RegExp(r'^1-[5-9]$')), findsOneWidget);
+        expect(find.text('Lay plank (G)'), findsOneWidget);
+        expect(find.text('Clear (R)'), findsOneWidget);
+      },
+    );
+
     testWidgets('keys 5 to 7 pick the fifth to seventh tile', (t) async {
       await open(t, level: const MiniGameLevel.older());
       final board = find.byWidgetPredicate(
@@ -516,6 +531,11 @@ void main() {
         );
         expect(find.byKey(KeyIds.hints), findsOneWidget);
         expect(find.text('Backspace'), findsOneWidget);
+        // B-17: the tile range reads 1 to the number of tiles (here 4), and every control shows a key.
+        expect(find.text('1-4'), findsOneWidget);
+        expect(find.text('G'), findsWidgets);
+        expect(find.text('P'), findsOneWidget);
+        expect(find.text('L'), findsWidgets);
         expect(find.bySemanticsLabel(RegExp(r'^Sign: make 6')), findsOneWidget);
         expect(
           find.bySemanticsLabel(RegExp(r'^Slot [123] of 3, empty$')),

@@ -164,10 +164,13 @@ class _TrueFalseField extends StatelessWidget {
           child: ConstrainedBox(
             constraints: const BoxConstraints(minHeight: 88),
             child: Center(
-              child: Text(
-                o.label,
-                style: Theme.of(context).textTheme.headlineSmall
-                    ?.copyWith(color: fg, fontWeight: FontWeight.bold),
+              child: ChoiceLabel(
+                index: i,
+                child: Text(
+                  o.label,
+                  style: Theme.of(context).textTheme.headlineSmall
+                      ?.copyWith(color: fg, fontWeight: FontWeight.bold),
+                ),
               ),
             ),
           ),

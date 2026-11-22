@@ -493,10 +493,6 @@ class _BridgeBuilderScreenState extends State<BridgeBuilderScreen>
               GameAction.left,
               GameAction.right,
               GameAction.action,
-              GameAction.pick1,
-              GameAction.pick2,
-              GameAction.pick3,
-              GameAction.pick4,
               GameAction.exit,
             ],
   };
@@ -508,7 +504,6 @@ class _BridgeBuilderScreenState extends State<BridgeBuilderScreen>
         : (_phase == _Phase.play
               ? 'next'
               : (_phase == _Phase.intro ? 'start' : 'leave')),
-    GameAction.pick1: 'tile',
     GameAction.exit: _phase == _Phase.play ? 'pause' : 'leave',
   };
 
@@ -538,6 +533,16 @@ class _BridgeBuilderScreenState extends State<BridgeBuilderScreen>
           onKeyEvent: _rawKey,
           child: GameKeyboard(
             onInput: _onInput,
+            shortcuts: {
+              LogicalKeyboardKey.keyL: widget.onExit,
+              LogicalKeyboardKey.keyP: _togglePause,
+              if (_canPlay) ...{
+                LogicalKeyboardKey.keyG: () {
+                  if (_board!.tokens.length >= 3) _checkNow();
+                },
+                LogicalKeyboardKey.keyR: _clear,
+              },
+            },
             child: GameFrame(
               showAds: _phase != _Phase.play,
               phoneBanner: null,
@@ -598,12 +603,15 @@ class _BridgeBuilderScreenState extends State<BridgeBuilderScreen>
           Positioned(
             top: 0,
             left: 0,
-            child: IconButton.filledTonal(
-              key: GameIds.mgExit(_g),
-              style: style,
-              tooltip: 'Leave the game',
-              icon: const Icon(Icons.close),
-              onPressed: widget.onExit,
+            child: _withKey(
+              'L',
+              IconButton.filledTonal(
+                key: GameIds.mgExit(_g),
+                style: style,
+                tooltip: 'Leave the game (L)',
+                icon: const Icon(Icons.close),
+                onPressed: widget.onExit,
+              ),
             ),
           ),
           Positioned(
@@ -613,21 +621,28 @@ class _BridgeBuilderScreenState extends State<BridgeBuilderScreen>
               mainAxisSize: MainAxisSize.min,
               children: [
                 if (playing && _reader != null)
-                  IconButton.filledTonal(
-                    key: GameIds.mgSpeak(_g),
-                    style: style,
-                    tooltip: 'Read the target aloud',
-                    icon: const Icon(Icons.volume_up),
-                    onPressed: _read,
+                  _withKey(
+                    _keyName(GameAction.question),
+                    IconButton.filledTonal(
+                      key: GameIds.mgSpeak(_g),
+                      style: style,
+                      tooltip:
+                          'Read the target aloud (${_keyName(GameAction.question)})',
+                      icon: const Icon(Icons.volume_up),
+                      onPressed: _read,
+                    ),
                   ),
                 if (canPause) ...[
                   const SizedBox(width: 6),
-                  IconButton.filledTonal(
-                    key: GameIds.mgPause(_g),
-                    style: style,
-                    tooltip: _paused ? 'Resume' : 'Pause',
-                    icon: Icon(_paused ? Icons.play_arrow : Icons.pause),
-                    onPressed: _togglePause,
+                  _withKey(
+                    'Esc / P',
+                    IconButton.filledTonal(
+                      key: GameIds.mgPause(_g),
+                      style: style,
+                      tooltip: _paused ? 'Resume (Esc / P)' : 'Pause (Esc / P)',
+                      icon: Icon(_paused ? Icons.play_arrow : Icons.pause),
+                      onPressed: _togglePause,
+                    ),
                   ),
                 ],
               ],
@@ -635,6 +650,23 @@ class _BridgeBuilderScreenState extends State<BridgeBuilderScreen>
           ),
         ],
       ),
+    );
+  }
+
+  /// A small button with its key printed under it (B-09).
+  Widget _withKey(String keyName, Widget button) {
+    final theme = Theme.of(context);
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        button,
+        Text(
+          keyName,
+          style: theme.textTheme.labelSmall?.copyWith(
+            color: theme.colorScheme.onSurfaceVariant,
+          ),
+        ),
+      ],
     );
   }
 
@@ -648,21 +680,22 @@ class _BridgeBuilderScreenState extends State<BridgeBuilderScreen>
         spacing: 14,
         runSpacing: 6,
         children: [
-          KeyHints(actions: _hintActions, words: _hintWords, spaceGoesOn: true),
-          if (_phase == _Phase.play && _result == null)
-            Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                const KeyCap(label: 'Backspace'),
-                const SizedBox(width: 6),
-                Text(
-                  'take back',
-                  style: theme.textTheme.bodySmall?.copyWith(
-                    color: theme.colorScheme.onSurfaceVariant,
-                  ),
-                ),
+          KeyHints(
+            actions: _hintActions,
+            words: _hintWords,
+            spaceGoesOn: true,
+            extra: [
+              if (_phase == _Phase.play && _result == null) ...[
+                // Tiles 1 to 9 all have a key (1 to 4 in the map, 5 to 9 read here).
+                ('1-${min(9, _board?.tiles.length ?? 4)}', 'tile'),
+                ('Backspace', 'take back'),
+                ('G', 'lay plank'),
+                ('R', 'clear'),
+                ('P', 'pause'),
               ],
-            ),
+              ('L', 'leave'),
+            ],
+          ),
         ],
       ),
     );
@@ -818,7 +851,11 @@ class _BridgeBuilderScreenState extends State<BridgeBuilderScreen>
                   FilledButton(
                     key: GameIds.mgDone(_g),
                     onPressed: widget.onExit,
-                    child: const Text('Done'),
+                    child: KeyedText(
+                      'Done',
+                      GameAction.action,
+                      alsoSpace: true,
+                    ),
                   ),
                 ],
               ),
@@ -1004,7 +1041,7 @@ class _BridgeBuilderScreenState extends State<BridgeBuilderScreen>
         : (_selTile != null
               ? 'Now tap a slot to put the tile in.'
               : (_round == 0 && _board!.isEmpty
-                    ? 'Tap a tile, then a slot (or press 1 to 4, then Enter).'
+                    ? 'Tap a tile, then a slot (or press a tile number, then Enter).'
                     : 'Drag a tile into a slot, or tap a tile and then a slot.'));
     return Semantics(
       liveRegion: true,
@@ -1334,7 +1371,7 @@ class _BridgeBuilderScreenState extends State<BridgeBuilderScreen>
           child: OutlinedButton(
             key: BridgeBuilderIds.mgClear(_g),
             onPressed: board.isEmpty ? null : _clear,
-            child: const Text('Clear'),
+            child: Text(withKey('Clear', 'R')),
           ),
         ),
         const SizedBox(width: 12),
@@ -1342,7 +1379,7 @@ class _BridgeBuilderScreenState extends State<BridgeBuilderScreen>
           child: FilledButton(
             key: BridgeBuilderIds.mgCheck(_g),
             onPressed: board.tokens.length < 3 ? null : _checkNow,
-            child: const Text('Lay plank'),
+            child: Text(withKey('Lay plank', 'G')),
           ),
         ),
       ],
@@ -1471,8 +1508,10 @@ class _BridgeBuilderScreenState extends State<BridgeBuilderScreen>
       FilledButton(
         key: GameIds.mgNext(_g),
         onPressed: _next,
-        child: Text(
+        child: KeyedText(
           last ? 'See results' : (ends ? 'Next stage' : 'Next bridge'),
+          GameAction.action,
+          alsoSpace: true,
         ),
       ),
     ];

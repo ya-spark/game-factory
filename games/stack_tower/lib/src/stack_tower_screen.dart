@@ -33,6 +33,7 @@ class StackTowerScreen extends StatelessWidget {
       coinsPerPoints: 25,
       hasContinue: true,
       hintActions: const [GameAction.action],
+      hintWords: const {GameAction.action: 'drop'},
       onScore: onScore,
       buildPlay: (context, run, round) => _StackPlay(
         key: ValueKey('stack.round.$round'),
@@ -169,9 +170,9 @@ class _StackPlayState extends State<_StackPlay>
           child: FilledButton(
             key: MindIds.arcade(_g, 'drop'),
             onPressed: _drop,
-            child: const Padding(
-              padding: EdgeInsets.symmetric(horizontal: 24, vertical: 8),
-              child: Text('Drop'),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
+              child: Text(withKey('Drop', 'Enter / ↑ / ↓')),
             ),
           ),
         ),

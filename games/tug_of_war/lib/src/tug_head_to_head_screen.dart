@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:math';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:game_core/game_core.dart';
 
 import 'rules/tug_head_to_head_rules.dart';
@@ -229,6 +230,7 @@ class _HeadToHeadState extends State<TugOfWarHeadToHeadScreen>
         child: GameKeyboard(
           twoPlayer: true,
           onInput: _onInput,
+          shortcuts: {LogicalKeyboardKey.keyL: widget.onExit},
           child: GameFrame(
             showAds: !_playing,
             phoneBanner: null,
@@ -367,7 +369,7 @@ class _HeadToHeadState extends State<TugOfWarHeadToHeadScreen>
             FilledButton(
               key: TugIds.start,
               onPressed: _start,
-              child: const Text('Start (Enter)'),
+              child: KeyedText('Start', GameAction.action, alsoSpace: true),
             ),
           ],
         ),
@@ -602,13 +604,17 @@ class _HeadToHeadState extends State<TugOfWarHeadToHeadScreen>
             FilledButton(
               key: TugIds.again,
               onPressed: _start,
-              child: const Text('Play again'),
+              child: KeyedText(
+                'Play again',
+                GameAction.action,
+                alsoSpace: true,
+              ),
             ),
             const SizedBox(height: 8),
             TextButton(
               key: TugIds.leave,
               onPressed: widget.onExit,
-              child: const Text('Leave'),
+              child: Text(withKey('Leave', 'Esc / L')),
             ),
           ],
         ),

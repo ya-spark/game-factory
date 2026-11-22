@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:math';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:game_core/game_core.dart';
 
 import 'memory_match_ids.dart';
@@ -234,6 +235,7 @@ class _MemoryMatchTwoPlayerScreenState
         child: GameKeyboard(
           twoPlayer: true,
           onInput: _onInput,
+          shortcuts: {LogicalKeyboardKey.keyL: widget.onExit},
           child: GameFrame(
             showAds: !_playing,
             phoneBanner: null,
@@ -488,7 +490,11 @@ class _MemoryMatchTwoPlayerScreenState
       FilledButton(
         key: MemoryMatchIds.matchNext,
         onPressed: _next,
-        child: Text(_match.over ? 'See results' : 'Next board'),
+        child: KeyedText(
+          _match.over ? 'See results' : 'Next board',
+          GameAction.action,
+          alsoSpace: true,
+        ),
       ),
     ];
   }
@@ -526,13 +532,17 @@ class _MemoryMatchTwoPlayerScreenState
             FilledButton(
               key: MemoryMatchIds.matchAgain,
               onPressed: _playAgain,
-              child: const Text('Play again'),
+              child: KeyedText(
+                'Play again',
+                GameAction.action,
+                alsoSpace: true,
+              ),
             ),
             const SizedBox(height: 8),
             TextButton(
               key: MemoryMatchIds.matchDone,
               onPressed: widget.onExit,
-              child: const Text('Leave'),
+              child: Text(withKey('Leave', 'Esc / L')),
             ),
           ],
         ),

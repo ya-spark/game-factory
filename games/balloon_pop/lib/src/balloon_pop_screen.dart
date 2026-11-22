@@ -210,13 +210,26 @@ class _BalloonFieldState extends State<_BalloonField>
                     padding: EdgeInsets.only(bottom: h * 0.12),
                     child: FittedBox(
                       fit: BoxFit.scaleDown,
-                      child: Text(
-                        o.label,
-                        textAlign: TextAlign.center,
-                        style: theme.textTheme.titleMedium?.copyWith(
-                          color: fg,
-                          fontWeight: FontWeight.bold,
-                        ),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          if (i < 4)
+                            Text(
+                              '${i + 1}',
+                              key: Key('balloon_pop.key.$i'),
+                              style: theme.textTheme.labelSmall?.copyWith(
+                                color: fg.withValues(alpha: 0.8),
+                              ),
+                            ),
+                          Text(
+                            o.label,
+                            textAlign: TextAlign.center,
+                            style: theme.textTheme.titleMedium?.copyWith(
+                              color: fg,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ],
                       ),
                     ),
                   ),

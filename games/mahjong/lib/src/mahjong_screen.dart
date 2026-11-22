@@ -1,6 +1,7 @@
 import 'dart:math';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 import 'package:game_core/game_core.dart';
 
@@ -190,26 +191,12 @@ class _MahjongScreenState extends State<MahjongScreen> {
               setState(() => _keyed = true);
               _tap(c);
             }
-          case GameAction.pick1 when !i.repeat && _hintsOn && g.canHint:
-            setState(() {
-              _selected = null;
-              _hint = g.hint();
-              _message = _hint == null ? 'No pairs left. Use Shuffle.' : null;
-            });
-          case GameAction.pick2 when !i.repeat && g.canUndo:
-            setState(() {
-              g.undo();
-              _selected = null;
-              _hint = null;
-            });
-          case GameAction.pick3 when !i.repeat && g.canShuffle:
-            setState(() {
-              g.shuffle();
-              _selected = null;
-              _hint = null;
-              _cursor = null;
-              _message = 'Tiles shuffled.';
-            });
+          case GameAction.pick1 when !i.repeat:
+            _doHint();
+          case GameAction.pick2 when !i.repeat:
+            _doUndo();
+          case GameAction.pick3 when !i.repeat:
+            _doShuffle();
           case GameAction.exit when !i.repeat:
             _leave();
           default:
@@ -222,6 +209,39 @@ class _MahjongScreenState extends State<MahjongScreen> {
           _leave();
         }
     }
+  }
+
+  // The three buttons under the board; each also has a key (1 or H, 2 or Backspace, 3).
+  void _doHint() {
+    final g = _game;
+    if (_phase != _Phase.play || g == null || !_hintsOn || !g.canHint) return;
+    setState(() {
+      _selected = null;
+      _hint = g.hint();
+      _message = _hint == null ? 'No pairs left. Use Shuffle.' : null;
+    });
+  }
+
+  void _doUndo() {
+    final g = _game;
+    if (_phase != _Phase.play || g == null || !g.canUndo) return;
+    setState(() {
+      g.undo();
+      _selected = null;
+      _hint = null;
+    });
+  }
+
+  void _doShuffle() {
+    final g = _game;
+    if (_phase != _Phase.play || g == null || !g.canShuffle) return;
+    setState(() {
+      g.shuffle();
+      _selected = null;
+      _hint = null;
+      _cursor = null;
+      _message = 'Tiles shuffled.';
+    });
   }
 
   /// Back: the daily leaves, a game goes to the menu, the menu leaves.
@@ -284,7 +304,8 @@ class _MahjongScreenState extends State<MahjongScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Mahjong solitaire'),
-        leading: BackButton(
+        leadingWidth: KeyedBackButton.width,
+        leading: KeyedBackButton(
           key: MindIds.calmControl(_g, 'back'),
           onPressed: () {
             if (widget.daily != null) {
@@ -300,6 +321,17 @@ class _MahjongScreenState extends State<MahjongScreen> {
       body: SafeArea(
         child: KeyedBody(
           onInput: _onKey,
+          shortcuts: {
+            LogicalKeyboardKey.keyH: _doHint,
+            LogicalKeyboardKey.backspace: _doUndo,
+          },
+          extraHints: _phase == _Phase.play
+              ? [
+                  if (_hintsOn) ('H', 'hint'),
+                  ('Backspace', 'undo'),
+                  ('3', 'shuffle'),
+                ]
+              : const [],
           spaceGoesOn: _phase != _Phase.play,
           hints: _phase == _Phase.play
               ? const [
@@ -388,7 +420,12 @@ class _MahjongScreenState extends State<MahjongScreen> {
                       key: MindIds.calmLevel(_g, '$i'),
                       onPressed: () => _start(i),
                       child: Text(
-                        '${_tier.layouts[i].name} (${_tier.layouts[i].positions.length})',
+                        i < 4
+                            ? withKey(
+                                '${_tier.layouts[i].name} (${_tier.layouts[i].positions.length})',
+                                '${i + 1}',
+                              )
+                            : '${_tier.layouts[i].name} (${_tier.layouts[i].positions.length})',
                       ),
                     ),
                 ],
@@ -435,7 +472,7 @@ class _MahjongScreenState extends State<MahjongScreen> {
                         _hint = null;
                       })
                     : null,
-                child: const Text('Undo'),
+                child: Text(withKey('Undo', 'Backspace / 2')),
               ),
               if (_hintsOn)
                 OutlinedButton(
@@ -450,7 +487,10 @@ class _MahjongScreenState extends State<MahjongScreen> {
                         })
                       : null,
                   child: Text(
-                    g.hintsLeft == null ? 'Hint' : 'Hint (${g.hintsLeft})',
+                    withKey(
+                      g.hintsLeft == null ? 'Hint' : 'Hint ${g.hintsLeft}',
+                      'H / 1',
+                    ),
                   ),
                 ),
               OutlinedButton(
@@ -464,9 +504,12 @@ class _MahjongScreenState extends State<MahjongScreen> {
                         _message = 'Tiles shuffled.';
                       }),
                 child: Text(
-                  g.shufflesLeft == null
-                      ? 'Shuffle'
-                      : 'Shuffle (${g.shufflesLeft})',
+                  withKey(
+                    g.shufflesLeft == null
+                        ? 'Shuffle'
+                        : 'Shuffle ${g.shufflesLeft}',
+                    '3',
+                  ),
                 ),
               ),
             ],

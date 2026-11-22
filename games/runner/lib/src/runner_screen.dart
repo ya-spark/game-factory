@@ -33,7 +33,8 @@ class RunnerScreen extends StatelessWidget {
       starScores: runnerStarScores,
       coinsPerPoints: 25,
       hasContinue: true,
-      hintActions: const [GameAction.up],
+      hintActions: const [GameAction.up, GameAction.action],
+      hintWords: const {GameAction.up: 'jump', GameAction.action: 'jump'},
       onScore: onScore,
       buildPlay: (context, run, round) => _RunnerPlay(
         key: ValueKey('runner.round.$round'),
@@ -143,9 +144,9 @@ class _RunnerPlayState extends State<_RunnerPlay>
           child: FilledButton(
             key: MindIds.arcade(_g, 'jump'),
             onPressed: _game.jump,
-            child: const Padding(
-              padding: EdgeInsets.symmetric(horizontal: 32, vertical: 12),
-              child: Text('Jump'),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 12),
+              child: Text(withKey('Jump', '↑ / Enter')),
             ),
           ),
         ),

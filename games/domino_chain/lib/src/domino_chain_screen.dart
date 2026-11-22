@@ -684,6 +684,13 @@ class _DominoChainScreenState extends State<DominoChainScreen>
           onKeyEvent: _rawKey,
           child: GameKeyboard(
             onInput: _onInput,
+            shortcuts: {
+              LogicalKeyboardKey.keyL: widget.onExit,
+              // Space is Go here, so P also pauses and resumes (B-09).
+              LogicalKeyboardKey.keyP: () {
+                if (_phase == _Phase.play && _go != _Go.solved) _togglePause();
+              },
+            },
             child: GameFrame(
               showAds: _phase != _Phase.play,
               phoneBanner: null,
@@ -742,12 +749,15 @@ class _DominoChainScreenState extends State<DominoChainScreen>
           Positioned(
             top: 0,
             left: 0,
-            child: IconButton.filledTonal(
-              key: GameIds.mgExit(_g),
-              style: style,
-              tooltip: 'Leave the game (Esc)',
-              icon: const Icon(Icons.close),
-              onPressed: widget.onExit,
+            child: _withKey(
+              'L',
+              IconButton.filledTonal(
+                key: GameIds.mgExit(_g),
+                style: style,
+                tooltip: 'Leave the game (L)',
+                icon: const Icon(Icons.close),
+                onPressed: widget.onExit,
+              ),
             ),
           ),
           Positioned(
@@ -757,21 +767,27 @@ class _DominoChainScreenState extends State<DominoChainScreen>
               mainAxisSize: MainAxisSize.min,
               children: [
                 if (playing && _reader != null)
-                  IconButton.filledTonal(
-                    key: GameIds.mgSpeak(_g),
-                    style: style,
-                    tooltip: 'Read the steps aloud (Q)',
-                    icon: const Icon(Icons.volume_up),
-                    onPressed: _read,
+                  _withKey(
+                    'Q',
+                    IconButton.filledTonal(
+                      key: GameIds.mgSpeak(_g),
+                      style: style,
+                      tooltip: 'Read the steps aloud (Q)',
+                      icon: const Icon(Icons.volume_up),
+                      onPressed: _read,
+                    ),
                   ),
                 if (canPause) ...[
                   const SizedBox(width: 6),
-                  IconButton.filledTonal(
-                    key: GameIds.mgPause(_g),
-                    style: style,
-                    tooltip: _paused ? 'Resume' : 'Pause',
-                    icon: Icon(_paused ? Icons.play_arrow : Icons.pause),
-                    onPressed: _togglePause,
+                  _withKey(
+                    'Esc / P',
+                    IconButton.filledTonal(
+                      key: GameIds.mgPause(_g),
+                      style: style,
+                      tooltip: _paused ? 'Resume (Esc / P)' : 'Pause (Esc / P)',
+                      icon: Icon(_paused ? Icons.play_arrow : Icons.pause),
+                      onPressed: _togglePause,
+                    ),
                   ),
                 ],
               ],
@@ -779,6 +795,23 @@ class _DominoChainScreenState extends State<DominoChainScreen>
           ),
         ],
       ),
+    );
+  }
+
+  /// A small button with its key printed under it (B-09).
+  Widget _withKey(String keyName, Widget button) {
+    final theme = Theme.of(context);
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        button,
+        Text(
+          keyName,
+          style: theme.textTheme.labelSmall?.copyWith(
+            color: theme.colorScheme.onSurfaceVariant,
+          ),
+        ),
+      ],
     );
   }
 
@@ -799,6 +832,7 @@ class _DominoChainScreenState extends State<DominoChainScreen>
             actions: _hintActions,
             words: _hintWords,
             spaceGoesOn: _phase != _Phase.play || _go == _Go.solved,
+            extra: const [('L', 'leave'), ('P', 'pause')],
           ),
           if (_phase == _Phase.play && _go != _Go.solved) ...[
             Row(

@@ -5,6 +5,7 @@ import 'game_action.dart';
 import 'game_key_map.dart';
 import 'game_keys_scope.dart';
 import 'key_ids.dart';
+import 'key_labels.dart';
 
 /// Turns key presses into [GameInput]s for a game, through the player's [GameKeyMap]. Wrap the
 /// play area in it. It takes the focus, gets it back after a tap on a button, and lets
@@ -20,9 +21,14 @@ class GameKeyboard extends StatefulWidget {
     this.twoPlayer = false,
     this.enabled = true,
     this.focusNode,
+    this.shortcuts = const {},
   });
 
   final Widget child;
+
+  /// Fixed keys for a screen's own buttons that are not in the map (Backspace, H, L...): a key down
+  /// (not a repeat) calls the callback, before the map is asked. Shown on the button with [withKey].
+  final KeyShortcuts shortcuts;
 
   /// A mapped key went down (or repeats while held).
   final void Function(GameInput input) onInput;
@@ -81,6 +87,11 @@ class _GameKeyboardState extends State<GameKeyboard> {
     if (hw.isControlPressed || hw.isAltPressed || hw.isMetaPressed) {
       return KeyEventResult.ignored;
     }
+    final extra = widget.shortcuts[event.logicalKey];
+    if (extra != null) {
+      if (event is KeyDownEvent) extra();
+      return KeyEventResult.handled;
+    }
     final map = GameKeysScope.read(context);
     final input = map.resolve(
       event.logicalKey,
@@ -124,7 +135,12 @@ class KeyHints extends StatelessWidget {
     this.style,
     this.words = const {},
     this.spaceGoesOn = false,
+    this.extra = const [],
   });
+
+  /// Fixed keys that are not in the map, shown after the actions: (key text, word), for example
+  /// ('L', 'leave') or ('H', 'hint').
+  final List<(String, String)> extra;
 
   /// True where Space also does what the action key does (start, Next, leave): the action chip
   /// then reads "Enter / Space". False in play, where Space pauses (U2).
@@ -209,6 +225,19 @@ class KeyHints extends StatelessWidget {
         for (final (k, w, a) in shown)
           Row(
             key: KeyIds.hint(a),
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              KeyCap(label: k),
+              const SizedBox(width: 6),
+              Text(
+                w,
+                style: base.copyWith(color: theme.colorScheme.onSurfaceVariant),
+              ),
+            ],
+          ),
+        for (final (k, w) in extra)
+          Row(
+            key: Key('keys.hint.extra.$k'),
             mainAxisSize: MainAxisSize.min,
             children: [
               KeyCap(label: k),

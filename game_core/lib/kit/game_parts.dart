@@ -7,6 +7,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 
 import '../host/game_host.dart';
+import 'keys/keys.dart';
 
 /// The younger interface level (the container decides; false when there is no host).
 bool isYoungerLevel(BuildContext context) =>
@@ -100,7 +101,11 @@ class MiniGameSummary extends StatelessWidget {
             FilledButton(
               key: doneKey,
               onPressed: onDone,
-              child: const Text('Done'),
+              child: KeyedText(
+                'Done',
+                GameAction.action,
+                alsoSpace: true,
+              ),
             ),
           ],
         ),

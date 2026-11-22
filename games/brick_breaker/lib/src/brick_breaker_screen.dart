@@ -33,6 +33,7 @@ class BrickBreakerScreen extends StatelessWidget {
       coinsPerPoints: 50,
       hasContinue: true,
       hintActions: const [GameAction.left, GameAction.right, GameAction.action],
+      hintWords: const {GameAction.action: 'launch'},
       onScore: onScore,
       buildPlay: (context, run, round) => _BrickPlay(
         key: ValueKey('bricks.round.$round'),
@@ -176,7 +177,7 @@ class _BrickPlayState extends State<_BrickPlay>
               FilledButton(
                 key: MindIds.arcade(_g, 'launch'),
                 onPressed: _game.launch,
-                child: const Text('Launch'),
+                child: Text(withKey('Launch', 'Enter / ↑')),
               ),
               _hold('right', Icons.arrow_forward, 1),
             ],

@@ -1,6 +1,7 @@
 import 'dart:math';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 import 'package:game_core/game_core.dart';
 
@@ -74,16 +75,18 @@ class _TugOfWarScreenState extends State<TugOfWarScreen> {
   late final TugOfWarRun _run = TugOfWarRun(widget.level);
   bool _head = false;
 
+  bool _showHead(BuildContext context) =>
+      widget.offerHeadToHead &&
+      WindowClass.ofContext(context) != WindowClass.compact;
+
   /// The start screen's extras: Head to head (this package) and the container's sibling button.
   Widget? _extras(BuildContext context) {
     final sibling = widget.introExtra?.call(context);
-    final head =
-        widget.offerHeadToHead &&
-            WindowClass.ofContext(context) != WindowClass.compact
+    final head = _showHead(context)
         ? OutlinedButton(
             key: TugIds.modeHeadToHead,
             onPressed: () => setState(() => _head = true),
-            child: const Text('Head to head (2 players)'),
+            child: Text(withKey('Head to head (2 players)', 'H')),
           )
         : null;
     if (sibling == null && head == null) return null;
@@ -135,6 +138,10 @@ class _TugOfWarScreenState extends State<TugOfWarScreen> {
       },
       fieldBuilder: (context, f) => _TugField(field: f, run: _run),
       introExtra: _extras(context),
+      introShortcuts: _showHead(context)
+          ? {LogicalKeyboardKey.keyH: () => setState(() => _head = true)}
+          : const {},
+      introHints: _showHead(context) ? const [('H', 'head to head')] : const [],
     );
   }
 }
@@ -248,11 +255,14 @@ class _TugField extends StatelessWidget {
               child: Padding(
                 padding: const EdgeInsets.all(12),
                 child: Center(
-                  child: Text(
-                    o.label,
-                    textAlign: TextAlign.center,
-                    style: Theme.of(context).textTheme.titleMedium
-                        ?.copyWith(color: fg, fontWeight: FontWeight.bold),
+                  child: ChoiceLabel(
+                    index: i,
+                    child: Text(
+                      o.label,
+                      textAlign: TextAlign.center,
+                      style: Theme.of(context).textTheme.titleMedium
+                          ?.copyWith(color: fg, fontWeight: FontWeight.bold),
+                    ),
                   ),
                 ),
               ),

@@ -104,7 +104,7 @@ class DoorRunnerPauseOverlay extends StatelessWidget {
           ),
           const SizedBox(height: 20),
           SizedBox(
-            width: 220,
+            width: 300,
             child: DrButton(
               key: DoorRunnerIds.resume,
               colors: const [Color(0xFFFFB02E), Color(0xFFFF6B3D)],
@@ -114,12 +114,17 @@ class DoorRunnerPauseOverlay extends StatelessWidget {
                 children: [
                   Icon(Icons.play_arrow, color: Colors.white),
                   SizedBox(width: 6),
-                  Text(
-                    'Resume',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 20,
-                      fontWeight: FontWeight.w800,
+                  Flexible(
+                    child: FittedBox(
+                      fit: BoxFit.scaleDown,
+                      child: Text(
+                        'Resume (Esc / Space)',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 20,
+                          fontWeight: FontWeight.w800,
+                        ),
+                      ),
                     ),
                   ),
                 ],
@@ -131,7 +136,7 @@ class DoorRunnerPauseOverlay extends StatelessWidget {
             key: DoorRunnerIds.quit,
             onPressed: onQuit,
             child: Text(
-              'Quit',
+              'Quit (L)',
               style: TextStyle(
                 color: Colors.white.withValues(alpha: 0.8),
                 fontSize: 16,

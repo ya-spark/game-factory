@@ -1,6 +1,7 @@
 import 'dart:math';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 import 'package:game_core/game_core.dart';
 
@@ -203,6 +204,13 @@ class _SolitaireScreenState extends State<SolitaireScreen> {
         if (i.repeat) return;
         if (a == GameAction.exit) {
           Navigator.of(context).maybePop();
+        } else if (a == GameAction.left || a == GameAction.right) {
+          final all = SolitaireLevel.values;
+          final n =
+              (all.indexOf(_level) + (a == GameAction.left ? -1 : 1)) %
+              all.length;
+          setState(() => _level = all[n]);
+          _prefs?.setString('solitaire.level', _level.name);
         } else if (a == GameAction.action ||
             a == GameAction.pause ||
             a == GameAction.pick1) {
@@ -266,6 +274,29 @@ class _SolitaireScreenState extends State<SolitaireScreen> {
     }
   }
 
+  void _undoKey() {
+    final g = _game;
+    if (_phase != _Phase.play || g == null || !g.canUndo || _auto) return;
+    g.undo();
+    setState(() => _hint = null);
+  }
+
+  /// Fixed keys on the buttons: H hint, Backspace undo, N new deal, A auto-complete.
+  KeyShortcuts get _shortcuts => {
+    if (_phase == _Phase.play) ...{
+      LogicalKeyboardKey.keyH: () {
+        if (_hintsOn && !_auto) _takeHint();
+      },
+      LogicalKeyboardKey.backspace: _undoKey,
+      LogicalKeyboardKey.keyN: () {
+        if (!_auto) _start();
+      },
+      // A is also "left" for the left hand: it only means Auto-complete while that button shows.
+      if (_game?.state.canAutoComplete ?? false)
+        LogicalKeyboardKey.keyA: _autoComplete,
+    },
+  };
+
   /// Back: the daily leaves, a game goes to the menu, the menu leaves.
   void _leave() {
     if (widget.daily != null) {
@@ -327,7 +358,8 @@ class _SolitaireScreenState extends State<SolitaireScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Solitaire'),
-        leading: BackButton(
+        leadingWidth: KeyedBackButton.width,
+        leading: KeyedBackButton(
           key: MindIds.calmControl(_g, 'back'),
           onPressed: () {
             if (widget.daily != null) {
@@ -343,6 +375,17 @@ class _SolitaireScreenState extends State<SolitaireScreen> {
       body: SafeArea(
         child: KeyedBody(
           onInput: _onKey,
+          shortcuts: _shortcuts,
+          extraHints: switch (_phase) {
+            _Phase.menu => const [('← →', 'level')],
+            _Phase.play => [
+              if (_hintsOn) ('H', 'hint'),
+              ('Backspace', 'undo'),
+              ('N', 'new deal'),
+              if (_game?.state.canAutoComplete ?? false) ('A', 'auto-complete'),
+            ],
+            _ => const [],
+          },
           spaceGoesOn: _phase != _Phase.play,
           hints: _phase == _Phase.play
               ? const [
@@ -447,7 +490,7 @@ class _SolitaireScreenState extends State<SolitaireScreen> {
                 child: FilledButton(
                   key: MindIds.calmControl(_g, 'play'),
                   onPressed: _start,
-                  child: const Text('Play'),
+                  child: KeyedText('Play', GameAction.action, alsoSpace: true),
                 ),
               ),
             ],
@@ -514,13 +557,16 @@ class _SolitaireScreenState extends State<SolitaireScreen> {
                                 setState(() {});
                               }
                             : null,
-                        child: const Text('Undo'),
+                        child: Text(withKey('Undo', 'Backspace / 2')),
                       ),
                       OutlinedButton(
                         key: MindIds.calmControl(_g, 'new'),
                         onPressed: _auto ? null : _start,
                         child: Text(
-                          widget.daily != null ? 'Restart' : 'New deal',
+                          withKey(
+                            widget.daily != null ? 'Restart' : 'New deal',
+                            'N',
+                          ),
                         ),
                       ),
                       if (_hintsOn && (zen || g.hintLimit > 0))
@@ -528,16 +574,19 @@ class _SolitaireScreenState extends State<SolitaireScreen> {
                           key: MindIds.calmControl(_g, 'hint'),
                           onPressed: g.canHint && !_auto ? _takeHint : null,
                           child: Text(
-                            zen
-                                ? 'Hint'
-                                : 'Hint (${g.hintLimit - g.hintsUsed})',
+                            withKey(
+                              zen
+                                  ? 'Hint'
+                                  : 'Hint ${g.hintLimit - g.hintsUsed}',
+                              'H / 1',
+                            ),
                           ),
                         ),
                       if (s.canAutoComplete)
                         FilledButton(
                           key: MindIds.calmControl(_g, 'auto'),
                           onPressed: _autoComplete,
-                          child: const Text('Auto-complete'),
+                          child: Text(withKey('Auto-complete', 'A')),
                         ),
                     ],
                   ),

@@ -59,4 +59,33 @@ void main() {
       await t.pumpWidget(const SizedBox());
     },
   );
+
+  testWidgets(
+    'B-16: the hints say what the arrows do; buttons show their keys',
+    (t) async {
+      SharedPreferences.setMockInitialValues({});
+      t.view.physicalSize = const Size(1000, 900);
+      t.view.devicePixelRatio = 1;
+      addTearDown(t.view.resetPhysicalSize);
+      addTearDown(t.view.resetDevicePixelRatio);
+      await t.pumpWidget(
+        MaterialApp(
+          home: GameHostScope(
+            host: const NoGameHost(),
+            child: MergeScreen(random: Random(3)),
+          ),
+        ),
+      );
+      await t.pump(const Duration(milliseconds: 200));
+      expect(find.textContaining('(Enter / Space / 1)'), findsOneWidget);
+      expect(find.textContaining('(2)'), findsOneWidget);
+      await t.sendKeyEvent(LogicalKeyboardKey.enter);
+      await t.pump();
+      expect(find.text('slide left / right'), findsOneWidget);
+      expect(find.text('slide up'), findsOneWidget);
+      expect(find.text('slide down'), findsOneWidget);
+      expect(find.text('select'), findsNothing);
+      expect(find.text('best'), findsNothing);
+    },
+  );
 }

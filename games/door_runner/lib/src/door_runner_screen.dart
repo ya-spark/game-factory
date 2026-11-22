@@ -2,6 +2,8 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
+import 'package:flutter/services.dart';
+import 'package:game_core/kit/keys/keys.dart';
 import 'package:game_core/engine/engine.dart';
 import 'package:game_core/host/game_host.dart';
 import 'package:game_core/kit/layout/game_frame.dart';
@@ -379,12 +381,38 @@ class _DoorRunnerScreenState extends State<DoorRunnerScreen>
       key: DoorRunnerIds.screen,
       backgroundColor: DrColors.ink,
       body: switch (_phase) {
-        _Phase.intro => _intro(context),
+        _Phase.intro => _menuKeys(_intro(context)),
         _Phase.play => _play(context),
-        _Phase.results => _results(context),
+        _Phase.results => _menuKeys(_results(context)),
       },
     );
   }
+
+  /// Keys of the start and results screens (B-16, B-09): Enter or Space starts (or is Done), 2 races, Esc or L leaves.
+  Widget _menuKeys(Widget child) => GameKeyboard(
+    onInput: (i) {
+      if (i.repeat) return;
+      final goOn =
+          i.action == GameAction.action || i.action == GameAction.pause;
+      if (i.action == GameAction.exit) {
+        widget.onExit();
+      } else if (_phase == _Phase.intro) {
+        if (goOn) {
+          _start();
+        } else if (i.action == GameAction.pick2 && _twoShown(context)) {
+          setState(() => _race = true);
+        }
+      } else if (goOn) {
+        widget.onExit();
+      }
+    },
+    shortcuts: {LogicalKeyboardKey.keyL: widget.onExit},
+    child: child,
+  );
+
+  bool _twoShown(BuildContext context) =>
+      widget.offerTwoPlayers &&
+      WindowClass.ofContext(context) != WindowClass.compact;
 
   Widget _backdrop({required Widget child}) => DecoratedBox(
     decoration: BoxDecoration(
@@ -478,14 +506,20 @@ class _DoorRunnerScreenState extends State<DoorRunnerScreen>
         mainAxisSize: MainAxisSize.min,
         children: [
           SizedBox(
-            width: 220,
+            width: 300,
             child: DrButton(
               key: DoorRunnerIds.start,
               colors: const [Color(0xFFFFB02E), Color(0xFFFF6B3D)],
               onPressed: _start,
-              child: const Text(
-                'Start',
-                style: TextStyle(
+              child: Text(
+                keyedLabel(
+                  context,
+                  'Start',
+                  GameAction.action,
+                  alsoSpace: true,
+                ),
+                textAlign: TextAlign.center,
+                style: const TextStyle(
                   color: Colors.white,
                   fontSize: 22,
                   fontWeight: FontWeight.w800,
@@ -497,13 +531,13 @@ class _DoorRunnerScreenState extends State<DoorRunnerScreen>
               WindowClass.ofContext(context) != WindowClass.compact) ...[
             const SizedBox(height: 10),
             SizedBox(
-              width: 220,
+              width: 300,
               child: DrButton(
                 key: DoorRunnerIds.modeTwo,
                 height: 48,
                 onPressed: () => setState(() => _race = true),
                 child: const Text(
-                  '2 players: race',
+                  '2 players: race (2)',
                   style: TextStyle(
                     color: Colors.white,
                     fontSize: 18,
@@ -557,13 +591,14 @@ class _DoorRunnerScreenState extends State<DoorRunnerScreen>
         ],
       ],
       action: SizedBox(
-        width: 220,
+        width: 300,
         child: DrButton(
           key: DoorRunnerIds.done,
           onPressed: widget.onExit,
-          child: const Text(
-            'Done',
-            style: TextStyle(
+          child: Text(
+            keyedLabel(context, 'Done', GameAction.action, alsoSpace: true),
+            textAlign: TextAlign.center,
+            style: const TextStyle(
               color: Colors.white,
               fontSize: 22,
               fontWeight: FontWeight.w800,
@@ -602,6 +637,7 @@ class _DoorRunnerScreenState extends State<DoorRunnerScreen>
       onPause: () => _nextShowing ? _next() : _togglePause(),
       onQuestion: () => _nextShowing ? _next() : _openQuestion(),
       onDoor: (i) => _zap(i),
+      onLeave: widget.onExit,
       child: DoorRunnerFrame(
         world: view.world,
         hud: DoorRunnerHud(
@@ -671,7 +707,12 @@ class _DoorRunnerScreenState extends State<DoorRunnerScreen>
               height: 48,
               onPressed: _next,
               child: Text(
-                last ? 'See results' : 'Next',
+                keyedLabel(
+                  context,
+                  last ? 'See results' : 'Next',
+                  GameAction.action,
+                  alsoSpace: true,
+                ),
                 style: const TextStyle(
                   color: Colors.white,
                   fontSize: 18,

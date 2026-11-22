@@ -1,6 +1,7 @@
 import 'dart:math';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:game_core/game_core.dart';
 
@@ -280,6 +281,7 @@ class _DoorRunnerRaceScreenState extends State<DoorRunnerRaceScreen>
       body: GameKeyboard(
         twoPlayer: true,
         onInput: _onInput,
+        shortcuts: {LogicalKeyboardKey.keyL: widget.onExit},
         child: switch (_phase) {
           _Phase.intro => _intro(context),
           _Phase.play => _play(context),
@@ -426,6 +428,7 @@ class _DoorRunnerRaceScreenState extends State<DoorRunnerRaceScreen>
                     child: DrRoundButton(
                       icon: Icons.close,
                       tooltip: 'Leave Door runner',
+                      keyName: 'L',
                       onPressed: widget.onExit,
                     ),
                   ),
@@ -499,14 +502,15 @@ class _DoorRunnerRaceScreenState extends State<DoorRunnerRaceScreen>
           ),
       ],
       action: SizedBox(
-        width: 240,
+        width: 300,
         child: DrButton(
           key: DoorRunnerIds.start,
           colors: const [Color(0xFFFFB02E), Color(0xFFFF6B3D)],
           onPressed: _start,
-          child: const Text(
-            'Start (Enter)',
-            style: TextStyle(
+          child: Text(
+            keyedLabel(context, 'Start', GameAction.action, alsoSpace: true),
+            textAlign: TextAlign.center,
+            style: const TextStyle(
               color: Colors.white,
               fontSize: 22,
               fontWeight: FontWeight.w800,
@@ -541,14 +545,20 @@ class _DoorRunnerRaceScreenState extends State<DoorRunnerRaceScreen>
         mainAxisSize: MainAxisSize.min,
         children: [
           SizedBox(
-            width: 240,
+            width: 300,
             child: DrButton(
               key: DoorRunnerIds.again,
               colors: const [Color(0xFFFFB02E), Color(0xFFFF6B3D)],
               onPressed: _start,
-              child: const Text(
-                'Play again',
-                style: TextStyle(
+              child: Text(
+                keyedLabel(
+                  context,
+                  'Play again',
+                  GameAction.action,
+                  alsoSpace: true,
+                ),
+                textAlign: TextAlign.center,
+                style: const TextStyle(
                   color: Colors.white,
                   fontSize: 22,
                   fontWeight: FontWeight.w800,
@@ -560,7 +570,10 @@ class _DoorRunnerRaceScreenState extends State<DoorRunnerRaceScreen>
           TextButton(
             key: DoorRunnerIds.raceLeave,
             onPressed: widget.onExit,
-            child: const Text('Leave', style: TextStyle(color: Colors.white)),
+            child: const Text(
+              'Leave (Esc / L)',
+              style: TextStyle(color: Colors.white),
+            ),
           ),
         ],
       ),
@@ -637,6 +650,7 @@ class _RaceHud extends StatelessWidget {
             child: DrRoundButton(
               icon: Icons.close,
               tooltip: 'Exit',
+              keyName: 'L',
               onPressed: onExit,
             ),
           ),
@@ -646,6 +660,7 @@ class _RaceHud extends StatelessWidget {
             child: DrRoundButton(
               icon: paused ? Icons.play_arrow : Icons.pause,
               tooltip: paused ? 'Resume' : 'Pause',
+              keyName: 'Esc',
               onPressed: onPause,
             ),
           ),

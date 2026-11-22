@@ -5,6 +5,7 @@ library;
 import 'dart:math';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 import '../engine/engine.dart';
 import '../host/game_host.dart';
@@ -50,6 +51,27 @@ class ChoiceField {
   final int questionIndex;
 }
 
+/// A choice button's content with its answer key beside it (B-09): a key cap "1" to "4", then [child].
+/// More than four options have no key and show [child] alone.
+class ChoiceLabel extends StatelessWidget {
+  const ChoiceLabel({super.key, required this.index, required this.child});
+  final int index;
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    if (index > 3) return child;
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        KeyCap(label: '${index + 1}'),
+        const SizedBox(width: 10),
+        Flexible(child: child),
+      ],
+    );
+  }
+}
+
 typedef ChoiceFieldBuilder = Widget Function(
   BuildContext context,
   ChoiceField field,
@@ -81,7 +103,13 @@ class ChoiceGameScreen extends StatefulWidget {
     this.autoRead,
     this.promptOf,
     this.introExtra,
+    this.introShortcuts = const {},
+    this.introHints = const [],
   });
+
+  /// Fixed keys for the buttons of [introExtra] (shown on the start screen only), and their hint chips.
+  final KeyShortcuts introShortcuts;
+  final List<(String, String)> introHints;
 
   /// Shown under the Start button on the start screen (Tug of war: "Play with a sibling").
   final Widget? introExtra;
@@ -368,6 +396,11 @@ class _ChoiceGameScreenState extends State<ChoiceGameScreen>
       body: SafeArea(
         child: GameKeyboard(
           onInput: _onInput,
+          // L leaves from anywhere (B-09: the Leave buttons show it).
+          shortcuts: {
+            if (_phase == _Phase.intro) ...widget.introShortcuts,
+            LogicalKeyboardKey.keyL: widget.onExit,
+          },
           child: GameFrame(
             // No ad beside the game while a question is being played.
             showAds: _phase != _Phase.play,
@@ -411,6 +444,10 @@ class _ChoiceGameScreenState extends State<ChoiceGameScreen>
                     child: KeyHints(
                       actions: _hintActions,
                       spaceGoesOn: _phase != _Phase.play || _result != null,
+                      extra: [
+                        if (_phase == _Phase.intro) ...widget.introHints,
+                        ('L', 'leave'),
+                      ],
                     ),
                   ),
               ],
@@ -448,7 +485,11 @@ class _ChoiceGameScreenState extends State<ChoiceGameScreen>
                   FilledButton(
                     key: GameIds.mgStart(_g),
                     onPressed: _start,
-                    child: const Text('Start'),
+                    child: KeyedText(
+                      'Start',
+                      GameAction.action,
+                      alsoSpace: true,
+                    ),
                   ),
                   if (widget.introExtra != null) ...[
                     const SizedBox(height: 12),
@@ -503,7 +544,11 @@ class _ChoiceGameScreenState extends State<ChoiceGameScreen>
                   FilledButton(
                     key: GameIds.mgDone(_g),
                     onPressed: widget.onExit,
-                    child: const Text('Done'),
+                    child: KeyedText(
+                      'Done',
+                      GameAction.action,
+                      alsoSpace: true,
+                    ),
                   ),
                 ],
               ),
@@ -539,10 +584,14 @@ class _ChoiceGameScreenState extends State<ChoiceGameScreen>
               ),
               Text('Score $_score', key: GameIds.mgScore(_g)),
               if (_reader != null)
-                IconButton(
+                KeyedIconButton(
                   key: GameIds.mgSpeak(_g),
                   tooltip: 'Read the question aloud',
-                  icon: const Icon(Icons.volume_up),
+                  icon: Icons.volume_up,
+                  keyName: keyLabel(
+                    GameKeysScope.of(context)
+                        .primaryOf(const KeySlot(GameAction.question, 0)),
+                  ),
                   onPressed: () => _read(p),
                 ),
             ],
@@ -648,7 +697,11 @@ class _ChoiceGameScreenState extends State<ChoiceGameScreen>
             FilledButton(
               key: GameIds.mgNext(_g),
               onPressed: _next,
-              child: Text(_s.finished ? 'See results' : 'Next'),
+              child: KeyedText(
+                _s.finished ? 'See results' : 'Next',
+                GameAction.action,
+                alsoSpace: true,
+              ),
             ),
           ],
         ),

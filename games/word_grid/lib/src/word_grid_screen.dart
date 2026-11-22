@@ -1,6 +1,7 @@
 import 'dart:math';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 import 'package:game_core/game_core.dart';
 
@@ -246,6 +247,33 @@ class _WordGridScreenState extends State<WordGridScreen> {
     }
   }
 
+  /// Fixed keys on the buttons: E finishes the round; in a crossword, Backspace undoes and a letter picks that
+  /// letter from the bank.
+  KeyShortcuts get _shortcuts {
+    final g = _grid;
+    if (_phase != _Phase.play || g == null) return const {};
+    final map = <LogicalKeyboardKey, VoidCallback>{
+      LogicalKeyboardKey.keyE: _finish,
+    };
+    if (g.kind == GridKind.crossword && _clue != null) {
+      map[LogicalKeyboardKey.backspace] = () {
+        if (_typed.isNotEmpty) setState(_typed.removeLast);
+      };
+      for (var j = 0; j < _bank.length; j++) {
+        final t = _bank[j];
+        if (t.length != 1 || _typed.contains(j)) continue;
+        final key = LogicalKeyboardKey.findKeyByKeyId(
+          t.toLowerCase().codeUnitAt(0),
+        );
+        if (key == null || key == LogicalKeyboardKey.keyE) continue;
+        if (map.containsKey(key)) continue;
+        final at = j;
+        map[key] = () => _typeLetter(at);
+      }
+    }
+    return map;
+  }
+
   List<GameAction> get _hints => _phase == _Phase.play
       ? const [
           GameAction.left,
@@ -333,16 +361,27 @@ class _WordGridScreenState extends State<WordGridScreen> {
       key: GameIds.mgScreen(_g),
       appBar: AppBar(
         title: const Text('Word search and crossword'),
-        leading: IconButton(
+        leadingWidth: KeyedBackButton.width,
+        leading: KeyedBackButton(
           key: GameIds.mgExit(_g),
           tooltip: 'Leave Word search and crossword',
-          icon: const Icon(Icons.close),
+          icon: Icons.close,
           onPressed: widget.onExit,
         ),
       ),
       body: SafeArea(
         child: KeyedBody(
           onInput: _onKey,
+          shortcuts: _shortcuts,
+          extraHints: _phase == _Phase.play && _grid != null
+              ? [
+                  if (_grid!.kind == GridKind.crossword && _clue != null)
+                    ('A-Z', 'pick that letter'),
+                  if (_grid!.kind == GridKind.crossword && _clue != null)
+                    ('Backspace', 'undo'),
+                  ('E', 'finish round'),
+                ]
+              : const [],
           hints: _hints,
           spaceGoesOn: _phase != _Phase.play,
           words: const {GameAction.action: 'pick'},
@@ -384,13 +423,13 @@ class _WordGridScreenState extends State<WordGridScreen> {
                   FilledButton(
                     key: GameIds.mgStart(_g),
                     onPressed: () => _start(GridKind.wordSearch),
-                    child: const Text('Word search'),
+                    child: Text(withKey('Word search', 'Enter / Space / 1')),
                   ),
                   const SizedBox(height: 12),
                   FilledButton.tonal(
                     key: WordGridIds.mgStartAlt(_g),
                     onPressed: () => _start(GridKind.crossword),
-                    child: const Text('Crossword'),
+                    child: Text(withKey('Crossword', '2')),
                   ),
                 ],
               ),
@@ -416,7 +455,7 @@ class _WordGridScreenState extends State<WordGridScreen> {
           FilledButton(
             key: GameIds.mgDone(_g),
             onPressed: widget.onExit,
-            child: const Text('Done'),
+            child: KeyedText('Done', GameAction.action, alsoSpace: true),
           ),
         ],
       ),
@@ -460,7 +499,11 @@ class _WordGridScreenState extends State<WordGridScreen> {
                   FilledButton(
                     key: GameIds.mgDone(_g),
                     onPressed: widget.onExit,
-                    child: const Text('Done'),
+                    child: KeyedText(
+                      'Done',
+                      GameAction.action,
+                      alsoSpace: true,
+                    ),
                   ),
                 ],
               ),
@@ -522,7 +565,7 @@ class _WordGridScreenState extends State<WordGridScreen> {
           TextButton(
             key: WordGridIds.mgGiveUp(_g),
             onPressed: _finish,
-            child: const Text('Finish round'),
+            child: Text(withKey('Finish round', 'E')),
           ),
         ],
       ),
@@ -814,7 +857,7 @@ class _WordGridScreenState extends State<WordGridScreen> {
         TextButton(
           key: WordGridIds.mgUndo(_g),
           onPressed: _typed.isEmpty ? null : () => setState(_typed.removeLast),
-          child: const Text('Undo'),
+          child: Text(withKey('Undo', 'Backspace')),
         ),
       ],
     );

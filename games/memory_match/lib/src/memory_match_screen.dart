@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:math';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 import 'package:game_core/game_core.dart';
 
@@ -161,6 +162,14 @@ class _MemoryMatchScreenState extends State<MemoryMatchScreen> {
 
   // ---- keyboard (docs/KEYBOARD.md): arrows move over the cards, Enter turns one, Q reads, Space pauses ----
 
+  /// The 1 player / 2 players switch shows before the first card is turned (keys 1 and 2 pick it).
+  bool get _toggleShown =>
+      widget.offerTwoPlayers &&
+      !_study &&
+      !_started &&
+      _s.index == 0 &&
+      _result == null;
+
   void _onInput(GameInput i) {
     final b = _board;
     if (i.action == GameAction.exit) {
@@ -193,6 +202,15 @@ class _MemoryMatchScreenState extends State<MemoryMatchScreen> {
       return;
     }
     if (_paused) return;
+    if (_toggleShown &&
+        !i.repeat &&
+        (i.action == GameAction.pick1 || i.action == GameAction.pick2)) {
+      setState(() {
+        _twoPlayers = i.action == GameAction.pick2;
+        if (_twoPlayers) _ticker.stop();
+      });
+      return;
+    }
     final cols = b.columns;
     final count = b.cards.length;
     int? to;
@@ -259,6 +277,8 @@ class _MemoryMatchScreenState extends State<MemoryMatchScreen> {
       body: SafeArea(
         child: GameKeyboard(
           onInput: _onInput,
+          // L leaves from anywhere (the Leave buttons show it).
+          shortcuts: {LogicalKeyboardKey.keyL: widget.onExit},
           child: GameFrame(
             // No ad beside the cards while a board is being played.
             showAds: done,
@@ -317,6 +337,10 @@ class _MemoryMatchScreenState extends State<MemoryMatchScreen> {
                         if (!done && _reader != null) GameAction.question,
                         if (!done) GameAction.pause,
                       ],
+                      extra: [
+                        if (_toggleShown) ('1 / 2', 'players'),
+                        ('L', 'leave'),
+                      ],
                     ),
                   ),
               ],
@@ -358,31 +382,31 @@ class _MemoryMatchScreenState extends State<MemoryMatchScreen> {
                   ),
                 ),
               if (_reader != null)
-                IconButton(
+                KeyedIconButton(
                   key: MemoryMatchIds.matchSpeak,
                   tooltip: 'Read the instructions aloud',
-                  icon: const Icon(Icons.volume_up),
+                  icon: Icons.volume_up,
+                  keyName: keyNameOf(context, GameAction.question),
                   onPressed: () =>
                       _reader!.read(prompt, audioRef: p.item.audio),
                 ),
             ],
           ),
-          if (widget.offerTwoPlayers &&
-              !_study &&
-              !_started &&
-              _s.index == 0 &&
-              _result == null) ...[
+          if (_toggleShown) ...[
             const SizedBox(height: 8),
             SegmentedButton<bool>(
               showSelectedIcon: false,
               segments: const [
                 ButtonSegment(
                   value: false,
-                  label: Text('1 player', key: MemoryMatchIds.matchModeOne),
+                  label: Text('1 player (1)', key: MemoryMatchIds.matchModeOne),
                 ),
                 ButtonSegment(
                   value: true,
-                  label: Text('2 players', key: MemoryMatchIds.matchModeTwo),
+                  label: Text(
+                    '2 players (2)',
+                    key: MemoryMatchIds.matchModeTwo,
+                  ),
                 ),
               ],
               selected: {_twoPlayers},
@@ -537,7 +561,11 @@ class _MemoryMatchScreenState extends State<MemoryMatchScreen> {
       FilledButton(
         key: MemoryMatchIds.matchNext,
         onPressed: _next,
-        child: Text(_s.finished ? 'See results' : 'Next'),
+        child: KeyedText(
+          _s.finished ? 'See results' : 'Next',
+          GameAction.action,
+          alsoSpace: true,
+        ),
       ),
     ];
   }

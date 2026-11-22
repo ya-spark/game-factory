@@ -1,6 +1,7 @@
 import 'dart:math';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 import 'package:game_core/game_core.dart';
 
@@ -231,6 +232,38 @@ class _BallSortScreenState extends State<BallSortScreen> {
     }
   }
 
+  /// Fixed keys that sit on the buttons: Backspace undo, T add a tube, R restart (menu: start from level 1).
+  KeyShortcuts get _shortcuts => {
+    LogicalKeyboardKey.keyR: () {
+      if (_phase == _Phase.play) {
+        _start(_game!.level);
+      } else if (_phase == _Phase.menu && _level > 1) {
+        _prefs?.setInt('ballsort.level', 1);
+        _start(1);
+      }
+    },
+    if (_phase == _Phase.play) ...{
+      LogicalKeyboardKey.backspace: () {
+        final g = _game!;
+        if (g.canUndo) {
+          setState(() {
+            g.undo();
+            _selected = null;
+          });
+        }
+      },
+      LogicalKeyboardKey.keyT: () {
+        final g = _game!;
+        if (g.state.canAddTube) {
+          setState(() {
+            g.addTube();
+            _selected = null;
+          });
+        }
+      },
+    },
+  };
+
   List<GameAction> get _hints => switch (_phase) {
     _Phase.play => const [
       GameAction.left,
@@ -262,7 +295,8 @@ class _BallSortScreenState extends State<BallSortScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Ball sort'),
-        leading: BackButton(
+        leadingWidth: KeyedBackButton.width,
+        leading: KeyedBackButton(
           key: MindIds.calmControl(_g, 'back'),
           onPressed: () {
             if (widget.daily != null) {
@@ -280,6 +314,16 @@ class _BallSortScreenState extends State<BallSortScreen> {
           onInput: _onKey,
           spaceGoesOn: _phase != _Phase.play,
           hints: _hints,
+          shortcuts: _shortcuts,
+          extraHints: switch (_phase) {
+            _Phase.menu when _level > 1 => const [('R', 'level 1')],
+            _Phase.play => const [
+              ('Backspace', 'undo'),
+              ('T', 'tube'),
+              ('R', 'restart'),
+            ],
+            _ => const [],
+          },
           child: switch (_phase) {
             _Phase.menu => _menu(context),
             _Phase.play => _play(context),
@@ -322,7 +366,14 @@ class _BallSortScreenState extends State<BallSortScreen> {
                   FilledButton(
                     key: MindIds.calmControl(_g, 'play'),
                     onPressed: () => _start(_level),
-                    child: Text('Play level $_level'),
+                    child: Text(
+                      keyedLabel(
+                        context,
+                        'Play level $_level',
+                        GameAction.action,
+                        alsoSpace: true,
+                      ),
+                    ),
                   ),
                   if (_level > 1)
                     OutlinedButton(
@@ -331,7 +382,7 @@ class _BallSortScreenState extends State<BallSortScreen> {
                         _prefs?.setInt('ballsort.level', 1);
                         _start(1);
                       },
-                      child: const Text('Start from level 1'),
+                      child: Text(withKey('Start from level 1', 'R')),
                     ),
                 ],
               ),
@@ -397,7 +448,7 @@ class _BallSortScreenState extends State<BallSortScreen> {
                             _selected = null;
                           })
                         : null,
-                    child: const Text('Undo'),
+                    child: Text(withKey('Undo', 'Backspace')),
                   ),
                   OutlinedButton(
                     key: MindIds.calmControl(_g, 'addtube'),
@@ -408,13 +459,15 @@ class _BallSortScreenState extends State<BallSortScreen> {
                           })
                         : null,
                     child: Text(
-                      g.state.added ? 'Tube added' : 'Add a tube (once)',
+                      g.state.added
+                          ? 'Tube added'
+                          : withKey('Add a tube (once)', 'T'),
                     ),
                   ),
                   OutlinedButton(
                     key: MindIds.calmControl(_g, 'restart'),
                     onPressed: () => _start(g.level),
-                    child: const Text('Restart level'),
+                    child: Text(withKey('Restart level', 'R')),
                   ),
                 ],
               ),

@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../kit/keys/keys.dart';
+
 import '../host/game_host.dart';
 import 'mind_ids.dart';
 import 'zen.dart';
@@ -28,7 +30,8 @@ class CalmBanner extends StatelessWidget {
 int starsFor(int score, List<int> thresholds) =>
     thresholds.where((t) => score >= t).length;
 
-/// The results screen: a headline, the score and stars, Play again and Done, and the banner.
+/// The results screen: a headline, the score and stars, Play again and Done, and the banner. The game
+/// wires the keys (B-09): Enter or Space is again, Esc is Done; the buttons print them.
 class CalmResults extends StatelessWidget {
   const CalmResults({
     super.key,
@@ -104,12 +107,19 @@ class CalmResults extends StatelessWidget {
                       FilledButton(
                         key: MindIds.calmControl(game, 'again'),
                         onPressed: onAgain,
-                        child: Text(againLabel),
+                        child: Text(
+                          keyedLabel(
+                            context,
+                            againLabel,
+                            GameAction.action,
+                            alsoSpace: true,
+                          ),
+                        ),
                       ),
                       OutlinedButton(
                         key: MindIds.calmControl(game, 'done'),
                         onPressed: onDone,
-                        child: const Text('Done'),
+                        child: Text(keyedLabel(context, 'Done', GameAction.exit)),
                       ),
                     ],
                   ),
@@ -149,12 +159,19 @@ class CalmResults extends StatelessWidget {
                       FilledButton(
                         key: MindIds.calmControl(game, 'again'),
                         onPressed: onAgain,
-                        child: Text(againLabel),
+                        child: Text(
+                          keyedLabel(
+                            context,
+                            againLabel,
+                            GameAction.action,
+                            alsoSpace: true,
+                          ),
+                        ),
                       ),
                       OutlinedButton(
                         key: MindIds.calmControl(game, 'done'),
                         onPressed: onDone,
-                        child: const Text('Done'),
+                        child: Text(keyedLabel(context, 'Done', GameAction.exit)),
                       ),
                     ],
                   ),

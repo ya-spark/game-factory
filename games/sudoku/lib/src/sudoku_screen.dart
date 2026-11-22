@@ -250,9 +250,25 @@ class _SudokuScreenState extends State<SudokuScreen> {
 
   /// Keys the shared map does not know: 5 to 9, 0, Backspace, Delete and N.
   KeyEventResult _rawKey(FocusNode node, KeyEvent event) {
-    if (event is! KeyDownEvent || _phase != _Phase.play) {
-      return KeyEventResult.ignored;
+    if (event is! KeyDownEvent) return KeyEventResult.ignored;
+    if (_phase == _Phase.menu && widget.daily == null) {
+      final hw = HardwareKeyboard.instance;
+      if (hw.isControlPressed || hw.isAltPressed || hw.isMetaPressed) {
+        return KeyEventResult.ignored;
+      }
+      // E M H X: a new puzzle of Easy, Medium, Hard, Expert (the button next to Resume).
+      final l = switch (event.logicalKey) {
+        LogicalKeyboardKey.keyE => SudokuLevel.easy,
+        LogicalKeyboardKey.keyM => SudokuLevel.medium,
+        LogicalKeyboardKey.keyH => SudokuLevel.hard,
+        LogicalKeyboardKey.keyX => SudokuLevel.expert,
+        _ => null,
+      };
+      if (l == null) return KeyEventResult.ignored;
+      _start(l, fresh: true);
+      return KeyEventResult.handled;
     }
+    if (_phase != _Phase.play) return KeyEventResult.ignored;
     final hw = HardwareKeyboard.instance;
     if (hw.isControlPressed || hw.isAltPressed || hw.isMetaPressed) {
       return KeyEventResult.ignored;
@@ -260,6 +276,17 @@ class _SudokuScreenState extends State<SudokuScreen> {
     final k = event.logicalKey;
     if (k == LogicalKeyboardKey.keyN) {
       setState(() => _pencil = !_pencil);
+      return KeyEventResult.handled;
+    }
+    if (k == LogicalKeyboardKey.keyH) {
+      if (_hintsOn) _hint();
+      return KeyEventResult.handled;
+    }
+    if (k == LogicalKeyboardKey.keyU) {
+      if (_game!.canUndo) {
+        _game!.undo();
+        _afterMove();
+      }
       return KeyEventResult.handled;
     }
     if (k == LogicalKeyboardKey.backspace ||
@@ -371,7 +398,8 @@ class _SudokuScreenState extends State<SudokuScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Sudoku'),
-        leading: BackButton(
+        leadingWidth: KeyedBackButton.width,
+        leading: KeyedBackButton(
           key: MindIds.calmControl(_g, 'back'),
           onPressed: () {
             if (widget.daily != null) {
@@ -403,6 +431,15 @@ class _SudokuScreenState extends State<SudokuScreen> {
                   ]
                 : const [GameAction.action, GameAction.exit],
             words: const {GameAction.action: 'hint'},
+            extraHints: _phase == _Phase.play
+                ? const [
+                    ('1-9', 'digit'),
+                    ('N', 'notes'),
+                    ('Backspace', 'erase'),
+                    ('U', 'undo'),
+                    ('H', 'hint'),
+                  ]
+                : const [],
             child: switch (_phase) {
               _Phase.menu when widget.daily != null => const Center(
                 child: CircularProgressIndicator(),
@@ -457,18 +494,33 @@ class _SudokuScreenState extends State<SudokuScreen> {
                           FilledButton(
                             key: MindIds.calmLevel(_g, '${l.name}.resume'),
                             onPressed: () => _start(l, fresh: false),
-                            child: const Text('Resume'),
+                            child: Text(
+                              withKey(
+                                'Resume',
+                                '${SudokuLevel.values.indexOf(l) + 1}',
+                              ),
+                            ),
                           ),
                         _saved.contains(l)
                             ? OutlinedButton(
                                 key: MindIds.calmLevel(_g, l.name),
                                 onPressed: () => _start(l, fresh: true),
-                                child: const Text('New puzzle'),
+                                child: Text(
+                                  withKey(
+                                    'New puzzle',
+                                    l == SudokuLevel.expert ? 'X' : l.label[0],
+                                  ),
+                                ),
                               )
                             : FilledButton(
                                 key: MindIds.calmLevel(_g, l.name),
                                 onPressed: () => _start(l, fresh: true),
-                                child: const Text('Play'),
+                                child: Text(
+                                  withKey(
+                                    'Play',
+                                    '${SudokuLevel.values.indexOf(l) + 1}',
+                                  ),
+                                ),
                               ),
                       ],
                     ),
@@ -588,7 +640,7 @@ class _SudokuScreenState extends State<SudokuScreen> {
                 children: [
                   FilterChip(
                     key: MindIds.calmControl(_g, 'pencil'),
-                    label: const Text('Notes'),
+                    label: Text(withKey('Notes', 'N')),
                     selected: _pencil,
                     onSelected: (v) => setState(() => _pencil = v),
                   ),
@@ -599,7 +651,7 @@ class _SudokuScreenState extends State<SudokuScreen> {
                         : () {
                             if (g.erase(sel)) _afterMove();
                           },
-                    child: const Text('Erase'),
+                    child: Text(withKey('Erase', 'Backspace')),
                   ),
                   OutlinedButton(
                     key: MindIds.calmControl(_g, 'undo'),
@@ -609,13 +661,15 @@ class _SudokuScreenState extends State<SudokuScreen> {
                             _afterMove();
                           }
                         : null,
-                    child: const Text('Undo'),
+                    child: Text(withKey('Undo', 'U')),
                   ),
                   if (_hintsOn)
                     OutlinedButton(
                       key: MindIds.calmControl(_g, 'hint'),
                       onPressed: _hint,
-                      child: Text(zen ? _zenHintLabel : _hintLabel),
+                      child: Text(
+                        withKey(zen ? _zenHintLabel : _hintLabel, 'H / Enter'),
+                      ),
                     ),
                 ],
               ),
