@@ -5,20 +5,20 @@ import 'package:flutter/scheduler.dart';
 
 import 'package:game_core/game_core.dart';
 
-import 'rules/snake_rules.dart';
+import 'rules/parcel_train_rules.dart';
 
 import 'package:shared_preferences/shared_preferences.dart';
 
 /// Best-score thresholds for 1, 2 and 3 stars on the Games tab tile (docs/SPEC.md, 4.2):
 /// 5, 15 and 30 pieces of food.
-const List<int> snakeStarScores = [50, 150, 300];
+const List<int> trainStarScores = [50, 150, 300];
 
-const String _g = 'snake';
-const String _wrapKey = 'arcade.snake.wrap';
+const String _g = 'parcel_train';
+const String _wrapKey = 'arcade.parcel_train.wrap';
 
-/// Snake: swipe or use the arrow buttons. Free with ads in the hub. One life.
-class SnakeScreen extends StatefulWidget {
-  const SnakeScreen({super.key, this.onScore, this.random, this.prefs});
+/// Parcel train: swipe or use the arrow buttons. Free with ads in the hub. One life.
+class ParcelTrainScreen extends StatefulWidget {
+  const ParcelTrainScreen({super.key, this.onScore, this.random, this.prefs});
   final void Function(int score)? onScore;
 
   /// The random source of the food; default a fresh `Random`. Injected in tests.
@@ -26,10 +26,10 @@ class SnakeScreen extends StatefulWidget {
   final SharedPreferences? prefs;
 
   @override
-  State<SnakeScreen> createState() => _SnakeScreenState();
+  State<ParcelTrainScreen> createState() => _ParcelTrainScreenState();
 }
 
-class _SnakeScreenState extends State<SnakeScreen> {
+class _ParcelTrainScreenState extends State<ParcelTrainScreen> {
   SharedPreferences? _prefs;
   bool _wrap = false;
 
@@ -52,11 +52,11 @@ class _SnakeScreenState extends State<SnakeScreen> {
   Widget build(BuildContext context) {
     return ArcadeFrame(
       id: _g,
-      title: 'Snake',
+      title: 'Parcel train',
       howTo:
-          'Swipe to steer. Eat the food to grow. The snake speeds up as it '
-          'grows. Do not hit the walls or yourself.',
-      starScores: snakeStarScores,
+          'Swipe to steer. Pick up parcels to add wagons. The train speeds up as it '
+          'grows. Do not hit the walls or your wagons.',
+      starScores: trainStarScores,
       hintActions: const [
         GameAction.left,
         GameAction.up,
@@ -75,8 +75,8 @@ class _SnakeScreenState extends State<SnakeScreen> {
           _prefs?.setBool(_wrapKey, v);
         },
       ),
-      buildPlay: (context, run, round) => _SnakePlay(
-        key: ValueKey('snake.round.$round'),
+      buildPlay: (context, run, round) => _TrainPlay(
+        key: ValueKey('parcel_train.round.$round'),
         run: run,
         wrap: _wrap,
         random: widget.random ?? Random(),
@@ -85,8 +85,8 @@ class _SnakeScreenState extends State<SnakeScreen> {
   }
 }
 
-class _SnakePlay extends StatefulWidget {
-  const _SnakePlay({
+class _TrainPlay extends StatefulWidget {
+  const _TrainPlay({
     super.key,
     required this.run,
     required this.wrap,
@@ -97,12 +97,12 @@ class _SnakePlay extends StatefulWidget {
   final Random random;
 
   @override
-  State<_SnakePlay> createState() => _SnakePlayState();
+  State<_TrainPlay> createState() => _TrainPlayState();
 }
 
-class _SnakePlayState extends State<_SnakePlay>
+class _TrainPlayState extends State<_TrainPlay>
     with SingleTickerProviderStateMixin {
-  late final SnakeGame _game = SnakeGame(
+  late final TrainGame _game = TrainGame(
     wrap: widget.wrap,
     random: widget.random,
   );
@@ -136,19 +136,19 @@ class _SnakePlayState extends State<_SnakePlay>
     }
   }
 
-  void _turn(SnakeDir d) => _game.turn(d);
+  void _turn(TrainDir d) => _game.turn(d);
 
   /// The arrows (and W A S D) steer (docs/KEYBOARD.md).
   void _onKey(GameInput i) {
     switch (i.action) {
       case GameAction.left:
-        _turn(SnakeDir.left);
+        _turn(TrainDir.left);
       case GameAction.right:
-        _turn(SnakeDir.right);
+        _turn(TrainDir.right);
       case GameAction.up:
-        _turn(SnakeDir.up);
+        _turn(TrainDir.up);
       case GameAction.down:
-        _turn(SnakeDir.down);
+        _turn(TrainDir.down);
       default:
     }
   }
@@ -157,9 +157,9 @@ class _SnakePlayState extends State<_SnakePlay>
     _drag += d.delta;
     if (_drag.distance < 24) return;
     if (_drag.dx.abs() > _drag.dy.abs()) {
-      _turn(_drag.dx > 0 ? SnakeDir.right : SnakeDir.left);
+      _turn(_drag.dx > 0 ? TrainDir.right : TrainDir.left);
     } else {
-      _turn(_drag.dy > 0 ? SnakeDir.down : SnakeDir.up);
+      _turn(_drag.dy > 0 ? TrainDir.down : TrainDir.up);
     }
     _drag = Offset.zero;
   }
@@ -186,10 +186,10 @@ class _SnakePlayState extends State<_SnakePlay>
                   onPanUpdate: _onPanUpdate,
                   child: Semantics(
                     label:
-                        'Snake field, length ${_game.length}, score '
+                        'Parcel train field, length ${_game.length}, score '
                         '${_game.score}. Use the arrow buttons to steer.',
                     child: CustomPaint(
-                      painter: _SnakePainter(_game, pal, _game.length),
+                      painter: _TrainPainter(_game, pal, _game.length),
                       size: Size.infinite,
                     ),
                   ),
@@ -205,10 +205,10 @@ class _SnakePlayState extends State<_SnakePlay>
             spacing: 8,
             runSpacing: 8,
             children: [
-              _arrow('left', Icons.arrow_back, SnakeDir.left),
-              _arrow('up', Icons.arrow_upward, SnakeDir.up),
-              _arrow('down', Icons.arrow_downward, SnakeDir.down),
-              _arrow('right', Icons.arrow_forward, SnakeDir.right),
+              _arrow('left', Icons.arrow_back, TrainDir.left),
+              _arrow('up', Icons.arrow_upward, TrainDir.up),
+              _arrow('down', Icons.arrow_downward, TrainDir.down),
+              _arrow('right', Icons.arrow_forward, TrainDir.right),
             ],
           ),
         ),
@@ -216,7 +216,7 @@ class _SnakePlayState extends State<_SnakePlay>
     );
   }
 
-  Widget _arrow(String name, IconData icon, SnakeDir d) =>
+  Widget _arrow(String name, IconData icon, TrainDir d) =>
       IconButton.filledTonal(
         key: MindIds.arcade(_g, name),
         tooltip: 'Turn $name',
@@ -227,9 +227,9 @@ class _SnakePlayState extends State<_SnakePlay>
       );
 }
 
-class _SnakePainter extends CustomPainter {
-  _SnakePainter(this.game, this.pal, this.version);
-  final SnakeGame game;
+class _TrainPainter extends CustomPainter {
+  _TrainPainter(this.game, this.pal, this.version);
+  final TrainGame game;
   final ArcadePalette pal;
   final int version;
 
@@ -264,5 +264,5 @@ class _SnakePainter extends CustomPainter {
   }
 
   @override
-  bool shouldRepaint(covariant _SnakePainter old) => true;
+  bool shouldRepaint(covariant _TrainPainter old) => true;
 }

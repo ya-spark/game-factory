@@ -58,7 +58,7 @@ python3 scripts/new_game.py --id my_game --name "My Game" \
   git dependencies at one `game-factory` commit (`--ref`, default this checkout's HEAD) with the same
   pin as `dependency_overrides`; `--games a,b` lists quiz games (Flash review is always in) in
   `pubspec.yaml` and `lib/ui/game_registry.dart`. Arcade and hub games are listed too (table `ARCADE` in
-  `new_game.py`: title, access, coin price, star scores): the plain screen games (Snake, Sudoku, Solitaire,
+  `new_game.py`: title, access, coin price, star scores): the plain screen games (Parcel train, Sudoku, Solitaire,
   Ball sort, Mahjong, Merge, Brick breaker, Stack tower, Runner) need only the app's `GameHost`; Wingy, Block
   Puzzle and Blockfall also get their host adapter written to `lib/host/<id>/` from `scripts/arcade_adapters/`
   (profile store over the app's `ProfileStore`, ads, services; no interstitials, rewarded Continue only).

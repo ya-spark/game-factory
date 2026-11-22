@@ -46,7 +46,7 @@ One key map for every game and app, in `game_core` (`lib/kit/keys/`, import `pac
 - Done in: the choice-game kit (Tug of war, True or false, Cloze fix, Balloon pop, Shooter shell), `ArcadeFrame` menu and over screens, Series builder, Sort into bins, Word builder, Flash review, Word grid, Memory match (one and two players), Door runner (race and wrong-answer Next), Tug of war head to head, Ball sort, Merge, Mahjong, Sudoku, Solitaire, Blockfall (choice and versus). Bridge builder already did it.
 
 ## K1: every game has keys (2026-11-22, for the web)
-- `ArcadeFrame` (Snake, Runner, Stack tower, Brick breaker) takes the keys: Enter start or play again, Space and Esc pause (Resume, Leave), the game registers `run.onInput` and `run.onRelease` for its own keys and `hintActions` for the hints.
+- `ArcadeFrame` (Runner, Stack tower, Brick breaker) takes the keys: Enter start or play again, Space and Esc pause (Resume, Leave), the game registers `run.onInput` and `run.onRelease` for its own keys and `hintActions` for the hints.
 - `KeyedBody(onInput:, hints:, words:, child:)` (game_core, `kit/keys/keyed_body.dart`) is `GameKeyboard` plus the hint row for every other screen. Untimed games have no pause: Esc goes back.
 - A highlighted cursor (tertiary colour, 4 px) appears once a key is used, so touch play looks as before.
 - Digits 5 to 9 and letters are not in the map: a game that needs them reads them in a `Focus` above `KeyedBody` (Sudoku does).

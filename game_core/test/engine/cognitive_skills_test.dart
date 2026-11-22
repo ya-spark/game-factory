@@ -75,7 +75,7 @@ void main() {
         'mahjong',
         'merge',
         'wingy',
-        'snake',
+        'parcel_train',
         'bricks',
         'stack',
         'runner',
@@ -239,7 +239,7 @@ void main() {
     test(
       'with fewer skills than slots the rest is topped up from other games',
       () {
-        final presto = ['wingy', 'snake', 'bricks', 'stack', 'runner'];
+        final presto = ['wingy', 'parcel_train', 'bricks', 'stack', 'runner'];
         final w = DailyWorkout.plan(
           const GameStats(),
           today: 5,

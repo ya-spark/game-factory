@@ -11,7 +11,7 @@ import '../kit/layout/window_class.dart';
 import 'mind_ids.dart';
 import 'run_report.dart';
 
-/// The frame shared by the arcade games (Snake, Brick breaker, Stack tower, Runner): a menu, the
+/// The frame shared by the arcade games (Brick breaker, Stack tower, Runner): a menu, the
 /// play view, and a results screen. Banners show on the menu and the results only, never in
 /// play. The Continue is a rewarded ad, at most once per game over. Instant restart: Play again
 /// builds the next round at once. The views are here; the rules are pure Dart under

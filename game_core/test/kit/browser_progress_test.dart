@@ -28,13 +28,13 @@ void main() {
     final a = BrowserProgress(s);
     await a.load();
     await a.recordEvidence('maths/7/frac_0', ev, SkillRules.ranger);
-    await a.recordBest('snake', 12);
-    await a.recordBest('snake', 5);
+    await a.recordBest('wingy', 12);
+    await a.recordBest('wingy', 5);
     final b = BrowserProgress(s);
     await b.load();
     expect(b.progress.skills['maths/7/frac_0']!.evidence, hasLength(1));
-    expect(b.bestScore('snake'), 12);
-    expect(s.data.keys, containsAll(['amc.progress.v1', 'amc.best.snake']));
+    expect(b.bestScore('wingy'), 12);
+    expect(s.data.keys, containsAll(['amc.progress.v1', 'amc.best.wingy']));
   });
 
   test(
@@ -42,12 +42,18 @@ void main() {
     () async {
       final s = MemoryProgressStorage()
         ..data['amc.best.equation_builder'] = '7'
-        ..data['amc.best.snake'] = '3';
+        ..data['amc.best.snake'] = '3'
+        ..data['amc.best.wingy'] = '4';
       var p = BrowserProgress(s);
       await p.load();
       expect(p.bestScore('bridge_builder'), 7);
       expect(p.bestScore('equation_builder'), 0);
-      expect(p.bestScore('snake'), 3);
+      // Snake became Parcel train: its best score carries over
+      expect(p.bestScore('parcel_train'), 3);
+      expect(p.bestScore('snake'), 0);
+      expect(s.data['amc.best.parcel_train'], '3');
+      expect(s.data.containsKey('amc.best.snake'), isFalse);
+      expect(p.bestScore('wingy'), 4);
       expect(s.data.containsKey('amc.best.equation_builder'), isFalse);
       expect(s.data['amc.best.bridge_builder'], '7');
       // a new score already under the new id wins over the old one

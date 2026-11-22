@@ -34,7 +34,7 @@ const Map<String, CognitiveSkill> gameSkill = {
   'mahjong': CognitiveSkill.memory,
   'merge': CognitiveSkill.maths,
   'wingy': CognitiveSkill.attention,
-  'snake': CognitiveSkill.spatial,
+  'parcel_train': CognitiveSkill.spatial,
   'bricks': CognitiveSkill.speed,
   'stack': CognitiveSkill.attention,
   'runner': CognitiveSkill.speed,

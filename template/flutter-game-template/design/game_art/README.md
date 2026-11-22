@@ -9,4 +9,4 @@ rounded background (rx 24), so the art must be shown without a tint and without 
 
 Ids: quick_quiz, door_runner, balloon_pop, tug_of_war, true_false, flash_review, bridge_builder, cloze_fix, word_grid,
 memory_match, domino_chain, word_builder, sort_bins, block_puzzle, blockfall, sudoku, solitaire, ball_sort, mahjong, merge,
-wingy, snake, bricks, stack, runner. They replace the entries of `gameArt` in `lib/ui/kit/ds_art.dart` (see the game-studio issue).
+wingy, parcel_train, bricks, stack, runner. They replace the entries of `gameArt` in `lib/ui/kit/ds_art.dart` (see the game-studio issue).

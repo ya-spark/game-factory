@@ -39,6 +39,20 @@ abstract final class HowToPlayCatalogue {
       ],
     ),
     HowToPlay(
+      'parcel_train',
+      'Parcel train',
+      [
+        'Steer the toy train with the arrow keys, W A S D or a swipe. Pick up parcels: each one adds a wagon.',
+        'In the courses, pick up the parcels the station asks for, then drive into the open station. Free ride has no station.',
+        'Walls and your own wagons stop the train. You have 3 bumpers in a course; a hit with none left starts the course again.',
+      ],
+      [
+        'Plan your turns early. You can line up two turns.',
+        'The golden parcel is a bonus. A course with no bumper used gets 3 stars.',
+        'Space or P pauses.',
+      ],
+    ),
+    HowToPlay(
       'memory_match',
       'Memory match',
       [

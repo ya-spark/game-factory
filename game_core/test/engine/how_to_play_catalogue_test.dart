@@ -27,6 +27,7 @@ void main() {
         'door_runner',
         'tug_of_war',
         'flash_review',
+        'parcel_train',
       ]) {
         expect(HowToPlayCatalogue.forGame(id), isNotNull, reason: id);
       }

@@ -1,5 +1,5 @@
-name: game_snake
-description: "Snake: a Mind hub game in game-factory/games; the hubs are containers that list it."
+name: game_parcel_train
+description: "Parcel train: a Mind hub game in game-factory/games; the hubs are containers that list it."
 publish_to: 'none'
 version: 1.0.0
 environment:
