@@ -151,11 +151,13 @@ class QuizSession {
   /// Records the answer to the current item and moves on. Throws when [finished].
   /// [truth] is whether the child really knew the answer, when the game scores something else
   /// (a younger level that never loses a round): skill evidence uses it, never the game's score.
+  /// [skillEvidence] false adds no skill evidence for this answer (light-evidence games).
   AnswerResult answer({
     required bool correct,
     bool? truth,
     bool hinted = false,
     bool timedOut = false,
+    bool skillEvidence = true,
   }) {
     final p = current;
     if (p == null) throw StateError('The round is finished');
@@ -193,6 +195,9 @@ class QuizSession {
             .skills,
       );
     }
+    // A game with light evidence (Judge bot: two choices) records the item as usual but adds no
+    // skill evidence for this answer.
+    if (!skillEvidence) next = next.copyWith(skills: progress.skills);
     var stars = 0;
     var coins = 0;
     var topicDone = false;
