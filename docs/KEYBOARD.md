@@ -39,6 +39,7 @@ One key map for every game and app, in `game_core` (`lib/kit/keys/`, import `pac
 | Memory match | arrows over the cards, Enter turns a card (or goes on), Q reads, Space pause, Esc pause or leave |
 | Door runner | left and right steer, up zaps, down slows while held, 1 to 4 pick a door, Enter or Q the question, Space or Esc pause |
 | Blockfall | left and right move (held keys repeat), up rotates, down soft-drops while held, Enter hard-drops, Q holds, 1 to 3 power-ups, Space or Esc pause |
+| Parcel train (id `parcel_train`) | arrows and W A S D steer (queued in the ready beat), Enter or Space starts and goes on, Space or P or Esc pauses (any of them or Enter resumes), 1 to 5 open a course, F Free ride, H how to play, T tunnel edges, R replay, Left and Right choose Next or Replay, Q reads where the parcel is; every button shows its key; the screen reads F H T R P and 5 itself (F is the map's left-hand Action key) |
 
 ## U2: Space goes on (2026-11-22)
 - Space (the shared pause key) does what Enter does in the non-play states: after an answer or round result it is Next (or See results), on the intro or start screen it starts, on the results screen it leaves. In play it still pauses, and it never both pauses and goes on: while a result or Next shows, Space is Next. Enter keeps working.
