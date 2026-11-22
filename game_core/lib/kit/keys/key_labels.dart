@@ -136,7 +136,6 @@ class KeyedBackButton extends StatelessWidget {
 /// The key text of an action in the player's map ("Q"), for icon buttons.
 String keyNameOf(BuildContext context, GameAction action, {int player = 1}) =>
     keyLabel(
-      GameKeysScope.of(context).primaryOf(
-        KeySlot(action, action.shared ? 0 : player),
-      ),
+      GameKeysScope.of(context)
+          .primaryOf(KeySlot(action, action.shared ? 0 : player)),
     );

@@ -430,7 +430,7 @@ class _SudokuScreenState extends State<SudokuScreen> {
                     GameAction.exit,
                   ]
                 : const [GameAction.action, GameAction.exit],
-            words: const {GameAction.action: 'hint'},
+            words: {GameAction.action: _phase == _Phase.play ? 'hint' : 'play'},
             extraHints: _phase == _Phase.play
                 ? const [
                     ('1-9', 'digit'),
@@ -439,6 +439,8 @@ class _SudokuScreenState extends State<SudokuScreen> {
                     ('U', 'undo'),
                     ('H', 'hint'),
                   ]
+                : _phase == _Phase.menu
+                ? const [('1-4', 'level')]
                 : const [],
             child: switch (_phase) {
               _Phase.menu when widget.daily != null => const Center(
@@ -561,122 +563,138 @@ class _SudokuScreenState extends State<SudokuScreen> {
     final scheme = theme.colorScheme;
     final sel = _selected;
     final selValue = sel == null ? 0 : g.values[sel];
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(12),
-      child: Center(
-        child: ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 480),
-          child: Column(
-            children: [
-              Text(
-                '${g.puzzle.level.label}'
-                '${_showMistakes && !zen ? ', mistakes ${g.mistakes}' : ''}',
-                style: theme.textTheme.titleMedium,
-              ),
-              const SizedBox(height: 8),
-              AspectRatio(
-                aspectRatio: 1,
-                child: Container(
-                  decoration: BoxDecoration(
-                    border: Border.all(color: scheme.onSurface, width: 2),
+    // The board shrinks to the window height, so the digit bar and the tools stay on screen (B-17):
+    // the title, message, digit bar and tool row need about 230 dp under it.
+    return LayoutBuilder(
+      builder: (context, box) {
+        final side = (box.maxHeight - 24 - 230).clamp(180.0, 480.0).toDouble();
+        return SingleChildScrollView(
+          padding: const EdgeInsets.all(12),
+          child: Center(
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 480),
+              child: Column(
+                children: [
+                  Text(
+                    '${g.puzzle.level.label}'
+                    '${_showMistakes && !zen ? ', mistakes ${g.mistakes}' : ''}',
+                    style: theme.textTheme.titleMedium,
                   ),
-                  child: Column(
+                  const SizedBox(height: 8),
+                  SizedBox(
+                    width: side,
+                    height: side,
+                    child: Container(
+                      decoration: BoxDecoration(
+                        border: Border.all(color: scheme.onSurface, width: 2),
+                      ),
+                      child: Column(
+                        children: [
+                          for (var r = 0; r < 9; r++)
+                            Expanded(
+                              child: Row(
+                                children: [
+                                  for (var c = 0; c < 9; c++)
+                                    Expanded(
+                                      child: _cell(
+                                        context,
+                                        g,
+                                        r * 9 + c,
+                                        selValue,
+                                      ),
+                                    ),
+                                ],
+                              ),
+                            ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  if (_message != null)
+                    Padding(
+                      padding: const EdgeInsets.only(top: 8),
+                      child: Text(
+                        _message!,
+                        key: MindIds.calmControl(_g, 'message'),
+                      ),
+                    ),
+                  const SizedBox(height: 12),
+                  Wrap(
+                    spacing: 6,
+                    runSpacing: 6,
+                    alignment: WrapAlignment.center,
                     children: [
-                      for (var r = 0; r < 9; r++)
-                        Expanded(
-                          child: Row(
-                            children: [
-                              for (var c = 0; c < 9; c++)
-                                Expanded(
-                                  child: _cell(context, g, r * 9 + c, selValue),
-                                ),
-                            ],
+                      for (var d = 1; d <= 9; d++)
+                        Semantics(
+                          button: true,
+                          label: _pencil ? 'Note $d' : 'Digit $d',
+                          excludeSemantics: true,
+                          child: SizedBox(
+                            width: 44,
+                            height: 48,
+                            child: FilledButton.tonal(
+                              key: SudokuIds.sudokuDigit(d),
+                              style: FilledButton.styleFrom(
+                                padding: EdgeInsets.zero,
+                                minimumSize: const Size(44, 48),
+                              ),
+                              onPressed: () => _digit(d),
+                              child: Text('$d'),
+                            ),
                           ),
                         ),
                     ],
                   ),
-                ),
-              ),
-              if (_message != null)
-                Padding(
-                  padding: const EdgeInsets.only(top: 8),
-                  child: Text(
-                    _message!,
-                    key: MindIds.calmControl(_g, 'message'),
-                  ),
-                ),
-              const SizedBox(height: 12),
-              Wrap(
-                spacing: 6,
-                runSpacing: 6,
-                alignment: WrapAlignment.center,
-                children: [
-                  for (var d = 1; d <= 9; d++)
-                    Semantics(
-                      button: true,
-                      label: _pencil ? 'Note $d' : 'Digit $d',
-                      excludeSemantics: true,
-                      child: SizedBox(
-                        width: 44,
-                        height: 48,
-                        child: FilledButton.tonal(
-                          key: SudokuIds.sudokuDigit(d),
-                          style: FilledButton.styleFrom(
-                            padding: EdgeInsets.zero,
-                            minimumSize: const Size(44, 48),
+                  const SizedBox(height: 12),
+                  Wrap(
+                    spacing: 8,
+                    runSpacing: 8,
+                    alignment: WrapAlignment.center,
+                    children: [
+                      FilterChip(
+                        key: MindIds.calmControl(_g, 'pencil'),
+                        label: Text(withKey('Notes', 'N')),
+                        selected: _pencil,
+                        onSelected: (v) => setState(() => _pencil = v),
+                      ),
+                      OutlinedButton(
+                        key: MindIds.calmControl(_g, 'erase'),
+                        onPressed: sel == null
+                            ? null
+                            : () {
+                                if (g.erase(sel)) _afterMove();
+                              },
+                        child: Text(withKey('Erase', 'Backspace')),
+                      ),
+                      OutlinedButton(
+                        key: MindIds.calmControl(_g, 'undo'),
+                        onPressed: g.canUndo
+                            ? () {
+                                g.undo();
+                                _afterMove();
+                              }
+                            : null,
+                        child: Text(withKey('Undo', 'U')),
+                      ),
+                      if (_hintsOn)
+                        OutlinedButton(
+                          key: MindIds.calmControl(_g, 'hint'),
+                          onPressed: _hint,
+                          child: Text(
+                            withKey(
+                              zen ? _zenHintLabel : _hintLabel,
+                              'H / Enter',
+                            ),
                           ),
-                          onPressed: () => _digit(d),
-                          child: Text('$d'),
                         ),
-                      ),
-                    ),
+                    ],
+                  ),
                 ],
               ),
-              const SizedBox(height: 12),
-              Wrap(
-                spacing: 8,
-                runSpacing: 8,
-                alignment: WrapAlignment.center,
-                children: [
-                  FilterChip(
-                    key: MindIds.calmControl(_g, 'pencil'),
-                    label: Text(withKey('Notes', 'N')),
-                    selected: _pencil,
-                    onSelected: (v) => setState(() => _pencil = v),
-                  ),
-                  OutlinedButton(
-                    key: MindIds.calmControl(_g, 'erase'),
-                    onPressed: sel == null
-                        ? null
-                        : () {
-                            if (g.erase(sel)) _afterMove();
-                          },
-                    child: Text(withKey('Erase', 'Backspace')),
-                  ),
-                  OutlinedButton(
-                    key: MindIds.calmControl(_g, 'undo'),
-                    onPressed: g.canUndo
-                        ? () {
-                            g.undo();
-                            _afterMove();
-                          }
-                        : null,
-                    child: Text(withKey('Undo', 'U')),
-                  ),
-                  if (_hintsOn)
-                    OutlinedButton(
-                      key: MindIds.calmControl(_g, 'hint'),
-                      onPressed: _hint,
-                      child: Text(
-                        withKey(zen ? _zenHintLabel : _hintLabel, 'H / Enter'),
-                      ),
-                    ),
-                ],
-              ),
-            ],
+            ),
           ),
-        ),
-      ),
+        );
+      },
     );
   }
 

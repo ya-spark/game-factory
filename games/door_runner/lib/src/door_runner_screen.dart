@@ -449,6 +449,7 @@ class _DoorRunnerScreenState extends State<DoorRunnerScreen>
                   child: DrRoundButton(
                     icon: Icons.close,
                     tooltip: 'Leave Door runner',
+                    keyName: 'Esc',
                     onPressed: widget.onExit,
                   ),
                 ),

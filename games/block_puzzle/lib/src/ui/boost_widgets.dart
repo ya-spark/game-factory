@@ -20,8 +20,11 @@ class BoostButton extends StatelessWidget {
     required this.armed,
     required this.enabled,
     required this.onTap,
+    this.keyName,
   });
 
+  /// The key that presses it, printed at the lower left (B-09).
+  final String? keyName;
   final BoostDef def;
   final int count;
   final bool armed;
@@ -39,7 +42,8 @@ class BoostButton extends StatelessWidget {
       button: true,
       enabled: enabled,
       selected: armed,
-      label: '${def.name}, $count left',
+      label:
+          '${def.name}, $count left${keyName == null ? '' : ', key $keyName'}',
       excludeSemantics: true,
       child: GestureDetector(
         key: TestIds.gameItem(def.key),
@@ -72,6 +76,30 @@ class BoostButton extends StatelessWidget {
                   ),
                 ),
               ),
+              if (keyName != null)
+                Positioned(
+                  left: -2,
+                  bottom: -2,
+                  child: Container(
+                    constraints: const BoxConstraints(minWidth: 16),
+                    height: 16,
+                    alignment: Alignment.center,
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF1E1535),
+                      borderRadius: BorderRadius.circular(5),
+                      border: Border.all(color: Colors.white54),
+                    ),
+                    child: Text(
+                      keyName!,
+                      style: const TextStyle(
+                        fontSize: 10,
+                        height: 1,
+                        fontWeight: FontWeight.w800,
+                        color: Colors.white,
+                      ),
+                    ),
+                  ),
+                ),
               Positioned(
                 right: -2,
                 top: -2,

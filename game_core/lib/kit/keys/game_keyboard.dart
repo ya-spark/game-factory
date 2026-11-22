@@ -156,8 +156,8 @@ class KeyHints extends StatelessWidget {
 
   static String _word(GameAction a) => switch (a) {
     GameAction.left || GameAction.right => 'move',
-    GameAction.up => 'select',
-    GameAction.down => 'best',
+    GameAction.up => 'up',
+    GameAction.down => 'down',
     GameAction.action => 'go',
     GameAction.pause => 'pause',
     GameAction.question => 'question',
@@ -185,6 +185,22 @@ class KeyHints extends StatelessWidget {
         keyLabel(map.primaryOf(KeySlot(a, a.shared ? 0 : player)));
     for (final a in actions) {
       if (a == GameAction.right && has(GameAction.left)) {
+        continue;
+      }
+      // Up and down read as one pair unless the game gives down its own word (Door runner: zap, slow).
+      final pairUpDown =
+          has(GameAction.up) &&
+          has(GameAction.down) &&
+          words[GameAction.down] == null;
+      if (a == GameAction.down && pairUpDown) {
+        continue;
+      }
+      if (a == GameAction.up && pairUpDown) {
+        shown.add((
+          '${key(GameAction.up)} ${key(GameAction.down)}',
+          words[GameAction.up] ?? 'up / down',
+          a,
+        ));
         continue;
       }
       final laterPick =

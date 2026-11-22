@@ -71,3 +71,7 @@ Backspace and Delete are not in the shared map; the screen reads them in a `Focu
 
 ## Art
 Drawn in code for now. The owner's Figma limit blocked the kit on 22 Nov 2026 (a blank file "Bridge builder kit" was created but writes were refused), so a ready-to-run prompt is in `game-studio/docs/art-prompts/bridge-builder-figma-prompt.md`; when the owner hands the Figma result back, the painters can be replaced by exported SVG (and listed in `assets/LICENSES.md`). No living beings in the art (studio rule, 2026-11-22).
+
+## Button keys (B-09, 2026-11-22)
+- Every button prints its shortcut key, for example "Next (Enter / Space)"; the key works. Rule: Enter and Space go forward, Esc leaves or closes (pauses in play), 1 to 4 choose, Backspace takes back, H hints, P pauses where Space is an action, L leaves a round.
+- B-09, B-17: Done and Next print "(Enter / Space)"; Clear prints "(R)", Lay plank "(G)" (lays the plank with fewer than all slots full); exit, read aloud and pause print L, Q and "Esc / P" under the button; P also pauses (Space selects here); L leaves from anywhere. The hint row reads "1-N tile" with N the number of tiles (up to 9; 5 to 9 work), then Backspace take back, G, R, P, L. The pause screen prints "Resume (Esc / Space)" and "Leave game (L)".

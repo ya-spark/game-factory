@@ -55,3 +55,28 @@ One key map for every game and app, in `game_core` (`lib/kit/keys/`, import `pac
 
 The two-player modes themselves (Tug of war head to head, Memory match turns, Door runner race, Blockfall two boards) are not built yet; the key map already gives player 2 its left-hand keys.
 
+
+## B-09: every button shows its key (2026-11-22)
+Every button in every web game prints the key that presses it, for example "Next (Enter / Space)", and the key works. The rule for all games:
+
+| Key | What it does |
+|---|---|
+| Enter and Space | The main forward button: Start, Play, Next, See results, Play again, Done, Got it. In play Space pauses unless the game uses Space as an action (Bridge builder: select; Domino chain: Go), then P pauses. |
+| Esc | Leave or close: leaves from start and results screens, closes a dialog, pauses a round (and resumes from the pause screen). |
+| 1 to 4 (5 to 9 where a game has more) | Choices: answers, doors, balloons, bins, tiles, levels. |
+| Backspace | Back one step: undo, take the last tile or letter back, erase. |
+| H | Hint. |
+| P | Pause where Space is an action. |
+| L | Leave a round from anywhere (the exit button and "Leave game" print it). Not used in the word games, where letters are typed. |
+| Q | Read the question aloud. |
+| A-Z | In the word games, typing a letter picks that letter. |
+
+How it is built (game_core, `lib/kit/keys/key_labels.dart`):
+- `keyedLabel(context, 'Next', GameAction.action, alsoSpace: true)` or `KeyedText(...)` print the player's real key (a remapped key reads right); `withKey('Undo', 'Backspace')` prints a fixed key.
+- Keys that are not in the map (Backspace, H, L, R, letters) go in `GameKeyboard(shortcuts: {...})` or `KeyedBody(shortcuts: ..., extraHints: [('H', 'hint')])`; a shortcut is tried before the map, so only register one while its button shows.
+- Icon buttons: `KeyedIconButton` (key text beside the icon) and `KeyedBackButton` (app bars: set `leadingWidth: KeyedBackButton.width`); `GameTopBar` prints L and Esc, `PauseOverlay` prints "Resume (Esc / Space)" and "Leave game (L)".
+- Choice buttons wrap their label in `ChoiceLabel(index: i, child: ...)` (a key cap 1 to 4).
+- Shared screens already do it: `ChoiceGameScreen`, `ArcadeFrame` (Play, Play again, Done "(Esc)", Continue "(C)", L leaves a round), `CalmResults`, `MiniGameSummary`.
+- A dialog needs its own `GameKeyboard` (a dialog is a new route; the game's keyboard does not see its keys) or an autofocused primary button (the web how-to dialog: "Got it (Enter / Esc)").
+- Not changed on purpose: Space-vs-pause in Runner, True or false, Stack tower and Parcel train (their rewrite specs decide). Blockfall, Block puzzle and Wingy are app games (apps paused) and not on the web; they are not part of B-09 yet. Setting switches (Hints, Show mistakes, Winnable deals) and level chips on menus are reached with Tab and Space or Enter.
+- The audit of every game's screens and buttons is in `docs/queue/B-09-shortcut-keys.md` in game-studio.

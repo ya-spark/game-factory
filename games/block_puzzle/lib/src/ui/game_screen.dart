@@ -192,20 +192,33 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
     final exit = await showDialog<bool>(
       context: context,
       barrierDismissible: false,
-      builder: (ctx) => AlertDialog(
-        title: const Text('Paused'),
-        actions: [
-          TextButton(
-            key: TestIds.gamePauseQuit,
-            onPressed: () => Navigator.pop(ctx, true),
-            child: const Text('Exit'),
-          ),
-          FilledButton(
-            key: TestIds.gamePauseResume,
-            onPressed: () => Navigator.pop(ctx, false),
-            child: const Text('Resume'),
-          ),
-        ],
+      // A dialog is a new route: it needs its own keyboard (B-09). Enter, Space and Esc resume, L exits.
+      builder: (ctx) => GameKeyboard(
+        onInput: (i) {
+          if (i.repeat) return;
+          if (i.action == GameAction.action ||
+              i.action == GameAction.pause ||
+              i.action == GameAction.exit) {
+            Navigator.pop(ctx, false);
+          }
+        },
+        shortcuts: {LogicalKeyboardKey.keyL: () => Navigator.pop(ctx, true)},
+        child: AlertDialog(
+          title: const Text('Paused'),
+          actions: [
+            TextButton(
+              key: TestIds.gamePauseQuit,
+              onPressed: () => Navigator.pop(ctx, true),
+              child: Text(withKey('Exit', 'L')),
+            ),
+            FilledButton(
+              key: TestIds.gamePauseResume,
+              autofocus: true,
+              onPressed: () => Navigator.pop(ctx, false),
+              child: Text(withKey('Resume', 'Enter / Space / Esc')),
+            ),
+          ],
+        ),
       ),
     );
     _pauseOpen = false;
@@ -216,6 +229,14 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
       _audio.startAmbience();
     }
   }
+
+  static final List<LogicalKeyboardKey> _boostKeys = [
+    LogicalKeyboardKey.digit4,
+    LogicalKeyboardKey.digit5,
+    LogicalKeyboardKey.digit6,
+    LogicalKeyboardKey.digit7,
+    LogicalKeyboardKey.digit8,
+  ];
 
   // ---- keyboard (docs/SPEC.md, Keyboard): arrows move the piece over the board, 1 to 3 pick a tray piece,
   // Enter places it, Space or Esc pause ----
@@ -419,99 +440,125 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
       context: context,
       barrierDismissible: false,
       barrierColor: Colors.transparent,
-      builder: (ctx) => GameOverPanel(
-        key: TestIds.gameOverDialog,
-        panelKey: TestIds.gameOverPanel,
-        viewKey: TestIds.gameOverView,
-        title: 'Game over',
-        shareButton: GameOverButton(
-          key: TestIds.gameOverShare,
-          kind: GameOverButtonKind.ghost,
-          fontSize: _kSmallFont,
-          padding: _kSmallPadding,
-          icon: Icons.share,
-          semanticLabel: 'Share',
-          onPressed: () async {
-            final png = await captureShareCard(
-              ctx,
-              ShareCardData(
-                gameName: s.config.displayName,
-                headline: 'Score',
-                big: '${game.state.score}',
-                best: game.state.bestScore,
-                theme: game.theme,
-              ),
-            );
-            await s.share.shareScore(score: game.state.score, image: png);
-          },
-        ),
-        details: [
-          Text(
-            'Score ${game.state.score}',
-            style: const TextStyle(fontSize: 30, fontWeight: FontWeight.w900),
-          ),
-          Text('Best ${game.state.bestScore}'),
-          if (!s.profile.data.adsRemoved)
-            RemoveAdsPill(
-              key: TestIds.gameOverRemoveAds,
-              onPressed: () =>
-                  Navigator.of(ctx).pushNamed(BlockPuzzleRoutes.shop),
-            ),
-          TextButton.icon(
-            key: TestIds.gameOverBestMove,
-            icon: const Icon(Icons.lightbulb_outline),
-            label: const Text('Show best move'),
-            onPressed: () => showDialog<void>(
-              context: ctx,
-              builder: (_) => BestMoveDialog(
-                best: BestMoveSolver.solve(
-                  game.state.trayStartBoard,
-                  game.state.trayStartPieces,
-                ),
-                theme: game.theme,
-              ),
-            ),
-          ),
+      builder: (ctx) => GameKeyboard(
+        // Enter or Space plays again, Esc goes Home; R continues, B shows the best move, S shares (B-09).
+        onInput: (i) {
+          if (i.repeat) return;
+          if (i.action == GameAction.action || i.action == GameAction.pause) {
+            Navigator.pop(ctx, 'retry');
+          } else if (i.action == GameAction.exit) {
+            Navigator.pop(ctx, 'home');
+          }
+        },
+        shortcuts: {
           if (game.state.canRevive)
-            Text(
-              'Continues left: ${game.state.revivesRemaining}',
-              key: TestIds.gameOverRevivesLeft,
+            LogicalKeyboardKey.keyR: () => Navigator.pop(ctx, 'revive'),
+          LogicalKeyboardKey.keyB: () => showDialog<void>(
+            context: ctx,
+            builder: (_) => BestMoveDialog(
+              best: BestMoveSolver.solve(
+                game.state.trayStartBoard,
+                game.state.trayStartPieces,
+              ),
+              theme: game.theme,
             ),
-        ],
-
-        leadButton: game.state.canRevive
-            ? GameOverButton(
-                key: TestIds.gameOverRevive,
-                kind: GameOverButtonKind.primary,
-                icon: Icons.smart_display,
-                label: '$continueLabel · ${game.state.revivesRemaining} left',
-                fontSize: _kLargeFont,
-                padding: _kLargePadding,
-                onPressed: () => Navigator.pop(ctx, 'revive'),
-              )
-            : null,
-        buttons: [
-          GameOverButton(
-            key: TestIds.gameOverRetry,
-            kind: game.state.canRevive
-                ? GameOverButtonKind.secondary
-                : GameOverButtonKind.primary,
-            icon: Icons.replay,
-            label: 'Play again',
-            fontSize: game.state.canRevive ? _kSmallFont : _kLargeFont,
-            padding: game.state.canRevive ? _kSmallPadding : _kLargePadding,
-            onPressed: () => Navigator.pop(ctx, 'retry'),
           ),
-          GameOverButton(
-            key: TestIds.gameOverHome,
+        },
+        child: GameOverPanel(
+          key: TestIds.gameOverDialog,
+          panelKey: TestIds.gameOverPanel,
+          viewKey: TestIds.gameOverView,
+          title: 'Game over',
+          shareButton: GameOverButton(
+            key: TestIds.gameOverShare,
             kind: GameOverButtonKind.ghost,
-            icon: Icons.home,
-            label: 'Home',
             fontSize: _kSmallFont,
             padding: _kSmallPadding,
-            onPressed: () => Navigator.pop(ctx, 'home'),
+            icon: Icons.share,
+            semanticLabel: 'Share',
+            onPressed: () async {
+              final png = await captureShareCard(
+                ctx,
+                ShareCardData(
+                  gameName: s.config.displayName,
+                  headline: 'Score',
+                  big: '${game.state.score}',
+                  best: game.state.bestScore,
+                  theme: game.theme,
+                ),
+              );
+              await s.share.shareScore(score: game.state.score, image: png);
+            },
           ),
-        ],
+          details: [
+            Text(
+              'Score ${game.state.score}',
+              style: const TextStyle(fontSize: 30, fontWeight: FontWeight.w900),
+            ),
+            Text('Best ${game.state.bestScore}'),
+            if (!s.profile.data.adsRemoved)
+              RemoveAdsPill(
+                key: TestIds.gameOverRemoveAds,
+                onPressed: () =>
+                    Navigator.of(ctx).pushNamed(BlockPuzzleRoutes.shop),
+              ),
+            TextButton.icon(
+              key: TestIds.gameOverBestMove,
+              icon: const Icon(Icons.lightbulb_outline),
+              label: Text(withKey('Show best move', 'B')),
+              onPressed: () => showDialog<void>(
+                context: ctx,
+                builder: (_) => BestMoveDialog(
+                  best: BestMoveSolver.solve(
+                    game.state.trayStartBoard,
+                    game.state.trayStartPieces,
+                  ),
+                  theme: game.theme,
+                ),
+              ),
+            ),
+            if (game.state.canRevive)
+              Text(
+                'Continues left: ${game.state.revivesRemaining}',
+                key: TestIds.gameOverRevivesLeft,
+              ),
+          ],
+
+          leadButton: game.state.canRevive
+              ? GameOverButton(
+                  key: TestIds.gameOverRevive,
+                  kind: GameOverButtonKind.primary,
+                  icon: Icons.smart_display,
+                  label:
+                      '$continueLabel · ${game.state.revivesRemaining} left (R)',
+                  fontSize: _kLargeFont,
+                  padding: _kLargePadding,
+                  onPressed: () => Navigator.pop(ctx, 'revive'),
+                )
+              : null,
+          buttons: [
+            GameOverButton(
+              key: TestIds.gameOverRetry,
+              kind: game.state.canRevive
+                  ? GameOverButtonKind.secondary
+                  : GameOverButtonKind.primary,
+              icon: Icons.replay,
+              label: 'Play again (Enter / Space)',
+              fontSize: game.state.canRevive ? _kSmallFont : _kLargeFont,
+              padding: game.state.canRevive ? _kSmallPadding : _kLargePadding,
+              onPressed: () => Navigator.pop(ctx, 'retry'),
+            ),
+            GameOverButton(
+              key: TestIds.gameOverHome,
+              kind: GameOverButtonKind.ghost,
+              icon: Icons.home,
+              label: 'Home (Esc)',
+              fontSize: _kSmallFont,
+              padding: _kSmallPadding,
+              onPressed: () => Navigator.pop(ctx, 'home'),
+            ),
+          ],
+        ),
       ),
     );
     _dialogOpen = false;
@@ -581,14 +628,27 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
                               ? TextDirection.rtl
                               : TextDirection.ltr,
                           children: [
-                            IconButton.filledTonal(
-                              key: TestIds.gameBack,
-                              icon: Icon(
-                                s.profile.data.leftHanded
-                                    ? Icons.chevron_right
-                                    : Icons.chevron_left,
-                              ),
-                              onPressed: _askPause,
+                            Column(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                IconButton.filledTonal(
+                                  key: TestIds.gameBack,
+                                  tooltip: 'Pause (Esc / Space)',
+                                  icon: Icon(
+                                    s.profile.data.leftHanded
+                                        ? Icons.chevron_right
+                                        : Icons.chevron_left,
+                                  ),
+                                  onPressed: _askPause,
+                                ),
+                                const Text(
+                                  'Esc',
+                                  style: TextStyle(
+                                    fontSize: 11,
+                                    color: Colors.white70,
+                                  ),
+                                ),
+                              ],
                             ),
                             const Spacer(),
                             Container(
@@ -685,8 +745,9 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
                                   mainAxisAlignment: MainAxisAlignment.center,
                                   spacing: 10,
                                   children: [
-                                    for (final def in Boosts.all)
+                                    for (final (n, def) in Boosts.all.indexed)
                                       BoostButton(
+                                        keyName: '${n + 4}',
                                         def: def,
                                         count: s.profile.itemCount(def.key),
                                         armed: armed == def.id,
@@ -734,6 +795,18 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
       },
       child: KeyedBody(
         onInput: _onKey,
+        // 4 to 8 press the five boost buttons (Blast and Hammer then wait for a tap on the board).
+        shortcuts: {
+          for (final (n, def) in Boosts.all.indexed)
+            _boostKeys[n]: () {
+              final s = BlockPuzzleServicesScope.of(context);
+              final g = _game;
+              if (g != null && !_dialogOpen && !_pauseOpen) {
+                _onBoostTap(s, g, def);
+              }
+            },
+        },
+        extraHints: const [('4-8', 'boost')],
         hints: const [
           GameAction.left,
           GameAction.right,

@@ -282,3 +282,7 @@ Added for "More games": `url_launcher` 6.3.3 (exact pin, so a plugin update neve
 
 ## Keyboard (U2, 2026-11-22)
 - On the one-player or versus choice screen and the versus start and results screens Space starts, as Enter does. In play Space still pauses. The game-over panel is made of buttons (Tab, Enter or Space press the focused one).
+
+## Button keys (B-09, 2026-11-22)
+- Every button prints its shortcut key, for example "Next (Enter / Space)"; the key works. Rule: Enter and Space go forward, Esc leaves or closes (pauses in play), 1 to 4 choose, Backspace takes back, H hints, P pauses where Space is an action, L leaves a round.
+- Pause screen: Resume prints "(Esc / Space)", Exit "(L)" (L only while paused); game over: Play again "(Enter / Space)", Home "(Esc)", Continue "(R)"; power-up buttons print their key in the caption (Sweep (1), Slow (2), Boom (3)); the refill sheet: Buy with coins "(1)", Watch ad "(2)", Esc closes; versus: Start and Play again "(Enter / Space)", Leave "(Esc / L)", L leaves. The one-player / versus choice already printed its keys. The on-screen control pad (move, rotate, drop) mirrors the arrow keys and is not labelled. Not keyed: Share, Remove ads, shop.

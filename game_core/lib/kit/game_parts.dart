@@ -101,11 +101,7 @@ class MiniGameSummary extends StatelessWidget {
             FilledButton(
               key: doneKey,
               onPressed: onDone,
-              child: KeyedText(
-                'Done',
-                GameAction.action,
-                alsoSpace: true,
-              ),
+              child: KeyedText('Done', GameAction.action, alsoSpace: true),
             ),
           ],
         ),

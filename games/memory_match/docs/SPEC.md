@@ -25,3 +25,7 @@ The text below was collected from the apps' docs when the game moved; refine it 
 
 ## Keyboard (U2, 2026-11-22)
 - Space also goes on (U2, 2026-11-22): after a result it does what Enter does (Next), on the start screen it starts, on the results it leaves; in play it still pauses (never both: while Next or a result shows, Space is Next). Enter keeps working; the key hints print "Enter / Space" for these prompts. Single player: Space is Next or See results after a board; two players: Space is Next board, See results or play again.
+
+## Button keys (B-09, 2026-11-22)
+- Every button prints its shortcut key, for example "Next (Enter / Space)"; the key works. Rule: Enter and Space go forward, Esc leaves or closes (pauses in play), 1 to 4 choose, Backspace takes back, H hints, P pauses where Space is an action, L leaves a round.
+- Next and See results print "(Enter / Space)"; the 1 player / 2 players switch prints "(1)" and "(2)" and those keys choose before the first card; the speaker prints Q; the exit control prints L and the pause control Esc; Leave game "(L)", two players: Play again "(Enter / Space)", Leave "(Esc / L)"; L leaves from anywhere.

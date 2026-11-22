@@ -380,84 +380,102 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
       context: context,
       barrierDismissible: false,
       barrierColor: Colors.transparent,
-      builder: (ctx) => GameOverPanel(
-        key: TestIds.gameOverDialog,
-        panelKey: TestIds.gameOverPanel,
-        viewKey: TestIds.gameOverView,
-        title: 'Game over',
-        shareButton: GameOverButton(
-          key: TestIds.gameOverShare,
-          kind: GameOverButtonKind.ghost,
-          icon: Icons.share,
-          semanticLabel: 'Share',
-          fontSize: _kSmallFont,
-          padding: _kSmallPadding,
-          onPressed: () async {
-            final png = await captureShareCard(
-              ctx,
-              ShareCardData(
-                gameName: s.config.displayName,
-                headline: 'Score',
-                big: '${game.score}',
-                best: best,
-                theme: flame.theme,
-              ),
-            );
-            await s.share.shareScore(score: game.score, image: png);
-          },
-        ),
-        details: [
-          ValueNode(
-            key: TestIds.gameOverScore,
-            value: '${game.score}',
-            child: Text(
-              'Score ${game.score}',
-              style: const TextStyle(fontSize: 30, fontWeight: FontWeight.w900),
-            ),
-          ),
-          Text('Best $best'),
-          if (!s.profile.data.adsRemoved)
-            RemoveAdsPill(
-              key: TestIds.gameOverRemoveAds,
-              onPressed: () =>
-                  Navigator.of(ctx).pushNamed(BlockfallRoutes.shop),
-            ),
-          if (game.score >= best && game.score > 0)
-            const Text('New best!', style: TextStyle(color: kGold)),
-        ],
-        leadButton: game.canRevive
-            ? GameOverButton(
-                key: TestIds.gameOverRevive,
-                kind: GameOverButtonKind.primary,
-                icon: Icons.smart_display,
-                label: '$kContinueLabel · ${game.revivesRemaining} left',
-                fontSize: _kLargeFont,
-                padding: _kLargePadding,
-                onPressed: () => Navigator.pop(ctx, 'revive'),
-              )
-            : null,
-        buttons: [
-          GameOverButton(
-            key: TestIds.gameOverRetry,
-            kind: game.canRevive
-                ? GameOverButtonKind.secondary
-                : GameOverButtonKind.primary,
-            icon: Icons.replay,
-            label: 'Play again',
-            fontSize: game.canRevive ? _kSmallFont : _kLargeFont,
-            padding: game.canRevive ? _kSmallPadding : _kLargePadding,
-            onPressed: () => Navigator.pop(ctx, 'retry'),
-          ),
-          GameOverButton(
-            key: TestIds.gameOverHome,
+      builder: (ctx) => GameKeyboard(
+        // Enter or Space plays again, Esc goes Home, R continues (B-09).
+        onInput: (i) {
+          if (i.repeat) return;
+          if (i.action == GameAction.action || i.action == GameAction.pause) {
+            Navigator.pop(ctx, 'retry');
+          } else if (i.action == GameAction.exit) {
+            Navigator.pop(ctx, 'home');
+          }
+        },
+        shortcuts: {
+          if (game.canRevive)
+            LogicalKeyboardKey.keyR: () => Navigator.pop(ctx, 'revive'),
+        },
+        child: GameOverPanel(
+          key: TestIds.gameOverDialog,
+          panelKey: TestIds.gameOverPanel,
+          viewKey: TestIds.gameOverView,
+          title: 'Game over',
+          shareButton: GameOverButton(
+            key: TestIds.gameOverShare,
             kind: GameOverButtonKind.ghost,
-            icon: Icons.home,
-            label: 'Home',
+            icon: Icons.share,
+            semanticLabel: 'Share',
             fontSize: _kSmallFont,
             padding: _kSmallPadding,
-            onPressed: () => Navigator.pop(ctx, 'home'),
+            onPressed: () async {
+              final png = await captureShareCard(
+                ctx,
+                ShareCardData(
+                  gameName: s.config.displayName,
+                  headline: 'Score',
+                  big: '${game.score}',
+                  best: best,
+                  theme: flame.theme,
+                ),
+              );
+              await s.share.shareScore(score: game.score, image: png);
+            },
           ),
-        ],
+          details: [
+            ValueNode(
+              key: TestIds.gameOverScore,
+              value: '${game.score}',
+              child: Text(
+                'Score ${game.score}',
+                style: const TextStyle(
+                  fontSize: 30,
+                  fontWeight: FontWeight.w900,
+                ),
+              ),
+            ),
+            Text('Best $best'),
+            if (!s.profile.data.adsRemoved)
+              RemoveAdsPill(
+                key: TestIds.gameOverRemoveAds,
+                onPressed: () =>
+                    Navigator.of(ctx).pushNamed(BlockfallRoutes.shop),
+              ),
+            if (game.score >= best && game.score > 0)
+              const Text('New best!', style: TextStyle(color: kGold)),
+          ],
+          leadButton: game.canRevive
+              ? GameOverButton(
+                  key: TestIds.gameOverRevive,
+                  kind: GameOverButtonKind.primary,
+                  icon: Icons.smart_display,
+                  label: '$kContinueLabel · ${game.revivesRemaining} left (R)',
+                  fontSize: _kLargeFont,
+                  padding: _kLargePadding,
+                  onPressed: () => Navigator.pop(ctx, 'revive'),
+                )
+              : null,
+          buttons: [
+            GameOverButton(
+              key: TestIds.gameOverRetry,
+              kind: game.canRevive
+                  ? GameOverButtonKind.secondary
+                  : GameOverButtonKind.primary,
+              icon: Icons.replay,
+              label: 'Play again (Enter / Space)',
+              fontSize: game.canRevive ? _kSmallFont : _kLargeFont,
+              padding: game.canRevive ? _kSmallPadding : _kLargePadding,
+              onPressed: () => Navigator.pop(ctx, 'retry'),
+            ),
+            GameOverButton(
+              key: TestIds.gameOverHome,
+              kind: GameOverButtonKind.ghost,
+              icon: Icons.home,
+              label: 'Home (Esc)',
+              fontSize: _kSmallFont,
+              padding: _kSmallPadding,
+              onPressed: () => Navigator.pop(ctx, 'home'),
+            ),
+          ],
+        ),
       ),
     );
     _dialogOpen = false;
@@ -538,46 +556,63 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
     final choice = await showModalBottomSheet<String>(
       context: context,
       backgroundColor: const Color(0xFF0F2430),
-      builder: (ctx) => SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            spacing: 10,
-            children: [
-              Text(
-                'Out of ${PowerUpButton.title(t)}',
-                style: const TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
+      builder: (ctx) => GameKeyboard(
+        // 1 buys with coins, 2 watches an ad, Esc closes (B-09).
+        onInput: (i) {
+          if (i.repeat) return;
+          if (i.action == GameAction.pick1) {
+            Navigator.pop(ctx, 'coins');
+          } else if (i.action == GameAction.pick2 &&
+              f.rules.adRefillsLeft > 0) {
+            Navigator.pop(ctx, 'ad');
+          } else if (i.action == GameAction.exit) {
+            Navigator.pop(ctx);
+          }
+        },
+        child: SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              spacing: 10,
+              children: [
+                Text(
+                  'Out of ${PowerUpButton.title(t)}',
+                  style: const TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
-              ),
-              // What the power does, readable before spending anything.
-              Text(
-                PowerUpButton.description(t),
-                key: TestIds.gameRefillDescription,
-                textAlign: TextAlign.center,
-                style: const TextStyle(color: Colors.white70, fontSize: 15),
-              ),
-              FilledButton.icon(
-                key: TestIds.gameRefillCoins,
-                icon: const CoinIcon(),
-                label: Text('Buy with coins (${t.price})'),
-                onPressed: () => Navigator.pop(ctx, 'coins'),
-              ),
-              OutlinedButton.icon(
-                key: TestIds.gameRefillAd,
-                icon: const Icon(Icons.smart_display),
-                label: Text(
-                  s.profile.data.adsRemoved
-                      ? 'Get +1 free (${f.rules.adRefillsLeft} left)'
-                      : 'Watch ad for +1 (${f.rules.adRefillsLeft} left)',
+                // What the power does, readable before spending anything.
+                Text(
+                  PowerUpButton.description(t),
+                  key: TestIds.gameRefillDescription,
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(color: Colors.white70, fontSize: 15),
                 ),
-                onPressed: f.rules.adRefillsLeft > 0
-                    ? () => Navigator.pop(ctx, 'ad')
-                    : null,
-              ),
-            ],
+                FilledButton.icon(
+                  key: TestIds.gameRefillCoins,
+                  icon: const CoinIcon(),
+                  label: Text(withKey('Buy with coins (${t.price})', '1')),
+                  onPressed: () => Navigator.pop(ctx, 'coins'),
+                ),
+                OutlinedButton.icon(
+                  key: TestIds.gameRefillAd,
+                  icon: const Icon(Icons.smart_display),
+                  label: Text(
+                    withKey(
+                      s.profile.data.adsRemoved
+                          ? 'Get +1 free (${f.rules.adRefillsLeft} left)'
+                          : 'Watch ad for +1 (${f.rules.adRefillsLeft} left)',
+                      '2',
+                    ),
+                  ),
+                  onPressed: f.rules.adRefillsLeft > 0
+                      ? () => Navigator.pop(ctx, 'ad')
+                      : null,
+                ),
+              ],
+            ),
           ),
         ),
       ),
@@ -697,6 +732,8 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
             child: GameKeyboard(
               onInput: _onKey,
               onRelease: _onKeyRelease,
+              // L exits from the pause screen (B-09).
+              shortcuts: {if (_paused) LogicalKeyboardKey.keyL: _leave},
               child: flame == null
                   ? Align(
                       alignment: Alignment.topLeft,
@@ -998,6 +1035,7 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
       for (final t in PowerUpType.values)
         PowerUpButton(
           type: t,
+          keyName: '${PowerUpType.values.indexOf(t) + 1}',
           stock: f.rules.stock(t),
           active: t == PowerUpType.slow && f.rules.slowActive,
           caption: t == PowerUpType.slow && f.rules.slowActive
@@ -1083,7 +1121,7 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
         child: FilledButton.icon(
           key: TestIds.gamePauseResume,
           icon: const Icon(Icons.play_arrow),
-          label: const Text('Resume'),
+          label: Text(withKey('Resume', 'Esc / Space')),
           onPressed: _resume,
         ),
       ),
@@ -1093,7 +1131,7 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
         child: OutlinedButton.icon(
           key: TestIds.gamePauseQuit,
           icon: const Icon(Icons.exit_to_app),
-          label: const Text('Exit'),
+          label: Text(withKey('Exit', 'L')),
           onPressed: _leave,
         ),
       ),

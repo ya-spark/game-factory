@@ -41,3 +41,7 @@ units). **Coins:** 1 per 25 points. Opens with 300 coins, permanent on this devi
 - Up or Enter jumps. Arcade frame (game_core `ArcadeFrame`): Enter starts and plays again, Space or Esc pauses a round (Resume or Leave; Esc or Space or Enter resumes), Esc on the menu leaves, on the results goes to the menu. No pause button on screen.
 - Keys come from the shared key map (`docs/KEYBOARD.md` in game-factory; remappable; W A S D and Z X C V also play in a one-player game). Tab and Enter or Space press any button. Key hints show under the game on windows 600 dp and wider.
 - Tests: the keys are covered by a widget or unit test where the screen can be built on the VM (see `test/`).
+
+## Button keys (B-09, 2026-11-22)
+- Every button prints its shortcut key, for example "Next (Enter / Space)"; the key works. Rule: Enter and Space go forward, Esc leaves or closes (pauses in play), 1 to 4 choose, Backspace takes back, H hints, P pauses where Space is an action, L leaves a round.
+- The Jump button prints "(↑ / Enter)" and the hint row says "jump" for both keys (B-16). Play, Play again, Done, Continue and the pause screen come from `ArcadeFrame` (see Brick breaker). Space-vs-pause is unchanged (rewrite spec decides).

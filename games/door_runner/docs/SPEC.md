@@ -142,3 +142,7 @@ Expanded window (1024 px and wider)            Compact / medium window
 
 ## Keyboard (U2, 2026-11-22)
 - Space or Enter starts and plays again (race), goes on after a question (race) and is Next on the wrong-answer feedback (single player). While a question is open or the field runs, Space still pauses; it never both pauses and goes on.
+
+## Button keys (B-09, 2026-11-22)
+- Every button prints its shortcut key, for example "Next (Enter / Space)"; the key works. Rule: Enter and Space go forward, Esc leaves or closes (pauses in play), 1 to 4 choose, Backspace takes back, H hints, P pauses where Space is an action, L leaves a round.
+- B-16, B-09: the start and results screens now take keys (they had none): Enter or Space starts (or is Done), 2 starts the race where offered, Esc or L leaves. Start, Done, Next and Play again print "(Enter / Space)", "2 players: race (2)", Leave "(Esc / L)". The exit button prints L and the pause button Esc; the pause screen prints "Resume (Esc / Space)" and "Quit (L)"; L leaves a round. The question dialog: 1 to 4 answer, Q reads, Esc, Space or Enter go back; its buttons print their keys.

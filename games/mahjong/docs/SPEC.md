@@ -59,3 +59,7 @@ Calm and untimed. Rules are pure Dart in `lib/engine/minigames/mahjong/rules/`; 
 - Space (the shared pause key) is the same as Enter on the start and results screens (U2, 2026-11-22; the game has no pause); the key hints print "Enter / Space" there.
 - Keys come from the shared key map (`docs/KEYBOARD.md` in game-factory; remappable; W A S D and Z X C V also play in a one-player game). Tab and Enter or Space press any button. Key hints show under the game on windows 600 dp and wider.
 - Tests: the keys are covered by a widget or unit test where the screen can be built on the VM (see `test/`).
+
+## Button keys (B-09, 2026-11-22)
+- Every button prints its shortcut key, for example "Next (Enter / Space)"; the key works. Rule: Enter and Space go forward, Esc leaves or closes (pauses in play), 1 to 4 choose, Backspace takes back, H hints, P pauses where Space is an action, L leaves a round.
+- Layout buttons print "(1)" to "(4)" and those keys start them (Enter or Space starts the first); Hint prints "(H / 1)", Undo "(Backspace / 2)", Shuffle "(3)"; H and Backspace are new keys beside 1 and 2; results: Play again "(Enter / Space)", Done "(Esc)"; the back arrow prints Esc.

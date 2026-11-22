@@ -1,6 +1,7 @@
 import 'dart:math';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:game_core/game_core.dart';
 
@@ -192,6 +193,7 @@ class _VersusState extends State<BlockfallVersusScreen>
           twoPlayer: true,
           onInput: _onInput,
           onRelease: _onRelease,
+          shortcuts: {LogicalKeyboardKey.keyL: widget.onExit},
           child: GameFrame(
             showAds: _phase != _Phase.play || _paused,
             phoneBanner: null,
@@ -329,7 +331,7 @@ class _VersusState extends State<BlockfallVersusScreen>
               FilledButton(
                 key: TestIds.versusStart,
                 onPressed: _start,
-                child: const Text('Start (Enter)'),
+                child: KeyedText('Start', GameAction.action, alsoSpace: true),
               ),
             ],
           ),
@@ -495,13 +497,17 @@ class _VersusState extends State<BlockfallVersusScreen>
             FilledButton(
               key: TestIds.versusAgain,
               onPressed: _start,
-              child: const Text('Play again'),
+              child: KeyedText(
+                'Play again',
+                GameAction.action,
+                alsoSpace: true,
+              ),
             ),
             const SizedBox(height: 8),
             TextButton(
               key: TestIds.versusLeave,
               onPressed: widget.onExit,
-              child: const Text('Leave'),
+              child: Text(withKey('Leave', 'Esc / L')),
             ),
           ],
         ),

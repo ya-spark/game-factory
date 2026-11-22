@@ -114,6 +114,10 @@ class _WordBuilderScreenState extends State<WordBuilderScreen> {
       _missed.clear();
       _ticker.reset();
       if (_round!.timeLimit != null && !_study) _ticker.start();
+      // The letter keys are built from the round: draw once more now that it exists.
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) setState(() {});
+      });
     }
     return _round!;
   }
@@ -523,15 +527,19 @@ class _WordBuilderScreenState extends State<WordBuilderScreen> {
                 minWidth: big ? 64 : 52,
                 minHeight: big ? 64 : 52,
               ),
-              alignment: Alignment.center,
+              // No `alignment` on the Container: it stretches the tile to the whole row (B-17).
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-              child: Text(
-                text,
-                style:
-                    (big
-                            ? theme.textTheme.headlineSmall
-                            : theme.textTheme.titleLarge)
-                        ?.copyWith(color: cs.onSecondaryContainer),
+              child: Center(
+                widthFactor: 1,
+                heightFactor: 1,
+                child: Text(
+                  text,
+                  style:
+                      (big
+                              ? theme.textTheme.headlineSmall
+                              : theme.textTheme.titleLarge)
+                          ?.copyWith(color: cs.onSecondaryContainer),
+                ),
               ),
             ),
           ),

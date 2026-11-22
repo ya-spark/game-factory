@@ -297,7 +297,11 @@ class PowerUpButton extends StatelessWidget {
     required this.active,
     required this.onTap,
     this.caption,
+    this.keyName,
   });
+
+  /// The key that presses it, shown in the caption (B-09).
+  final String? keyName;
   final PowerUpType type;
   final int stock;
   final bool active;
@@ -394,7 +398,7 @@ class PowerUpButton extends StatelessWidget {
               ),
               const SizedBox(height: 2),
               Text(
-                caption ?? title(type),
+                withKeyIf(caption ?? title(type), keyName),
                 style: const TextStyle(fontSize: 11, color: Color(0xFFCFE9EC)),
               ),
             ],
@@ -404,6 +408,10 @@ class PowerUpButton extends StatelessWidget {
     );
   }
 }
+
+/// "Sweep (1)" when there is a key, else just the label.
+String withKeyIf(String label, String? key) =>
+    key == null ? label : '$label ($key)';
 
 /// One on-screen control button; fires on press, optionally repeating while held.
 class ControlButton extends StatefulWidget {

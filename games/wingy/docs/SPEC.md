@@ -230,3 +230,7 @@ Added for "More games": `url_launcher` 6.3.3 (exact pin, so a plugin update neve
 - Enter or up flaps, down uses the dash, Space or Esc pause (Resume or Exit). Flame's own focus is off (`autofocus: false`).
 - Keys come from the shared key map (`docs/KEYBOARD.md` in game-factory; remappable; W A S D and Z X C V also play in a one-player game). Tab and Enter or Space press any button. Key hints show under the game on windows 600 dp and wider.
 - Tests: the keys are covered by a widget or unit test where the screen can be built on the VM (see `test/`).
+
+## Button keys (B-09, 2026-11-22)
+- Every button prints its shortcut key, for example "Next (Enter / Space)"; the key works. Rule: Enter and Space go forward, Esc leaves or closes (pauses in play), 1 to 4 choose, Backspace takes back, H hints, P pauses where Space is an action, L leaves a round.
+- Pause dialog: Resume "(Enter / Space / Esc)", Exit "(L)" (own keyboard inside the dialog); game over: Play again "(Enter / Space)", Home "(Esc)", Continue "(R)". Not keyed: Share, Refill, Remove ads. Wingy is rewritten in G-22; its spec decides the rest.

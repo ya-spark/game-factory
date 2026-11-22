@@ -222,3 +222,7 @@ Code: `lib/game/layout.dart` and `lib/game/flame/block_puzzle_game.dart`. `cell`
 - 1 to 3 pick a tray piece, arrows move the piece over the board (a ghost shows where it lands; red when it does not fit), Enter places it, Space or Esc pause (Resume or Exit). The piece cannot leave the board. Flame's own focus is off (`autofocus: false`).
 - Keys come from the shared key map (`docs/KEYBOARD.md` in game-factory; remappable; W A S D and Z X C V also play in a one-player game). Tab and Enter or Space press any button. Key hints show under the game on windows 600 dp and wider.
 - Tests: the keys are covered by a widget or unit test where the screen can be built on the VM (see `test/`).
+
+## Button keys (B-09, 2026-11-22)
+- Every button prints its shortcut key, for example "Next (Enter / Space)"; the key works. Rule: Enter and Space go forward, Esc leaves or closes (pauses in play), 1 to 4 choose, Backspace takes back, H hints, P pauses where Space is an action, L leaves a round.
+- Pause dialog (Back, Space, Esc): Resume prints "(Enter / Space / Esc)", Exit "(L)"; both keys work inside the dialog (it has its own keyboard). Game over: Play again "(Enter / Space)", Home "(Esc)", Continue "(R)", Show best move "(B)"; the back arrow prints Esc; boost buttons print 4 to 8 at the lower left and those keys press them (Blast and Hammer then wait for a tap on the board). The hint row says "↑ ↓ up / down". Not keyed: Share, Remove ads, boost refill sheet, shop.

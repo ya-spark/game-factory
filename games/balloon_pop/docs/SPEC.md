@@ -20,3 +20,7 @@ background-removed; rows in `assets/LICENSES.md`, no text, no people): red, blue
 balloons; a balloon popped wrong turns grey; the right one turns green when it is shown. The answer text sits on the balloon
 (white on red, blue and purple; dark ink on the others). The sprites are loaded with `package: 'game_balloon_pop'`, so every
 container gets them with the game. Reduced motion and sizes are as before.
+
+## Button keys (B-09, 2026-11-22)
+- Every button prints its shortcut key, for example "Next (Enter / Space)"; the key works. Rule: Enter and Space go forward, Esc leaves or closes (pauses in play), 1 to 4 choose, Backspace takes back, H hints, P pauses where Space is an action, L leaves a round.
+- Choice-kit screens (`ChoiceGameScreen`): Start, Next / See results and Done print "(Enter / Space)"; each answer shows its number cap 1 to 4; the exit control prints L and the pause control Esc; the pause screen prints "Resume (Esc / Space)" and "Leave game (L)"; the hint row adds L leave. Esc on the start and results screens leaves; in play it pauses. Each balloon shows its number above the word.

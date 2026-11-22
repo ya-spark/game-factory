@@ -311,20 +311,33 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
     final action = await showDialog<String>(
       context: context,
       barrierDismissible: false,
-      builder: (ctx) => AlertDialog(
-        title: const Text('Paused'),
-        actions: [
-          TextButton(
-            key: TestIds.gamePauseQuit,
-            onPressed: () => Navigator.pop(ctx, 'quit'),
-            child: const Text('Exit'),
-          ),
-          FilledButton(
-            key: TestIds.gamePauseResume,
-            onPressed: () => Navigator.pop(ctx, 'resume'),
-            child: const Text('Resume'),
-          ),
-        ],
+      // A dialog is a new route: it needs its own keyboard (B-09). Enter, Space and Esc resume, L exits.
+      builder: (ctx) => GameKeyboard(
+        onInput: (i) {
+          if (i.repeat) return;
+          if (i.action == GameAction.action ||
+              i.action == GameAction.pause ||
+              i.action == GameAction.exit) {
+            Navigator.pop(ctx, 'resume');
+          }
+        },
+        shortcuts: {LogicalKeyboardKey.keyL: () => Navigator.pop(ctx, 'quit')},
+        child: AlertDialog(
+          title: const Text('Paused'),
+          actions: [
+            TextButton(
+              key: TestIds.gamePauseQuit,
+              onPressed: () => Navigator.pop(ctx, 'quit'),
+              child: Text(withKey('Exit', 'L')),
+            ),
+            FilledButton(
+              key: TestIds.gamePauseResume,
+              autofocus: true,
+              onPressed: () => Navigator.pop(ctx, 'resume'),
+              child: Text(withKey('Resume', 'Enter / Space / Esc')),
+            ),
+          ],
+        ),
       ),
     );
     _pauseOpen = false;
@@ -356,103 +369,122 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
       context: context,
       barrierDismissible: false,
       barrierColor: Colors.transparent,
-      builder: (ctx) => StatefulBuilder(
-        builder: (ctx, setDialog) => GameOverPanel(
-          key: TestIds.gameOverDialog,
-          panelKey: TestIds.gameOverPanel,
-          viewKey: TestIds.gameOverView,
-          title: 'Game over',
-          shareButton: GameOverButton(
-            key: TestIds.gameOverShare,
-            kind: GameOverButtonKind.ghost,
-            fontSize: _kSmallFont,
-            padding: _kSmallPadding,
-            icon: Icons.share,
-            semanticLabel: 'Share',
-            onPressed: () async {
-              final png = await captureShareCard(
-                ctx,
-                ShareCardData(
-                  gameName: s.config.displayName,
-                  headline: 'Score',
-                  big: '${run.score}',
-                  best: run.bestScore,
-                  palette: run.palette,
-                  medal: _medalName(run.medal),
-                ),
-              );
-              await s.share.shareScore(score: run.score, image: png);
-            },
-          ),
-          details: [
-            Text(
-              '${run.score}',
-              key: TestIds.gameOverScore,
-              style: const TextStyle(fontSize: 44, fontWeight: FontWeight.w900),
-            ),
-            Text('Best ${run.bestScore}', key: TestIds.gameOverBest),
-            Text(_medalName(run.medal), key: TestIds.gameOverMedal),
-            if (!s.profile.data.adsRemoved)
-              RemoveAdsPill(
-                key: TestIds.gameOverRemoveAds,
-                onPressed: () => Navigator.of(ctx).pushNamed(WingyRoutes.shop),
-              ),
-          ],
-          extraButton: GameOverButton(
-            key: TestIds.gameOverRefill,
-            fontSize: _kSmallFont,
-            padding: _kSmallPadding,
-            icon: Icons.bolt,
-            label: _refillArmed
-                ? 'Dash ready'
-                : 'Dash Refill (${s.profile.dashRefills})',
-            onPressed: _refillArmed
-                ? null
-                : () async {
-                    if (s.profile.dashRefills > 0) {
-                      setDialog(() => _refillArmed = true);
-                      return;
-                    }
-                    final got = await showModalBottomSheet<bool>(
-                      context: ctx,
-                      builder: (_) => _RefillSheet(services: s),
-                    );
-                    if (got == true) setDialog(() => _refillArmed = true);
-                  },
-          ),
-          leadButton: run.canRevive
-              ? GameOverButton(
-                  key: TestIds.gameOverRevive,
-                  kind: GameOverButtonKind.primary,
-                  icon: Icons.smart_display,
-                  label: '$continueLabel · ${run.revivesLeft} left',
-                  fontSize: _kLargeFont,
-                  padding: _kLargePadding,
-                  onPressed: () => Navigator.pop(ctx, 'revive'),
-                )
-              : null,
-          buttons: [
-            GameOverButton(
-              key: TestIds.gameOverRetry,
-              kind: run.canRevive
-                  ? GameOverButtonKind.secondary
-                  : GameOverButtonKind.primary,
-              icon: Icons.replay,
-              label: 'Play again',
-              fontSize: run.canRevive ? _kSmallFont : _kLargeFont,
-              padding: run.canRevive ? _kSmallPadding : _kLargePadding,
-              onPressed: () => Navigator.pop(ctx, 'retry'),
-            ),
-            GameOverButton(
-              key: TestIds.gameOverHome,
+      builder: (ctx) => GameKeyboard(
+        // Enter or Space plays again, Esc goes Home, R continues (B-09).
+        onInput: (i) {
+          if (i.repeat) return;
+          if (i.action == GameAction.action || i.action == GameAction.pause) {
+            Navigator.pop(ctx, 'retry');
+          } else if (i.action == GameAction.exit) {
+            Navigator.pop(ctx, 'home');
+          }
+        },
+        shortcuts: {
+          if (run.canRevive)
+            LogicalKeyboardKey.keyR: () => Navigator.pop(ctx, 'revive'),
+        },
+        child: StatefulBuilder(
+          builder: (ctx, setDialog) => GameOverPanel(
+            key: TestIds.gameOverDialog,
+            panelKey: TestIds.gameOverPanel,
+            viewKey: TestIds.gameOverView,
+            title: 'Game over',
+            shareButton: GameOverButton(
+              key: TestIds.gameOverShare,
               kind: GameOverButtonKind.ghost,
-              icon: Icons.home,
-              label: 'Home',
               fontSize: _kSmallFont,
               padding: _kSmallPadding,
-              onPressed: () => Navigator.pop(ctx, 'home'),
+              icon: Icons.share,
+              semanticLabel: 'Share',
+              onPressed: () async {
+                final png = await captureShareCard(
+                  ctx,
+                  ShareCardData(
+                    gameName: s.config.displayName,
+                    headline: 'Score',
+                    big: '${run.score}',
+                    best: run.bestScore,
+                    palette: run.palette,
+                    medal: _medalName(run.medal),
+                  ),
+                );
+                await s.share.shareScore(score: run.score, image: png);
+              },
             ),
-          ],
+            details: [
+              Text(
+                '${run.score}',
+                key: TestIds.gameOverScore,
+                style: const TextStyle(
+                  fontSize: 44,
+                  fontWeight: FontWeight.w900,
+                ),
+              ),
+              Text('Best ${run.bestScore}', key: TestIds.gameOverBest),
+              Text(_medalName(run.medal), key: TestIds.gameOverMedal),
+              if (!s.profile.data.adsRemoved)
+                RemoveAdsPill(
+                  key: TestIds.gameOverRemoveAds,
+                  onPressed: () =>
+                      Navigator.of(ctx).pushNamed(WingyRoutes.shop),
+                ),
+            ],
+            extraButton: GameOverButton(
+              key: TestIds.gameOverRefill,
+              fontSize: _kSmallFont,
+              padding: _kSmallPadding,
+              icon: Icons.bolt,
+              label: _refillArmed
+                  ? 'Dash ready'
+                  : 'Dash Refill (${s.profile.dashRefills})',
+              onPressed: _refillArmed
+                  ? null
+                  : () async {
+                      if (s.profile.dashRefills > 0) {
+                        setDialog(() => _refillArmed = true);
+                        return;
+                      }
+                      final got = await showModalBottomSheet<bool>(
+                        context: ctx,
+                        builder: (_) => _RefillSheet(services: s),
+                      );
+                      if (got == true) setDialog(() => _refillArmed = true);
+                    },
+            ),
+            leadButton: run.canRevive
+                ? GameOverButton(
+                    key: TestIds.gameOverRevive,
+                    kind: GameOverButtonKind.primary,
+                    icon: Icons.smart_display,
+                    label: '$continueLabel · ${run.revivesLeft} left (R)',
+                    fontSize: _kLargeFont,
+                    padding: _kLargePadding,
+                    onPressed: () => Navigator.pop(ctx, 'revive'),
+                  )
+                : null,
+            buttons: [
+              GameOverButton(
+                key: TestIds.gameOverRetry,
+                kind: run.canRevive
+                    ? GameOverButtonKind.secondary
+                    : GameOverButtonKind.primary,
+                icon: Icons.replay,
+                label: 'Play again (Enter / Space)',
+                fontSize: run.canRevive ? _kSmallFont : _kLargeFont,
+                padding: run.canRevive ? _kSmallPadding : _kLargePadding,
+                onPressed: () => Navigator.pop(ctx, 'retry'),
+              ),
+              GameOverButton(
+                key: TestIds.gameOverHome,
+                kind: GameOverButtonKind.ghost,
+                icon: Icons.home,
+                label: 'Home (Esc)',
+                fontSize: _kSmallFont,
+                padding: _kSmallPadding,
+                onPressed: () => Navigator.pop(ctx, 'home'),
+              ),
+            ],
+          ),
         ),
       ),
     );

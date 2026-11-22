@@ -384,7 +384,8 @@ class _ChoiceGameScreenState extends State<ChoiceGameScreen>
         GameAction.pick4,
         if (_reader != null) GameAction.question,
       ],
-      GameAction.pause,
+      // While a result shows, Space is Next (U2): it does not pause then.
+      if (_result == null) GameAction.pause,
     ],
   };
 

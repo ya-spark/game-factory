@@ -32,4 +32,48 @@ void main() {
     expect(t.takeException(), isNull);
     await t.pumpWidget(const SizedBox());
   });
+
+  testWidgets(
+    'B-17: the digit bar and the tool row sit above the key hints at 1280x720 and 844x390',
+    (t) async {
+      SharedPreferences.setMockInitialValues({});
+      for (final size in const [
+        Size(1280, 720),
+        Size(844, 390),
+        Size(390, 844),
+      ]) {
+        t.view.physicalSize = size;
+        t.view.devicePixelRatio = 1;
+        await t.pumpWidget(
+          MaterialApp(
+            home: GameHostScope(
+              host: const NoGameHost(),
+              child: SudokuScreen(),
+            ),
+          ),
+        );
+        await t.pump(const Duration(milliseconds: 200));
+        await t.sendKeyEvent(LogicalKeyboardKey.digit1);
+        await t.pump(const Duration(seconds: 1));
+        final nine = t.getRect(find.byKey(SudokuIds.sudokuDigit(9)));
+        expect(nine.bottom, lessThanOrEqualTo(size.height), reason: '$size');
+        if (size.width >= 600 && size.height >= 600) {
+          final hints = find.byKey(KeyIds.hints);
+          expect(hints, findsOneWidget);
+          expect(
+            nine.bottom,
+            lessThanOrEqualTo(t.getRect(hints).top),
+            reason: 'digit bar clear of the key hints at $size',
+          );
+          final undo = t.getRect(
+            find.byKey(MindIds.calmControl('sudoku', 'undo')),
+          );
+          expect(undo.bottom, lessThanOrEqualTo(t.getRect(hints).top));
+        }
+        await t.pumpWidget(const SizedBox());
+      }
+      addTearDown(t.view.resetPhysicalSize);
+      addTearDown(t.view.resetDevicePixelRatio);
+    },
+  );
 }

@@ -53,3 +53,7 @@ Calm and untimed, 9 by 9. Rules are pure Dart in `lib/engine/minigames/sudoku/ru
 - Space (the shared pause key) is the same as Enter on the start and results screens (U2, 2026-11-22; the game has no pause); the key hints print "Enter / Space" there.
 - Keys come from the shared key map (`docs/KEYBOARD.md` in game-factory; remappable; W A S D and Z X C V also play in a one-player game). Tab and Enter or Space press any button. Key hints show under the game on windows 600 dp and wider.
 - Tests: the keys are covered by a widget or unit test where the screen can be built on the VM (see `test/`).
+
+## Button keys (B-09, 2026-11-22)
+- Every button prints its shortcut key, for example "Next (Enter / Space)"; the key works. Rule: Enter and Space go forward, Esc leaves or closes (pauses in play), 1 to 4 choose, Backspace takes back, H hints, P pauses where Space is an action, L leaves a round.
+- B-17: Play prints its level number "(1)" to "(4)" (those keys start or resume), Resume "(1-4)", New puzzle "(E, M, H or X)" for Easy, Medium, Hard, Expert; digit buttons are the digits 1 to 9; Notes "(N)", Erase "(Backspace)", Undo "(U)", Hint "(H / Enter)"; results: Play again "(Enter / Space)", Done "(Esc)"; the back arrow prints Esc.

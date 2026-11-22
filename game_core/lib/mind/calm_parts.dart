@@ -119,7 +119,9 @@ class CalmResults extends StatelessWidget {
                       OutlinedButton(
                         key: MindIds.calmControl(game, 'done'),
                         onPressed: onDone,
-                        child: Text(keyedLabel(context, 'Done', GameAction.exit)),
+                        child: Text(
+                          keyedLabel(context, 'Done', GameAction.exit),
+                        ),
                       ),
                     ],
                   ),
@@ -171,7 +173,9 @@ class CalmResults extends StatelessWidget {
                       OutlinedButton(
                         key: MindIds.calmControl(game, 'done'),
                         onPressed: onDone,
-                        child: Text(keyedLabel(context, 'Done', GameAction.exit)),
+                        child: Text(
+                          keyedLabel(context, 'Done', GameAction.exit),
+                        ),
                       ),
                     ],
                   ),
