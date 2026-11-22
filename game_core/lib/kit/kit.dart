@@ -10,3 +10,4 @@ export 'layout/window_class.dart';
 export 'layout/game_chrome.dart';
 export 'constellation/constellation_ids.dart';
 export 'constellation/constellation_trail.dart';
+export 'progress/browser_progress.dart';
