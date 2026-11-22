@@ -398,14 +398,15 @@ class _BridgeBuilderScreenState extends State<BridgeBuilderScreen>
       case _Phase.results:
         if (a == GameAction.action || a == GameAction.pause) widget.onExit();
       case _Phase.play:
-        if (a == GameAction.pause) {
-          // Space: Next after a result, pause while playing.
-          _result != null ? _next() : _togglePause();
+        // Space is the same key as Enter here (B-01): it selects, it never pauses. Pause is the
+        // button and Esc. On the pause screen Space or Enter resumes.
+        final go = a == GameAction.action || a == GameAction.pause;
+        if (_paused) {
+          if (go) _togglePause();
           return;
         }
-        if (_paused) return;
         if (_result != null) {
-          if (a == GameAction.action) _next();
+          if (go) _next();
           return;
         }
         final board = _board;
@@ -416,7 +417,7 @@ class _BridgeBuilderScreenState extends State<BridgeBuilderScreen>
             _keyed = true;
             _cursor = (_cursor + (a == GameAction.left ? -1 : 1)) % n;
           });
-        } else if (a == GameAction.action || a == GameAction.up) {
+        } else if (go || a == GameAction.up) {
           setState(() => _keyed = true);
           _cursorEnter(_cursor);
         } else if (a == GameAction.down) {
@@ -445,6 +446,14 @@ class _BridgeBuilderScreenState extends State<BridgeBuilderScreen>
     }
   }
 
+  static final List<LogicalKeyboardKey> _extraDigits = [
+    LogicalKeyboardKey.digit5,
+    LogicalKeyboardKey.digit6,
+    LogicalKeyboardKey.digit7,
+    LogicalKeyboardKey.digit8,
+    LogicalKeyboardKey.digit9,
+  ];
+
   /// Backspace (and Delete) takes back the tile placed last; the shared map has no such key.
   KeyEventResult _rawKey(FocusNode node, KeyEvent event) {
     if (event is KeyUpEvent || !_canPlay) return KeyEventResult.ignored;
@@ -453,6 +462,20 @@ class _BridgeBuilderScreenState extends State<BridgeBuilderScreen>
       return KeyEventResult.ignored;
     }
     final k = event.logicalKey;
+    final extra = _extraDigits.indexOf(k);
+    if (extra >= 0 && !HardwareKeyboard.instance.isShiftPressed) {
+      // Tiles 5 to 9 have no key in the shared map (1 to 4 only): read them here.
+      final board = _board!;
+      if (_result == null && !_paused && 5 + extra <= board.tiles.length) {
+        setState(() {
+          _keyed = true;
+          _cursor = 4 + extra;
+        });
+        _cursorEnter(4 + extra);
+        return KeyEventResult.handled;
+      }
+      return KeyEventResult.ignored;
+    }
     if (k == LogicalKeyboardKey.backspace || k == LogicalKeyboardKey.delete) {
       if (_board!.removeLast()) setState(() => _keyed = true);
       return KeyEventResult.handled;
@@ -465,7 +488,7 @@ class _BridgeBuilderScreenState extends State<BridgeBuilderScreen>
     _Phase.results => const [GameAction.action, GameAction.exit],
     _Phase.play =>
       _result != null
-          ? const [GameAction.action, GameAction.pause, GameAction.exit]
+          ? const [GameAction.action, GameAction.exit]
           : [
               GameAction.left,
               GameAction.right,
@@ -474,7 +497,6 @@ class _BridgeBuilderScreenState extends State<BridgeBuilderScreen>
               GameAction.pick2,
               GameAction.pick3,
               GameAction.pick4,
-              GameAction.pause,
               GameAction.exit,
             ],
   };
@@ -483,9 +505,11 @@ class _BridgeBuilderScreenState extends State<BridgeBuilderScreen>
     GameAction.left: 'choose tile',
     GameAction.action: _phase == _Phase.play && _result == null
         ? 'place'
-        : (_phase == _Phase.play ? 'next' : 'go'),
+        : (_phase == _Phase.play
+              ? 'next'
+              : (_phase == _Phase.intro ? 'start' : 'leave')),
     GameAction.pick1: 'tile',
-    GameAction.pause: _result != null ? 'next' : 'pause',
+    GameAction.exit: _phase == _Phase.play ? 'pause' : 'leave',
   };
 
   // ---- build ---------------------------------------------------------------------
@@ -624,7 +648,7 @@ class _BridgeBuilderScreenState extends State<BridgeBuilderScreen>
         spacing: 14,
         runSpacing: 6,
         children: [
-          KeyHints(actions: _hintActions, words: _hintWords),
+          KeyHints(actions: _hintActions, words: _hintWords, spaceGoesOn: true),
           if (_phase == _Phase.play && _result == null)
             Row(
               mainAxisSize: MainAxisSize.min,
@@ -643,6 +667,11 @@ class _BridgeBuilderScreenState extends State<BridgeBuilderScreen>
       ),
     );
   }
+
+  /// The player's real key for [a] (a remapped key reads right).
+  String _keyName(GameAction a) => keyLabel(
+    GameKeysScope.of(context).primaryOf(KeySlot(a, a.shared ? 0 : 1)),
+  );
 
   Widget _intro(BuildContext context) {
     final theme = Theme.of(context);
@@ -673,15 +702,51 @@ class _BridgeBuilderScreenState extends State<BridgeBuilderScreen>
                   ),
                   const SizedBox(height: 12),
                   Text(
+                    'Help the robot cross!',
+                    key: BridgeBuilderIds.mgIntroHeading(_g),
+                    style: theme.textTheme.headlineSmall,
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    'Pick tiles to make the number on the sign.',
+                    key: BridgeBuilderIds.mgIntroTask(_g),
+                    style: theme.textTheme.titleMedium,
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
                     bridgeBuilderHowTo,
-                    style: theme.textTheme.bodyLarge,
+                    style: theme.textTheme.bodyMedium,
                     textAlign: TextAlign.center,
                   ),
                   SizedBox(height: short ? 12 : 24),
                   FilledButton(
                     key: GameIds.mgStart(_g),
                     onPressed: _start,
-                    child: const Text('Start'),
+                    style: FilledButton.styleFrom(
+                      minimumSize: const Size(220, 64),
+                      padding: const EdgeInsets.symmetric(horizontal: 32),
+                    ),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          'Start',
+                          style: theme.textTheme.headlineSmall?.copyWith(
+                            color: theme.colorScheme.onPrimary,
+                            fontWeight: FontWeight.w800,
+                          ),
+                        ),
+                        Text(
+                          '${_keyName(GameAction.action)} / ${_keyName(GameAction.pause)}',
+                          key: BridgeBuilderIds.mgStartKeys(_g),
+                          style: theme.textTheme.labelMedium?.copyWith(
+                            color: theme.colorScheme.onPrimary,
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                 ],
               ),
@@ -938,7 +1003,9 @@ class _BridgeBuilderScreenState extends State<BridgeBuilderScreen>
         ? 'Not yet. The planks fell back. Try again!'
         : (_selTile != null
               ? 'Now tap a slot to put the tile in.'
-              : 'Drag a tile into a slot, or tap a tile and then a slot.');
+              : (_round == 0 && _board!.isEmpty
+                    ? 'Tap a tile, then a slot (or press 1 to 4, then Enter).'
+                    : 'Drag a tile into a slot, or tap a tile and then a slot.'));
     return Semantics(
       liveRegion: true,
       child: Text(
@@ -1161,7 +1228,15 @@ class _BridgeBuilderScreenState extends State<BridgeBuilderScreen>
     final label = tile == null
         ? 'Slot ${i + 1} of $n, empty'
         : 'Slot ${i + 1} of $n, ${spokenTile(board.tiles[tile])}';
-    final Widget face = tile == null
+    // After a result every slot is a laid plank (B-02): an unused slot stays on the bridge as a
+    // blank green plank, not a faded hole with its number.
+    final Widget face = tile == null && answered
+        ? _plankBox(
+            size,
+            fill: const Color(0xFF7BDC8A),
+            child: const SizedBox(),
+          )
+        : tile == null
         ? _plankBox(
             size,
             fill: const Color(0x66FFFFFF),

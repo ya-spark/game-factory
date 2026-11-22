@@ -34,7 +34,7 @@ One key map for every game and app, in `game_core` (`lib/kit/keys/`, import `pac
 | Game | Keys (player 1; the left hand also plays in a one-player game) |
 |---|---|
 | Choose-one games (Tug of war, True or false, Cloze fix, Balloon pop, Shooter shell) | 1 to 4 answer, Enter start / next, Q read the question, Space pause, Esc pause or leave |
-| Bridge builder (id `bridge_builder`) | left and right choose a tile, Enter places it in the next slot (or takes it back), 1 to 4 place that tile, Backspace or Down takes the last tile back, Q reads the target, Space pauses (Next after a result), Esc pauses or leaves |
+| Bridge builder (id `bridge_builder`) | left and right choose a tile, Enter or Space places it in the next slot (or takes it back; B-01: Space selects, it does not pause), 1 to 9 place that tile, Backspace or Down takes the last tile back, Q reads the target, Space or Enter is Next after a result, Esc pauses or leaves |
 | Memory match | arrows over the cards, Enter turns a card (or goes on), Q reads, Space pause, Esc pause or leave |
 | Door runner | left and right steer, up zaps, down slows while held, 1 to 4 pick a door, Enter or Q the question, Space or Esc pause |
 | Blockfall | left and right move (held keys repeat), up rotates, down soft-drops while held, Enter hard-drops, Q holds, 1 to 3 power-ups, Space or Esc pause |

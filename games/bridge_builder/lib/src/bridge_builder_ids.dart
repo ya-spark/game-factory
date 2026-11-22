@@ -12,5 +12,8 @@ abstract final class BridgeBuilderIds {
   static Key mgFlag(String g) => Key('$g.flag');
   static Key mgStageStars(String g) => Key('$g.stage_stars');
   static Key mgTray(String g) => Key('$g.tray');
+  static Key mgIntroHeading(String g) => Key('$g.intro_heading');
+  static Key mgIntroTask(String g) => Key('$g.intro_task');
+  static Key mgStartKeys(String g) => Key('$g.start_keys');
   static Key mgGhost(String g) => Key('$g.ghost');
 }

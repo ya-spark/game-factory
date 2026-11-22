@@ -342,7 +342,7 @@ void main() {
     );
 
     testWidgets(
-      'Space is Next after a result and pauses in play; Esc pauses and then leaves',
+      'Space selects like Enter (never pauses) and is Next after a result; Esc pauses, Space resumes',
       (t) async {
         var left = 0;
         await open(
@@ -350,15 +350,31 @@ void main() {
           level: const MiniGameLevel.younger(),
           onExit: () => left++,
         );
+        final texts = tileTexts(t, 4);
+        // Space places the chosen tile, like Enter.
+        await t.sendKeyEvent(LogicalKeyboardKey.arrowRight);
         await t.sendKeyEvent(LogicalKeyboardKey.space);
         await t.pump();
-        expect(find.byKey(GameIds.mgPaused(_g)), findsOneWidget);
+        expect(find.byKey(GameIds.mgPaused(_g)), findsNothing);
+        expect(
+          find.descendant(of: _slot(0), matching: find.text(texts[1])),
+          findsOneWidget,
+        );
+        // Space on the placed tile takes it back (the same as Enter).
         await t.sendKeyEvent(LogicalKeyboardKey.space);
+        await t.pump();
+        expect(
+          find.descendant(of: _slot(0), matching: find.text(texts[1])),
+          findsNothing,
+        );
+        await t.sendKeyEvent(LogicalKeyboardKey.escape);
+        await t.pump();
+        expect(find.byKey(GameIds.mgPaused(_g)), findsOneWidget);
+        await t.sendKeyEvent(LogicalKeyboardKey.space); // resumes
         await t.pump();
         expect(find.byKey(GameIds.mgPaused(_g)), findsNothing);
         await t.sendKeyEvent(LogicalKeyboardKey.escape);
         await t.pump();
-        expect(find.byKey(GameIds.mgPaused(_g)), findsOneWidget);
         await t.tap(find.byKey(GameIds.mgLeave(_g)));
         expect(left, 1);
         await t.sendKeyEvent(LogicalKeyboardKey.escape); // resumes
@@ -371,6 +387,123 @@ void main() {
         expect(find.textContaining('Bridge 2 of'), findsOneWidget);
       },
     );
+
+    testWidgets('Space starts on the intro screen and Enter does too', (
+      t,
+    ) async {
+      t.view.physicalSize = const Size(400, 900);
+      t.view.devicePixelRatio = 1;
+      addTearDown(t.view.reset);
+      Future<void> intro() async {
+        await t.pumpWidget(
+          MaterialApp(
+            home: BridgeBuilderScreen(
+              key: UniqueKey(),
+              session: _session(items),
+              level: const MiniGameLevel.younger(),
+              onExit: () {},
+              random: Random(3),
+            ),
+          ),
+        );
+      }
+
+      for (final k in [LogicalKeyboardKey.space, LogicalKeyboardKey.enter]) {
+        await intro();
+        expect(find.byKey(GameIds.mgIntro(_g)), findsOneWidget);
+        await t.sendKeyEvent(k);
+        await t.pump();
+        expect(find.byKey(GameIds.mgIntro(_g)), findsNothing);
+        expect(find.textContaining('Bridge 1 of'), findsOneWidget);
+      }
+    });
+
+    testWidgets('the start screen says what to do and shows the Start key', (
+      t,
+    ) async {
+      t.view.physicalSize = const Size(400, 900);
+      t.view.devicePixelRatio = 1;
+      addTearDown(t.view.reset);
+      await t.pumpWidget(
+        MaterialApp(
+          home: BridgeBuilderScreen(
+            session: _session(items),
+            level: const MiniGameLevel.younger(),
+            onExit: () {},
+            random: Random(3),
+          ),
+        ),
+      );
+      expect(find.byKey(BridgeBuilderIds.mgIntroHeading(_g)), findsOneWidget);
+      expect(
+        (t.widget<Text>(find.byKey(BridgeBuilderIds.mgIntroTask(_g)))).data,
+        contains('make the number on the sign'),
+      );
+      final start = t.getSize(find.byKey(GameIds.mgStart(_g)));
+      expect(start.height, greaterThanOrEqualTo(64));
+      expect(start.width, greaterThanOrEqualTo(220));
+      expect(
+        (t.widget<Text>(find.byKey(BridgeBuilderIds.mgStartKeys(_g)))).data,
+        'Enter / Space',
+      );
+      // The first round tells how to place a tile, by touch and by key.
+      await t.tap(find.byKey(GameIds.mgStart(_g)));
+      await t.pump();
+      expect(
+        (t.widget<Text>(find.byKey(GameIds.mgPrompt(_g)))).data,
+        contains('press 1 to 4, then Enter'),
+      );
+    });
+
+    testWidgets(
+      'every slot shows after the answer: unused slots are laid planks, not holes',
+      (t) async {
+        await open(t, level: const MiniGameLevel.older());
+        var n = 0;
+        while (_tile(n).evaluate().isNotEmpty) {
+          n++;
+        }
+        await t.pumpAndSettle(const Duration(milliseconds: 50));
+        await fill(t, sum(tileTexts(t, n), 6, hit: true));
+        await t.pump(const Duration(seconds: 2));
+        expect(find.byKey(GameIds.mgNext(_g)), findsOneWidget);
+        for (var i = 0; i < 5; i++) {
+          expect(_slot(i), findsOneWidget);
+          final box = t.getRect(_slot(i));
+          expect(box.width, greaterThan(20));
+          // No faded slot number is left on any slot after the result.
+          final nums = find.descendant(
+            of: _slot(i),
+            matching: find.text('${i + 1}'),
+          );
+          final filled = find.descendant(
+            of: _slot(i),
+            matching: find.byType(Text),
+          );
+          if (i >= 3) {
+            expect(filled, findsNothing);
+            expect(nums, findsNothing);
+          }
+        }
+      },
+    );
+
+    testWidgets('keys 5 to 7 pick the fifth to seventh tile', (t) async {
+      await open(t, level: const MiniGameLevel.older());
+      final board = find.byWidgetPredicate(
+        (w) =>
+            w.key is ValueKey &&
+            '${(w.key as ValueKey).value}'.contains('.tile.'),
+      );
+      final n = board.evaluate().length;
+      expect(n, greaterThanOrEqualTo(5));
+      await t.sendKeyEvent(LogicalKeyboardKey.digit5);
+      await t.pump();
+      expect(
+        find.descendant(of: _slot(0), matching: find.byType(Text)),
+        findsOneWidget,
+      );
+    });
 
     testWidgets(
       'key hints show on a wide window; every tile, slot and plank has a screen-reader label',
