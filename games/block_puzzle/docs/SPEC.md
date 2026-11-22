@@ -217,3 +217,8 @@ Code: `lib/game/layout.dart` and `lib/game/flame/block_puzzle_game.dart`. `cell`
 
 **Rescaled goals (~3x, after the faster stage step):** achievements `score_1000` "Fifteen Thousand" (15,000) and `score_5000` "High Roller" (75,000), ids kept; daily "Score N points" targets 5,000 / 10,000 / 15,000. Saved best scores are not migrated.
 - **Play and Back (owner, 2026-11-09):** Home always shows only Play. Play with an unfinished game saved asks **Resume** or **New game** (`home.resume.dialog`, `home.resume.resume`, `home.resume.new`; dismissing the question stays on Home); with nothing saved it starts a new game directly. Back (the Android button and the arrow, `game.back`) opens a **Paused** dialog with **Resume** (`game.pause.resume`) and **Exit** (`game.pause.quit`); Exit leaves (the game is already saved). A game that is over just leaves. The "Game resumed" note stays.
+
+## Keyboard (K1, 2026-11-22)
+- 1 to 3 pick a tray piece, arrows move the piece over the board (a ghost shows where it lands; red when it does not fit), Enter places it, Space or Esc pause (Resume or Exit). The piece cannot leave the board. Flame's own focus is off (`autofocus: false`).
+- Keys come from the shared key map (`docs/KEYBOARD.md` in game-factory; remappable; W A S D and Z X C V also play in a one-player game). Tab and Enter or Space press any button. Key hints show under the game on windows 600 dp and wider.
+- Tests: the keys are covered by a widget or unit test where the screen can be built on the VM (see `test/`).

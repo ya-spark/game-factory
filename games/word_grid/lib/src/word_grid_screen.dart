@@ -84,6 +84,12 @@ class _WordGridScreenState extends State<WordGridScreen> {
   List<String> _bank = [];
   final List<int> _typed = [];
 
+  // Keyboard cursor (shown once a key has been used): a cell in a word search, a clue or a bank letter in a crossword.
+  bool _keyed = false;
+  (int, int) _kcell = (0, 0);
+  int _kclue = 0;
+  int _kletter = 0;
+
   WordGridSettings get _st => WordGridSettings.forLevel(widget.level);
   bool get _timed =>
       widget.level.older && !widget.study && _st.secondsPerRound > 0;
@@ -158,6 +164,93 @@ class _WordGridScreenState extends State<WordGridScreen> {
 
   int _order(PlacedWord w) =>
       widget.session.items.indexWhere((p) => p.id == w.word.id);
+
+  // ---- keyboard (docs/SPEC.md, Keyboard): arrows move the cursor, Enter taps it (first then last letter of a word,
+  // a clue, a bank letter), 1 and 2 start a word search or a crossword, Esc steps back or leaves ----
+
+  void _onKey(GameInput i) {
+    final a = i.action;
+    switch (_phase) {
+      case _Phase.intro:
+        if (i.repeat) return;
+        if (a == GameAction.exit) {
+          widget.onExit();
+        } else if (a == GameAction.action || a == GameAction.pick1) {
+          _start(GridKind.wordSearch);
+        } else if (a == GameAction.pick2) {
+          _start(GridKind.crossword);
+        }
+      case _Phase.results:
+        if (!i.repeat && (a == GameAction.action || a == GameAction.exit)) {
+          widget.onExit();
+        }
+      case _Phase.play:
+        final g = _grid;
+        if (g == null) {
+          if (!i.repeat && a == GameAction.exit) widget.onExit();
+          return;
+        }
+        final dx = a == GameAction.left ? -1 : (a == GameAction.right ? 1 : 0);
+        final dy = a == GameAction.up ? -1 : (a == GameAction.down ? 1 : 0);
+        if (dx != 0 || dy != 0) {
+          setState(() {
+            _keyed = true;
+            if (g.kind == GridKind.wordSearch) {
+              _kcell = (
+                (_kcell.$1 + dy).clamp(0, g.rows - 1),
+                (_kcell.$2 + dx).clamp(0, g.cols - 1),
+              );
+            } else if (_clue == null) {
+              final n = g.placed.length;
+              if (n > 0) _kclue = (_kclue + (dy != 0 ? dy : dx)) % n;
+            } else if (_bank.isNotEmpty) {
+              _kletter = (_kletter + (dx != 0 ? dx : dy)) % _bank.length;
+            }
+          });
+        } else if (i.repeat) {
+          return;
+        } else if (a == GameAction.exit) {
+          if (g.kind == GridKind.wordSearch && _anchor != null) {
+            setState(() => _anchor = null);
+          } else if (g.kind == GridKind.crossword && _clue != null) {
+            setState(() {
+              _clue = null;
+              _typed.clear();
+            });
+          } else {
+            widget.onExit();
+          }
+        } else if (a == GameAction.action) {
+          setState(() => _keyed = true);
+          if (g.kind == GridKind.wordSearch) {
+            _cellTap(_kcell);
+          } else if (_clue == null) {
+            if (_kclue < g.placed.length) _pickClue(_kclue);
+            _kletter = 0;
+          } else if (_kletter < _bank.length) {
+            _typeLetter(_kletter);
+            if (_clue != null) {
+              final next = List.generate(
+                _bank.length,
+                (j) => j,
+              ).where((j) => !_typed.contains(j)).toList();
+              _kletter = next.isEmpty ? 0 : next.first;
+            }
+          }
+        }
+    }
+  }
+
+  List<GameAction> get _hints => _phase == _Phase.play
+      ? const [
+          GameAction.left,
+          GameAction.right,
+          GameAction.up,
+          GameAction.down,
+          GameAction.action,
+          GameAction.exit,
+        ]
+      : const [GameAction.action, GameAction.exit];
 
   // ---- Word search ----
 
@@ -243,11 +336,16 @@ class _WordGridScreenState extends State<WordGridScreen> {
         ),
       ),
       body: SafeArea(
-        child: switch (_phase) {
-          _Phase.intro => _intro(context),
-          _Phase.play => _grid == null ? _noGrid(context) : _play(context),
-          _Phase.results => _results(context),
-        },
+        child: KeyedBody(
+          onInput: _onKey,
+          hints: _hints,
+          words: const {GameAction.action: 'pick'},
+          child: switch (_phase) {
+            _Phase.intro => _intro(context),
+            _Phase.play => _grid == null ? _noGrid(context) : _play(context),
+            _Phase.results => _results(context),
+          },
+        ),
       ),
     );
   }
@@ -547,8 +645,12 @@ class _WordGridScreenState extends State<WordGridScreen> {
           : BoxDecoration(
               color: fill,
               border: Border.all(
-                color: pal.border,
-                width: clueCells.contains((r, c)) ? 2.5 : 0.5,
+                color: _keyed && search && _kcell == (r, c)
+                    ? pal.accent
+                    : pal.border,
+                width: _keyed && search && _kcell == (r, c)
+                    ? 4
+                    : (clueCells.contains((r, c)) ? 2.5 : 0.5),
               ),
             ),
       child: empty
@@ -626,7 +728,8 @@ class _WordGridScreenState extends State<WordGridScreen> {
               return ListTile(
                 key: WordGridIds.mgClue(_g, i),
                 dense: true,
-                selected: _clue == i,
+                selected:
+                    _clue == i || (_keyed && _clue == null && _kclue == i),
                 leading: done ? const Icon(Icons.check) : null,
                 title: Text(
                   '${w.number} ${w.across ? 'across' : 'down'}: ${w.word.hint} (${w.word.word.length} letters)',
@@ -670,7 +773,10 @@ class _WordGridScreenState extends State<WordGridScreen> {
                   color: _typed.contains(i) ? pal.surface : pal.primary,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12),
-                    side: BorderSide(color: pal.border),
+                    side: BorderSide(
+                      color: _keyed && _kletter == i ? pal.accent : pal.border,
+                      width: _keyed && _kletter == i ? 4 : 1,
+                    ),
                   ),
                   child: InkWell(
                     key: WordGridIds.mgLetter(_g, i),

@@ -33,3 +33,8 @@ Calm. Rules are pure Dart in `lib/engine/minigames/merge/rules/`; the screen is
 - Merge and Mind Presto's games are not in the daily. Determinism (same seed, same puzzle) and
 - **In the five hub-native games** (Sudoku, Solitaire, Ball sort, Mahjong, Merge) a Zen run means:
   - No timer anywhere (none is shown). Merge plays Relaxed only (one Play button, no Classic).
+
+## Keyboard (K1, 2026-11-22)
+- Arrows slide the board. On the menu Enter or 1 starts Classic (Zen: the garden), 2 starts Relaxed. On the results Enter plays again. The game has no timer, so no pause: Esc goes back (a game to its menu, the menu leaves; a Daily Challenge leaves).
+- Keys come from the shared key map (`docs/KEYBOARD.md` in game-factory; remappable; W A S D and Z X C V also play in a one-player game). Tab and Enter or Space press any button. Key hints show under the game on windows 600 dp and wider.
+- Tests: the keys are covered by a widget or unit test where the screen can be built on the VM (see `test/`).

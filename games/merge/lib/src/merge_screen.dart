@@ -111,6 +111,56 @@ class _MergeScreenState extends State<MergeScreen> {
     }
   }
 
+  // ---- keyboard (docs/SPEC.md, Keyboard): arrows slide, Enter or 1 and 2 start, Esc goes back ----
+
+  void _onKey(GameInput i) {
+    final a = i.action;
+    switch (_phase) {
+      case _Phase.menu:
+        if (i.repeat) return;
+        final zen = ZenScope.of(context).zen;
+        if (a == GameAction.exit) {
+          Navigator.of(context).maybePop();
+        } else if (a == GameAction.action || a == GameAction.pick1) {
+          _start(zen);
+        } else if (a == GameAction.pick2) {
+          _start(true);
+        }
+      case _Phase.play:
+        switch (a) {
+          case GameAction.left:
+            _swipe(MergeDir.left);
+          case GameAction.right:
+            _swipe(MergeDir.right);
+          case GameAction.up:
+            _swipe(MergeDir.up);
+          case GameAction.down:
+            _swipe(MergeDir.down);
+          case GameAction.exit when !i.repeat:
+            setState(() => _phase = _Phase.menu);
+          default:
+        }
+      case _Phase.result:
+        if (i.repeat) return;
+        if (a == GameAction.action) {
+          _start(_relaxed);
+        } else if (a == GameAction.exit) {
+          setState(() => _phase = _Phase.menu);
+        }
+    }
+  }
+
+  List<GameAction> get _hints => switch (_phase) {
+    _Phase.play => const [
+      GameAction.left,
+      GameAction.right,
+      GameAction.up,
+      GameAction.down,
+      GameAction.exit,
+    ],
+    _ => const [GameAction.action, GameAction.exit],
+  };
+
   void _panEnd() {
     final d = _drag;
     _drag = Offset.zero;
@@ -139,21 +189,25 @@ class _MergeScreenState extends State<MergeScreen> {
         ),
       ),
       body: SafeArea(
-        child: switch (_phase) {
-          _Phase.menu => _menu(context),
-          _Phase.play => _play(context),
-          _Phase.result => CalmResults(
-            game: _g,
-            title: _relaxed ? 'Garden finished' : 'No moves left',
-            score: _game!.score,
-            thresholds: mergeStarScores,
-            detail:
-                'Best ${_relaxed ? _bestRelaxed : _bestClassic}. '
-                'Highest plant: ${_game!.highest == 0 ? 'none' : stageNames[_game!.highest - 1]}.',
-            onAgain: () => _start(_relaxed),
-            onDone: () => setState(() => _phase = _Phase.menu),
-          ),
-        },
+        child: KeyedBody(
+          onInput: _onKey,
+          hints: _hints,
+          child: switch (_phase) {
+            _Phase.menu => _menu(context),
+            _Phase.play => _play(context),
+            _Phase.result => CalmResults(
+              game: _g,
+              title: _relaxed ? 'Garden finished' : 'No moves left',
+              score: _game!.score,
+              thresholds: mergeStarScores,
+              detail:
+                  'Best ${_relaxed ? _bestRelaxed : _bestClassic}. '
+                  'Highest plant: ${_game!.highest == 0 ? 'none' : stageNames[_game!.highest - 1]}.',
+              onAgain: () => _start(_relaxed),
+              onDone: () => setState(() => _phase = _Phase.menu),
+            ),
+          },
+        ),
       ),
     );
   }

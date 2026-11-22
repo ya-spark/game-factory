@@ -32,6 +32,7 @@ class StackTowerScreen extends StatelessWidget {
       starScores: stackStarScores,
       coinsPerPoints: 25,
       hasContinue: true,
+      hintActions: const [GameAction.action],
       onScore: onScore,
       buildPlay: (context, run, round) => _StackPlay(
         key: ValueKey('stack.round.$round'),
@@ -62,7 +63,9 @@ class _StackPlayState extends State<_StackPlay>
   @override
   void initState() {
     super.initState();
-    widget.run.onContinue = _continue;
+    widget.run
+      ..onContinue = _continue
+      ..onInput = _onKey;
     _ticker.start();
   }
 
@@ -70,6 +73,16 @@ class _StackPlayState extends State<_StackPlay>
   void dispose() {
     _ticker.dispose();
     super.dispose();
+  }
+
+  /// Enter, up or down drops the block (docs/KEYBOARD.md; Space and Esc pause, in the frame).
+  void _onKey(GameInput i) {
+    if (i.repeat) return;
+    if (i.action == GameAction.action ||
+        i.action == GameAction.up ||
+        i.action == GameAction.down) {
+      _drop();
+    }
   }
 
   void _continue() {

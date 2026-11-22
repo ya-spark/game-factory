@@ -36,3 +36,8 @@ Calm and untimed. Rules are pure Dart in `lib/engine/minigames/ball_sort/rules/`
 ## Related lines
 - Game by day: Sudoku, Ball sort, Solitaire, Mahjong rotate (`day % 4`). Difficulty tier by weekday,
 - **In the five hub-native games** (Sudoku, Solitaire, Ball sort, Mahjong, Merge) a Zen run means:
+
+## Keyboard (K1, 2026-11-22)
+- Left and right move a highlighted cursor over the tubes, Enter or up lifts and drops (the same as a tap), 1 to 9 pick that tube at once. Menu: Enter or 1 plays the level. Results: Enter goes on. The game has no timer, so no pause: Esc goes back (a game to its menu, the menu leaves; a Daily Challenge leaves).
+- Keys come from the shared key map (`docs/KEYBOARD.md` in game-factory; remappable; W A S D and Z X C V also play in a one-player game). Tab and Enter or Space press any button. Key hints show under the game on windows 600 dp and wider.
+- Tests: the keys are covered by a widget or unit test where the screen can be built on the VM (see `test/`).

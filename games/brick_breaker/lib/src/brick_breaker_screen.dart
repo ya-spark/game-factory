@@ -32,6 +32,7 @@ class BrickBreakerScreen extends StatelessWidget {
       starScores: brickStarScores,
       coinsPerPoints: 50,
       hasContinue: true,
+      hintActions: const [GameAction.left, GameAction.right, GameAction.action],
       onScore: onScore,
       buildPlay: (context, run, round) => _BrickPlay(
         key: ValueKey('bricks.round.$round'),
@@ -62,7 +63,10 @@ class _BrickPlayState extends State<_BrickPlay>
   @override
   void initState() {
     super.initState();
-    widget.run.onContinue = _continue;
+    widget.run
+      ..onContinue = _continue
+      ..onInput = _onKey
+      ..onRelease = _onKeyUp;
     _ticker.start();
   }
 
@@ -70,6 +74,25 @@ class _BrickPlayState extends State<_BrickPlay>
   void dispose() {
     _ticker.dispose();
     super.dispose();
+  }
+
+  /// Left and right move while held, Enter or up launches (docs/KEYBOARD.md).
+  void _onKey(GameInput i) {
+    switch (i.action) {
+      case GameAction.left:
+        _game.setMove(-1);
+      case GameAction.right:
+        _game.setMove(1);
+      case GameAction.action || GameAction.up:
+        if (!i.repeat) _game.launch();
+      default:
+    }
+  }
+
+  void _onKeyUp(GameInput i) {
+    if (i.action == GameAction.left || i.action == GameAction.right) {
+      _game.setMove(0);
+    }
   }
 
   void _continue() {

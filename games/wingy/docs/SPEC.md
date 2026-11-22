@@ -225,3 +225,8 @@ Added for "More games": `url_launcher` 6.3.3 (exact pin, so a plugin update neve
 - **Remove Ads offer:** until `remove_ads_all` is owned, a small white "Remove ads" pill (`RemoveAdsPill`) shows on the game over panel under the medal (`game.over.removeAds`) and opens the Shop; it disappears once owned. It is **not** on Home (owner, 2026-11-09). In the Shop, Remove Ads is the first item, above the coin packs.
 - **Power description before buying:** the Dash Refill sheet shows what Glow Dash does (`game.refill.description`) under its title.
 - **Play and pause (owner, 2026-11-09):** Home always shows only Play. Play with an unfinished run saved asks **Resume** or **New game** (`home.resume.dialog`, `home.resume.resume`, `home.resume.new`; dismissing the question stays on Home); with nothing saved it starts a new run directly. The pause button, the back arrow and the Android Back button all open the same Paused dialog with **Resume** (`game.pause.resume`) and **Exit** (`game.pause.quit`). Exit keeps the unfinished run saved and leaves; it is recorded when it ends. A run that never started has nothing to keep.
+
+## Keyboard (K1, 2026-11-22)
+- Enter or up flaps, down uses the dash, Space or Esc pause (Resume or Exit). Flame's own focus is off (`autofocus: false`).
+- Keys come from the shared key map (`docs/KEYBOARD.md` in game-factory; remappable; W A S D and Z X C V also play in a one-player game). Tab and Enter or Space press any button. Key hints show under the game on windows 600 dp and wider.
+- Tests: the keys are covered by a widget or unit test where the screen can be built on the VM (see `test/`).

@@ -4,6 +4,7 @@ import 'dart:math';
 import 'package:flame/game.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:game_core/kit/keys/keys.dart';
 
 import '../host/ad_service.dart';
 
@@ -213,6 +214,34 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
       Navigator.of(context).pop();
     } else {
       _audio.startAmbience();
+    }
+  }
+
+  // ---- keyboard (docs/SPEC.md, Keyboard): arrows move the piece over the board, 1 to 3 pick a tray piece,
+  // Enter places it, Space or Esc pause ----
+
+  void _onKey(GameInput i) {
+    final game = _game;
+    if (game == null || _dialogOpen || _pauseOpen) return;
+    final a = i.action;
+    switch (a) {
+      case GameAction.left:
+        game.kbMove(0, -1);
+      case GameAction.right:
+        game.kbMove(0, 1);
+      case GameAction.up:
+        game.kbMove(-1, 0);
+      case GameAction.down:
+        game.kbMove(1, 0);
+      case GameAction.action when !i.repeat:
+        game.kbPlace();
+      case GameAction.pause || GameAction.exit when !i.repeat:
+        _askPause();
+      default:
+        final n = a.pickNumber;
+        if (!i.repeat && n != null && n <= GameState.traySlots) {
+          game.kbSelect(n - 1);
+        }
     }
   }
 
@@ -621,6 +650,7 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
                             GameWidget<BlockPuzzleGame>(
                               key: TestIds.gameWidget,
                               game: game,
+                              autofocus: false,
                             ),
                             if (armed != null)
                               // Absorbs every touch while targeting: no piece drags.
@@ -702,7 +732,20 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
       onPopInvokedWithResult: (didPop, _) {
         if (!didPop) _askPause();
       },
-      child: scaffold,
+      child: KeyedBody(
+        onInput: _onKey,
+        hints: const [
+          GameAction.left,
+          GameAction.right,
+          GameAction.up,
+          GameAction.down,
+          GameAction.pick1,
+          GameAction.action,
+          GameAction.pause,
+        ],
+        words: const {GameAction.pick1: 'piece', GameAction.action: 'place'},
+        child: scaffold,
+      ),
     );
   }
 }

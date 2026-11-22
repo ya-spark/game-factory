@@ -36,3 +36,8 @@ for 8 s), caught with the paddle; the paddle and ball change colour while active
 **Continue:** a rewarded Continue once per game over (not after a win): one life, a new ball, the same
 level and score. **Stars:** best score 300 / 1000 / 2500. **Coins:** 1 per 50 points.
 
+
+## Keyboard (K1, 2026-11-22)
+- Left and right move the paddle while held, Enter or up launches the ball. Arcade frame (game_core `ArcadeFrame`): Enter starts and plays again, Space or Esc pauses a round (Resume or Leave; Esc or Space or Enter resumes), Esc on the menu leaves, on the results goes to the menu. No pause button on screen.
+- Keys come from the shared key map (`docs/KEYBOARD.md` in game-factory; remappable; W A S D and Z X C V also play in a one-player game). Tab and Enter or Space press any button. Key hints show under the game on windows 600 dp and wider.
+- Tests: the keys are covered by a widget or unit test where the screen can be built on the VM (see `test/`).

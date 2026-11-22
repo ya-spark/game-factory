@@ -75,6 +75,10 @@ class _BallSortScreenState extends State<BallSortScreen> {
   BallSortGame? _game;
   int _level = 1;
   int? _selected;
+
+  /// The tube under the keyboard cursor; shown once a key has been used.
+  int _cursor = 0;
+  bool _keyed = false;
   String? _message;
   bool _firstUsed = false;
 
@@ -134,6 +138,7 @@ class _BallSortScreenState extends State<BallSortScreen> {
       _level = level;
       _game = BallSortGame(s, level: level);
       _selected = null;
+      _cursor = 0;
       _message = null;
       _phase = _Phase.play;
     }
@@ -174,6 +179,66 @@ class _BallSortScreenState extends State<BallSortScreen> {
     });
   }
 
+  // ---- keyboard (docs/SPEC.md, Keyboard): left and right move over the tubes, Enter or up lifts and drops,
+  // 1 to 9 pick a tube, Esc goes back ----
+
+  void _onKey(GameInput i) {
+    final a = i.action;
+    switch (_phase) {
+      case _Phase.menu:
+        if (i.repeat) return;
+        if (a == GameAction.exit) {
+          Navigator.of(context).maybePop();
+        } else if (a == GameAction.action || a == GameAction.pick1) {
+          _start(_level);
+        }
+      case _Phase.play:
+        final n = _game!.state.tubes.length;
+        if (a == GameAction.left || a == GameAction.right) {
+          setState(() {
+            _keyed = true;
+            _cursor = (_cursor + (a == GameAction.left ? -1 : 1)) % n;
+          });
+        } else if (i.repeat) {
+          return;
+        } else if (a == GameAction.action || a == GameAction.up) {
+          setState(() => _keyed = true);
+          _tap(_cursor.clamp(0, n - 1));
+        } else if (a.pickNumber != null && a.pickNumber! <= n) {
+          setState(() {
+            _keyed = true;
+            _cursor = a.pickNumber! - 1;
+          });
+          _tap(_cursor);
+        } else if (a == GameAction.exit) {
+          if (widget.daily != null) {
+            _leaveDaily();
+          } else {
+            setState(() => _phase = _Phase.menu);
+          }
+        }
+      case _Phase.result:
+        if (i.repeat) return;
+        if (a == GameAction.action) {
+          widget.daily != null ? _leaveDaily() : _start(_level);
+        } else if (a == GameAction.exit) {
+          widget.daily != null
+              ? _leaveDaily()
+              : setState(() => _phase = _Phase.menu);
+        }
+    }
+  }
+
+  List<GameAction> get _hints => switch (_phase) {
+    _Phase.play => const [
+      GameAction.left,
+      GameAction.right,
+      GameAction.action,
+      GameAction.exit,
+    ],
+    _ => const [GameAction.action, GameAction.exit],
+  };
+
   void _won() {
     final g = _game!;
     RunReportScope.finished(
@@ -209,22 +274,28 @@ class _BallSortScreenState extends State<BallSortScreen> {
         ),
       ),
       body: SafeArea(
-        child: switch (_phase) {
-          _Phase.menu => _menu(context),
-          _Phase.play => _play(context),
-          _Phase.result => CalmResults(
-            game: _g,
-            title: 'Level ${_game!.level} sorted',
-            score: _game!.score,
-            thresholds: ballSortStarScores,
-            detail: '${_game!.state.moves} moves',
-            againLabel: widget.daily != null ? 'Back to Games' : 'Next level',
-            onAgain: widget.daily != null ? _leaveDaily : () => _start(_level),
-            onDone: widget.daily != null
-                ? _leaveDaily
-                : () => setState(() => _phase = _Phase.menu),
-          ),
-        },
+        child: KeyedBody(
+          onInput: _onKey,
+          hints: _hints,
+          child: switch (_phase) {
+            _Phase.menu => _menu(context),
+            _Phase.play => _play(context),
+            _Phase.result => CalmResults(
+              game: _g,
+              title: 'Level ${_game!.level} sorted',
+              score: _game!.score,
+              thresholds: ballSortStarScores,
+              detail: '${_game!.state.moves} moves',
+              againLabel: widget.daily != null ? 'Back to Games' : 'Next level',
+              onAgain: widget.daily != null
+                  ? _leaveDaily
+                  : () => _start(_level),
+              onDone: widget.daily != null
+                  ? _leaveDaily
+                  : () => setState(() => _phase = _Phase.menu),
+            ),
+          },
+        ),
       ),
     );
   }
@@ -375,8 +446,12 @@ class _BallSortScreenState extends State<BallSortScreen> {
                 top: Radius.circular(6),
               ),
               border: Border.all(
-                color: selected ? scheme.primary : scheme.outline,
-                width: selected ? 4 : 2,
+                color: selected
+                    ? scheme.primary
+                    : (_keyed && _cursor == t)
+                    ? scheme.tertiary
+                    : scheme.outline,
+                width: selected || (_keyed && _cursor == t) ? 4 : 2,
               ),
             ),
             child: Column(

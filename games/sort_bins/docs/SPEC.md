@@ -13,3 +13,8 @@ The text below was collected from the apps' docs when the game moved; refine it 
 
 ## Rules and behaviour (from the app's engine notes at the move)
 - Sort into bins (`sortBinsGame`, view `lib/ui/minigames/sort_bins_screen.dart`, rules
+
+## Keyboard (K1, 2026-11-22)
+- Up and down (or left and right) move over the bins, Enter drops the item in the highlighted bin, 1 to 4 drop it in that bin, Enter goes on after a round. Esc leaves the game.
+- Keys come from the shared key map (`docs/KEYBOARD.md` in game-factory; remappable; W A S D and Z X C V also play in a one-player game). Tab and Enter or Space press any button. Key hints show under the game on windows 600 dp and wider.
+- Tests: the keys are covered by a widget or unit test where the screen can be built on the VM (see `test/`).

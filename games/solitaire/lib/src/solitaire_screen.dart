@@ -68,6 +68,11 @@ class _SolitaireScreenState extends State<SolitaireScreen> {
   KlondikeHint? _hint;
   bool _auto = false;
 
+  /// Keyboard cursor: 0 stock, 1 waste, 2 to 8 the columns; [_depth] counts face-up cards down from the top.
+  int _kslot = 0;
+  int _depth = 0;
+  bool _keyed = false;
+
   /// The level being played (the daily puzzle's tier, else the menu choice).
   SolitaireLevel get _playing =>
       widget.daily != null ? solitaireDailyLevels[widget.daily!.tier] : _level;
@@ -129,6 +134,8 @@ class _SolitaireScreenState extends State<SolitaireScreen> {
         _phase = _Phase.play;
         _auto = false;
         _hint = null;
+        _kslot = 0;
+        _depth = 0;
       }
 
       if (mounted) {
@@ -183,6 +190,88 @@ class _SolitaireScreenState extends State<SolitaireScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('No useful move right now. Try Undo.')),
       );
+    }
+  }
+
+  // ---- keyboard (docs/SPEC.md, Keyboard): left and right pick the stock, the waste or a column, up and down
+  // pick the card in a column, Enter plays it (draws from the stock), 1 hint, 2 undo, Esc goes back ----
+
+  void _onKey(GameInput i) {
+    final a = i.action;
+    switch (_phase) {
+      case _Phase.menu:
+        if (i.repeat) return;
+        if (a == GameAction.exit) {
+          Navigator.of(context).maybePop();
+        } else if (a == GameAction.action || a == GameAction.pick1) {
+          _start();
+        }
+      case _Phase.play:
+        final g = _game!;
+        final s = g.state;
+        switch (a) {
+          case GameAction.left:
+            setState(() {
+              _keyed = true;
+              _kslot = (_kslot + 8) % 9;
+              _depth = 0;
+            });
+          case GameAction.right:
+            setState(() {
+              _keyed = true;
+              _kslot = (_kslot + 1) % 9;
+              _depth = 0;
+            });
+          case GameAction.up || GameAction.down:
+            if (_kslot < 2) return;
+            final c = _kslot - 2;
+            final faceUp = s.tableau[c].length - s.down[c];
+            final d = _depth + (a == GameAction.up ? 1 : -1);
+            setState(() {
+              _keyed = true;
+              _depth = faceUp <= 0 ? 0 : d.clamp(0, faceUp - 1);
+            });
+          case GameAction.action when !i.repeat:
+            setState(() => _keyed = true);
+            if (_kslot == 0) {
+              _play(const KlondikeMove(MoveKind.draw));
+            } else if (_kslot == 1) {
+              _play(s.tapMove(MoveKind.wasteToTableau));
+            } else {
+              final c = _kslot - 2;
+              final idx = s.tableau[c].length - 1 - _depth;
+              if (idx >= s.down[c] && idx >= 0) {
+                _play(s.tapMove(MoveKind.tableauToTableau, index: idx, col: c));
+              }
+            }
+            _depth = 0;
+          case GameAction.pick1 when !i.repeat:
+            _takeHint();
+          case GameAction.pick2 when !i.repeat && g.canUndo && !_auto:
+            g.undo();
+            setState(() => _hint = null);
+          case GameAction.exit when !i.repeat:
+            _leave();
+          default:
+        }
+      case _Phase.result:
+        if (i.repeat) return;
+        if (a == GameAction.action) {
+          widget.daily != null ? _leaveDaily() : _start();
+        } else if (a == GameAction.exit) {
+          _leave();
+        }
+    }
+  }
+
+  /// Back: the daily leaves, a game goes to the menu, the menu leaves.
+  void _leave() {
+    if (widget.daily != null) {
+      _leaveDaily();
+    } else if (_phase == _Phase.menu) {
+      Navigator.of(context).maybePop();
+    } else {
+      setState(() => _phase = _Phase.menu);
     }
   }
 
@@ -250,22 +339,35 @@ class _SolitaireScreenState extends State<SolitaireScreen> {
         ),
       ),
       body: SafeArea(
-        child: switch (_phase) {
-          _Phase.menu => _menu(context),
-          _Phase.play => _table(context),
-          _Phase.result => CalmResults(
-            game: _g,
-            title: 'You won',
-            score: _game!.finalScore,
-            thresholds: solitaireStarScores,
-            detail: '${_game!.state.moves} moves',
-            againLabel: widget.daily != null ? 'Back to Games' : 'Play again',
-            onAgain: widget.daily != null ? _leaveDaily : _start,
-            onDone: widget.daily != null
-                ? _leaveDaily
-                : () => setState(() => _phase = _Phase.menu),
-          ),
-        },
+        child: KeyedBody(
+          onInput: _onKey,
+          hints: _phase == _Phase.play
+              ? const [
+                  GameAction.left,
+                  GameAction.right,
+                  GameAction.up,
+                  GameAction.down,
+                  GameAction.action,
+                  GameAction.exit,
+                ]
+              : const [GameAction.action, GameAction.exit],
+          child: switch (_phase) {
+            _Phase.menu => _menu(context),
+            _Phase.play => _table(context),
+            _Phase.result => CalmResults(
+              game: _g,
+              title: 'You won',
+              score: _game!.finalScore,
+              thresholds: solitaireStarScores,
+              detail: '${_game!.state.moves} moves',
+              againLabel: widget.daily != null ? 'Back to Games' : 'Play again',
+              onAgain: widget.daily != null ? _leaveDaily : _start,
+              onDone: widget.daily != null
+                  ? _leaveDaily
+                  : () => setState(() => _phase = _Phase.menu),
+            ),
+          },
+        ),
       ),
     );
   }
@@ -512,7 +614,7 @@ class _SolitaireScreenState extends State<SolitaireScreen> {
         key: MindIds.calmControl(_g, 'stock'),
         onTap: () => _play(const KlondikeMove(MoveKind.draw)),
         child: _mark(
-          _hk == MoveKind.draw,
+          _hk == MoveKind.draw || (_keyed && _kslot == 0),
           _slot(
             cw,
             ch,
@@ -549,7 +651,8 @@ class _SolitaireScreenState extends State<SolitaireScreen> {
               child: i == shown.length - 1
                   ? _mark(
                       _hk == MoveKind.wasteToFoundation ||
-                          _hk == MoveKind.wasteToTableau,
+                          _hk == MoveKind.wasteToTableau ||
+                          (_keyed && _kslot == 1),
                       _draggable(
                         const _Src(MoveKind.wasteToTableau),
                         [shown[i]],
@@ -693,7 +796,7 @@ class _SolitaireScreenState extends State<SolitaireScreen> {
           _hint?.move.kind == MoveKind.wasteToTableau ||
                   _hint?.move.kind == MoveKind.tableauToTableau
               ? _hint!.move.to == c
-              : false,
+              : (_keyed && _kslot == c + 2 && t.isEmpty),
           key: MindIds.calmControl(_g, 'hint.target'),
           Stack(
             children: [
@@ -710,7 +813,10 @@ class _SolitaireScreenState extends State<SolitaireScreen> {
                               _hint?.move.kind ==
                                       MoveKind.tableauToFoundation &&
                                   _hint!.move.from == c &&
-                                  i == t.length - 1,
+                                  i == t.length - 1 ||
+                              (_keyed &&
+                                  _kslot == c + 2 &&
+                                  i == t.length - 1 - _depth),
                           _draggable(
                             _Src(MoveKind.tableauToTableau, col: c, index: i),
                             t.sublist(i),

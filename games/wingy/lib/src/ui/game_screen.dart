@@ -4,6 +4,7 @@ import 'dart:math';
 import 'package:flame/game.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:game_core/kit/keys/keys.dart';
 
 import '../host/ad_service.dart';
 
@@ -282,6 +283,22 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
 
   // ---- pause ---------------------------------------------------------------
 
+  // ---- keyboard (docs/SPEC.md, Keyboard): Enter or up flaps, down dashes, Space or Esc pause ----
+
+  void _onKey(GameInput i) {
+    final game = _game;
+    if (game == null || _dialogOpen || _pauseOpen) return;
+    switch (i.action) {
+      case GameAction.action || GameAction.up:
+        if (!i.repeat) game.tap();
+      case GameAction.down:
+        if (!i.repeat && game.run.canDash && game.countdown == 0) game.dash();
+      case GameAction.pause || GameAction.exit:
+        if (!i.repeat) _pause();
+      default:
+    }
+  }
+
   Future<void> _pause() async {
     final game = _game;
     if (game == null || !mounted || _pauseOpen || _dialogOpen) return;
@@ -495,7 +512,11 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
               key: TestIds.gameField,
               behavior: HitTestBehavior.opaque,
               onPointerDown: (_) => game.tap(),
-              child: GameWidget<WingyGame>(key: TestIds.gameWidget, game: game),
+              child: GameWidget<WingyGame>(
+                key: TestIds.gameWidget,
+                game: game,
+                autofocus: false,
+              ),
             ),
           ),
           SafeArea(
@@ -604,7 +625,12 @@ class _GameScreenState extends State<GameScreen> with WidgetsBindingObserver {
       onPopInvokedWithResult: (didPop, _) {
         if (!didPop) _pause();
       },
-      child: scaffold,
+      child: KeyedBody(
+        onInput: _onKey,
+        hints: const [GameAction.action, GameAction.down, GameAction.pause],
+        words: const {GameAction.action: 'flap', GameAction.down: 'dash'},
+        child: scaffold,
+      ),
     );
   }
 }

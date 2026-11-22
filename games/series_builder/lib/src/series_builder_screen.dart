@@ -70,6 +70,10 @@ class _SeriesBuilderScreenState extends State<SeriesBuilderScreen> {
   int _streak = 0;
   bool _scoreSent = false;
 
+  /// The tile under the keyboard cursor; shown once a key has been used.
+  int _cursor = 0;
+  bool _keyed = false;
+
   QuizSession get _s => widget.session;
   bool get _study => widget.mode == MiniGameMode.study;
 
@@ -130,10 +134,52 @@ class _SeriesBuilderScreenState extends State<SeriesBuilderScreen> {
     }
   }
 
+  // ---- keyboard (docs/SPEC.md, Keyboard): left and right move over the tiles, Enter places the tile (or goes on),
+  // 1 to 4 place that tile, Esc leaves ----
+
+  void _onKey(GameInput i) {
+    final a = i.action;
+    if (a == GameAction.exit) {
+      if (!i.repeat) widget.onExit();
+      return;
+    }
+    final done = _s.finished && _result == null;
+    if (done) {
+      if (!i.repeat && a == GameAction.action) widget.onExit();
+      return;
+    }
+    final r = _round;
+    if (_result != null) {
+      if (!i.repeat && a == GameAction.action) _next();
+      return;
+    }
+    if (r == null) return;
+    final n = r.tiles.length;
+    if (a == GameAction.left || a == GameAction.right) {
+      setState(() {
+        _keyed = true;
+        _cursor = (_cursor + (a == GameAction.left ? -1 : 1)) % n;
+      });
+    } else if (i.repeat) {
+      return;
+    } else if (a == GameAction.action || a == GameAction.up) {
+      setState(() => _keyed = true);
+      if (!r.isUsed(_cursor) && !r.isGreyed(_cursor)) _tap(r, _cursor);
+    } else if (a.pickNumber != null && a.pickNumber! <= n) {
+      final t = a.pickNumber! - 1;
+      setState(() {
+        _keyed = true;
+        _cursor = t;
+      });
+      if (!r.isUsed(t) && !r.isGreyed(t)) _tap(r, t);
+    }
+  }
+
   void _next() {
     setState(() {
       _result = null;
       _round = null;
+      _cursor = 0;
     });
     if (_s.finished && !_scoreSent) {
       _scoreSent = true;
@@ -158,18 +204,28 @@ class _SeriesBuilderScreenState extends State<SeriesBuilderScreen> {
         ),
       ),
       body: SafeArea(
-        child: done
-            ? MiniGameSummary(
-                summaryKey: SeriesBuilderIds.seriesSummary,
-                starsKey: SeriesBuilderIds.seriesStars,
-                doneKey: SeriesBuilderIds.seriesNext,
-                correct: _s.report.correct,
-                answered: _s.report.answered,
-                stars: _s.report.stars,
-                showStars: _s.rewardsConfig.starsEnabled && !_study,
-                onDone: widget.onExit,
-              )
-            : _roundView(context, _s.items[shownIndex], shownIndex),
+        child: KeyedBody(
+          onInput: _onKey,
+          hints: const [
+            GameAction.left,
+            GameAction.right,
+            GameAction.action,
+            GameAction.exit,
+          ],
+          words: const {GameAction.action: 'place'},
+          child: done
+              ? MiniGameSummary(
+                  summaryKey: SeriesBuilderIds.seriesSummary,
+                  starsKey: SeriesBuilderIds.seriesStars,
+                  doneKey: SeriesBuilderIds.seriesNext,
+                  correct: _s.report.correct,
+                  answered: _s.report.answered,
+                  stars: _s.report.stars,
+                  showStars: _s.rewardsConfig.starsEnabled && !_study,
+                  onDone: widget.onExit,
+                )
+              : _roundView(context, _s.items[shownIndex], shownIndex),
+        ),
       ),
     );
   }
@@ -325,7 +381,10 @@ class _SeriesBuilderScreenState extends State<SeriesBuilderScreen> {
           color: cs.secondaryContainer,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(16),
-            side: BorderSide(color: cs.outline),
+            side: BorderSide(
+              color: _keyed && _cursor == i ? cs.tertiary : cs.outline,
+              width: _keyed && _cursor == i ? 4 : 1,
+            ),
           ),
           child: InkWell(
             key: SeriesBuilderIds.seriesTile(i),

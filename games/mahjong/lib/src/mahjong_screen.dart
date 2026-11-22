@@ -68,6 +68,10 @@ class _MahjongScreenState extends State<MahjongScreen> {
   bool _hintsOn = true;
   SharedPreferences? _prefs;
   int? _selected;
+
+  /// The tile under the keyboard cursor; shown once a key has been used.
+  int? _cursor;
+  bool _keyed = false;
   (int, int)? _hint;
   String? _message;
 
@@ -117,10 +121,116 @@ class _MahjongScreenState extends State<MahjongScreen> {
       _layout = layout;
       _game = MahjongGame(_tier.layouts[layout], _rnd, tier: _tier);
       _selected = null;
+      _cursor = null;
       _hint = null;
       _message = null;
       _phase = _Phase.play;
     });
+  }
+
+  // ---- keyboard (docs/SPEC.md, Keyboard): arrows step over the free tiles, Enter takes or drops the tile,
+  // 1 hint, 2 undo, 3 shuffle, Esc goes back ----
+
+  /// The free tiles in reading order (top to bottom, left to right, lowest layer first).
+  List<int> _freeTiles(MahjongGame g) {
+    final pos = g.positions;
+    final l = [
+      for (var i = 0; i < pos.length; i++)
+        if (!g.removed(i) && g.isFree(i)) i,
+    ];
+    l.sort((a, b) {
+      final pa = pos[a], pb = pos[b];
+      final c = pa.y.compareTo(pb.y);
+      if (c != 0) return c;
+      final d = pa.x.compareTo(pb.x);
+      return d != 0 ? d : pa.z.compareTo(pb.z);
+    });
+    return l;
+  }
+
+  void _step(int dir) {
+    final g = _game!;
+    final free = _freeTiles(g);
+    if (free.isEmpty) return;
+    final at = _cursor == null ? -1 : free.indexOf(_cursor!);
+    final next = at < 0
+        ? (dir > 0 ? 0 : free.length - 1)
+        : (at + dir) % free.length;
+    setState(() {
+      _keyed = true;
+      _cursor = free[next];
+    });
+  }
+
+  void _onKey(GameInput i) {
+    final a = i.action;
+    switch (_phase) {
+      case _Phase.menu:
+        if (i.repeat) return;
+        if (a == GameAction.exit) {
+          Navigator.of(context).maybePop();
+        } else if (a == GameAction.action || a.pickNumber != null) {
+          final n = (a.pickNumber ?? 1) - 1;
+          if (n < _tier.layouts.length) _start(n);
+        }
+      case _Phase.play:
+        final g = _game!;
+        switch (a) {
+          case GameAction.left || GameAction.up:
+            _step(-1);
+          case GameAction.right || GameAction.down:
+            _step(1);
+          case GameAction.action when !i.repeat:
+            final c = _cursor;
+            if (c == null || g.removed(c)) {
+              _step(1);
+            } else {
+              setState(() => _keyed = true);
+              _tap(c);
+            }
+          case GameAction.pick1 when !i.repeat && _hintsOn && g.canHint:
+            setState(() {
+              _selected = null;
+              _hint = g.hint();
+              _message = _hint == null ? 'No pairs left. Use Shuffle.' : null;
+            });
+          case GameAction.pick2 when !i.repeat && g.canUndo:
+            setState(() {
+              g.undo();
+              _selected = null;
+              _hint = null;
+            });
+          case GameAction.pick3 when !i.repeat && g.canShuffle:
+            setState(() {
+              g.shuffle();
+              _selected = null;
+              _hint = null;
+              _cursor = null;
+              _message = 'Tiles shuffled.';
+            });
+          case GameAction.exit when !i.repeat:
+            _leave();
+          default:
+        }
+      case _Phase.result:
+        if (i.repeat) return;
+        if (a == GameAction.action) {
+          widget.daily != null ? _leaveDaily() : _start(_layout);
+        } else if (a == GameAction.exit) {
+          _leave();
+        }
+    }
+  }
+
+  /// Back: the daily leaves, a game goes to the menu, the menu leaves.
+  void _leave() {
+    if (widget.daily != null) {
+      _leaveDaily();
+    } else if (_phase == _Phase.menu) {
+      Navigator.of(context).maybePop();
+    } else {
+      setState(() => _phase = _Phase.menu);
+    }
   }
 
   void _tap(int i) {
@@ -186,22 +296,35 @@ class _MahjongScreenState extends State<MahjongScreen> {
         ),
       ),
       body: SafeArea(
-        child: switch (_phase) {
-          _Phase.menu => _menu(context),
-          _Phase.play => _play(context),
-          _Phase.result => CalmResults(
-            game: _g,
-            title: '${_game!.layout.name} cleared',
-            score: _game!.score,
-            thresholds: mahjongStarScores,
-            detail: '${_game!.hints} hints, ${_game!.shuffles} shuffles',
-            againLabel: widget.daily != null ? 'Back to Games' : 'Play again',
-            onAgain: widget.daily != null ? _leaveDaily : () => _start(_layout),
-            onDone: widget.daily != null
-                ? _leaveDaily
-                : () => setState(() => _phase = _Phase.menu),
-          ),
-        },
+        child: KeyedBody(
+          onInput: _onKey,
+          hints: _phase == _Phase.play
+              ? const [
+                  GameAction.left,
+                  GameAction.right,
+                  GameAction.action,
+                  GameAction.exit,
+                ]
+              : const [GameAction.action, GameAction.exit],
+          child: switch (_phase) {
+            _Phase.menu => _menu(context),
+            _Phase.play => _play(context),
+            _Phase.result => CalmResults(
+              game: _g,
+              title: '${_game!.layout.name} cleared',
+              score: _game!.score,
+              thresholds: mahjongStarScores,
+              detail: '${_game!.hints} hints, ${_game!.shuffles} shuffles',
+              againLabel: widget.daily != null ? 'Back to Games' : 'Play again',
+              onAgain: widget.daily != null
+                  ? _leaveDaily
+                  : () => _start(_layout),
+              onDone: widget.daily != null
+                  ? _leaveDaily
+                  : () => setState(() => _phase = _Phase.menu),
+            ),
+          },
+        ),
       ),
     );
   }
@@ -401,6 +524,7 @@ class _MahjongScreenState extends State<MahjongScreen> {
     final free = g.isFree(i);
     final selected = _selected == i;
     final hinted = _hint != null && (_hint!.$1 == i || _hint!.$2 == i);
+    final cursor = _keyed && _cursor == i;
     final state = selected
         ? 'selected'
         : hinted
@@ -427,8 +551,10 @@ class _MahjongScreenState extends State<MahjongScreen> {
                   ? scheme.primary
                   : hinted
                   ? const Color(0xFFE65100)
+                  : cursor
+                  ? scheme.tertiary
                   : const Color(0xFF424242),
-              width: selected || hinted ? 3.5 : 1.2,
+              width: selected || hinted || cursor ? 3.5 : 1.2,
             ),
           ),
           child: CustomPaint(painter: TileFacePainter(g.faces[i])),

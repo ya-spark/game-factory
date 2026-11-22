@@ -38,5 +38,12 @@ One key map for every game and app, in `game_core` (`lib/kit/keys/`, import `pac
 | Door runner | left and right steer, up zaps, down slows while held, 1 to 4 pick a door, Enter or Q the question, Space or Esc pause |
 | Blockfall | left and right move (held keys repeat), up rotates, down soft-drops while held, Enter hard-drops, Q holds, 1 to 3 power-ups, Space or Esc pause |
 
+## K1: every game has keys (2026-11-22, for the web)
+- `ArcadeFrame` (Snake, Runner, Stack tower, Brick breaker) takes the keys: Enter start or play again, Space and Esc pause (Resume, Leave), the game registers `run.onInput` and `run.onRelease` for its own keys and `hintActions` for the hints.
+- `KeyedBody(onInput:, hints:, words:, child:)` (game_core, `kit/keys/keyed_body.dart`) is `GameKeyboard` plus the hint row for every other screen. Untimed games have no pause: Esc goes back.
+- A highlighted cursor (tertiary colour, 4 px) appears once a key is used, so touch play looks as before.
+- Digits 5 to 9 and letters are not in the map: a game that needs them reads them in a `Focus` above `KeyedBody` (Sudoku does).
+- Each game's own keys are in its `docs/SPEC.md`, section "Keyboard".
+
 The two-player modes themselves (Tug of war head to head, Memory match turns, Door runner race, Blockfall two boards) are not built yet; the key map already gives player 2 its left-hand keys.
 

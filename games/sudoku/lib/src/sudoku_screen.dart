@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:math';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 import 'package:game_core/game_core.dart';
 
@@ -187,6 +188,102 @@ class _SudokuScreenState extends State<SudokuScreen> {
     }
   }
 
+  // ---- keyboard (docs/SPEC.md, Keyboard): arrows move over the squares, 1 to 9 fill, Backspace or 0 erases,
+  // N toggles notes, Enter asks for a hint, Esc goes back ----
+
+  void _onKey(GameInput i) {
+    final a = i.action;
+    switch (_phase) {
+      case _Phase.menu:
+        if (i.repeat) return;
+        if (a == GameAction.exit) {
+          _leave();
+        } else if (a == GameAction.action || a.pickNumber != null) {
+          final n = a.pickNumber ?? 1;
+          if (n <= SudokuLevel.values.length) {
+            final l = SudokuLevel.values[n - 1];
+            _start(l, fresh: !_saved.contains(l));
+          }
+        }
+      case _Phase.play:
+        final cur = _selected ?? 0;
+        switch (a) {
+          case GameAction.left:
+            setState(() => _selected = cur % 9 == 0 ? cur : cur - 1);
+          case GameAction.right:
+            setState(() => _selected = cur % 9 == 8 ? cur : cur + 1);
+          case GameAction.up:
+            setState(() => _selected = cur < 9 ? cur : cur - 9);
+          case GameAction.down:
+            setState(() => _selected = cur > 71 ? cur : cur + 9);
+          case GameAction.action when !i.repeat:
+            _hint();
+          case GameAction.exit when !i.repeat:
+            _leave();
+          default:
+            if (!i.repeat && a.pickNumber != null) _digit(a.pickNumber!);
+        }
+      case _Phase.result:
+        if (i.repeat) return;
+        if (a == GameAction.action) {
+          widget.daily != null
+              ? _leaveDaily()
+              : _start(_game!.puzzle.level, fresh: true);
+        } else if (a == GameAction.exit) {
+          _leave();
+        }
+    }
+  }
+
+  /// Back: the daily leaves, a puzzle goes to the menu, the menu leaves.
+  void _leave() {
+    if (widget.daily != null) {
+      _leaveDaily();
+    } else if (_phase == _Phase.play || _phase == _Phase.result) {
+      setState(() => _phase = _Phase.menu);
+    } else {
+      Navigator.of(context).maybePop();
+    }
+  }
+
+  /// Keys the shared map does not know: 5 to 9, 0, Backspace, Delete and N.
+  KeyEventResult _rawKey(FocusNode node, KeyEvent event) {
+    if (event is! KeyDownEvent || _phase != _Phase.play) {
+      return KeyEventResult.ignored;
+    }
+    final hw = HardwareKeyboard.instance;
+    if (hw.isControlPressed || hw.isAltPressed || hw.isMetaPressed) {
+      return KeyEventResult.ignored;
+    }
+    final k = event.logicalKey;
+    if (k == LogicalKeyboardKey.keyN) {
+      setState(() => _pencil = !_pencil);
+      return KeyEventResult.handled;
+    }
+    if (k == LogicalKeyboardKey.backspace ||
+        k == LogicalKeyboardKey.delete ||
+        k == LogicalKeyboardKey.digit0 ||
+        k == LogicalKeyboardKey.numpad0) {
+      final sel = _selected;
+      if (sel != null && _game!.erase(sel)) _afterMove();
+      return KeyEventResult.handled;
+    }
+    const digits = [
+      [LogicalKeyboardKey.digit5, LogicalKeyboardKey.numpad5],
+      [LogicalKeyboardKey.digit6, LogicalKeyboardKey.numpad6],
+      [LogicalKeyboardKey.digit7, LogicalKeyboardKey.numpad7],
+      [LogicalKeyboardKey.digit8, LogicalKeyboardKey.numpad8],
+      [LogicalKeyboardKey.digit9, LogicalKeyboardKey.numpad9],
+    ];
+    for (var d = 0; d < digits.length; d++) {
+      if (digits[d].contains(k)) {
+        _digit(d + 5);
+        return KeyEventResult.handled;
+      }
+    }
+    return KeyEventResult.ignored;
+  }
+
   void _digit(int d) {
     final g = _game!;
     final i = _selected;
@@ -286,28 +383,49 @@ class _SudokuScreenState extends State<SudokuScreen> {
         ),
       ),
       body: SafeArea(
-        child: switch (_phase) {
-          _Phase.menu when widget.daily != null => const Center(
-            child: CircularProgressIndicator(),
+        child: Focus(
+          canRequestFocus: false,
+          skipTraversal: true,
+          onKeyEvent: _rawKey,
+          child: KeyedBody(
+            onInput: _onKey,
+            hints: _phase == _Phase.play
+                ? const [
+                    GameAction.left,
+                    GameAction.right,
+                    GameAction.up,
+                    GameAction.down,
+                    GameAction.action,
+                    GameAction.exit,
+                  ]
+                : const [GameAction.action, GameAction.exit],
+            words: const {GameAction.action: 'hint'},
+            child: switch (_phase) {
+              _Phase.menu when widget.daily != null => const Center(
+                child: CircularProgressIndicator(),
+              ),
+              _Phase.menu => _menu(context),
+              _Phase.play => _play(context),
+              _Phase.result => CalmResults(
+                game: _g,
+                title: 'Puzzle solved',
+                score: _game!.score,
+                thresholds: sudokuStarScores,
+                detail:
+                    '${_game!.mistakes} mistakes, ${_game!.hintsUsed} hints used',
+                againLabel: widget.daily != null
+                    ? 'Back to Games'
+                    : 'Play again',
+                onAgain: widget.daily != null
+                    ? _leaveDaily
+                    : () => _start(_game!.puzzle.level, fresh: true),
+                onDone: widget.daily != null
+                    ? _leaveDaily
+                    : () => setState(() => _phase = _Phase.menu),
+              ),
+            },
           ),
-          _Phase.menu => _menu(context),
-          _Phase.play => _play(context),
-          _Phase.result => CalmResults(
-            game: _g,
-            title: 'Puzzle solved',
-            score: _game!.score,
-            thresholds: sudokuStarScores,
-            detail:
-                '${_game!.mistakes} mistakes, ${_game!.hintsUsed} hints used',
-            againLabel: widget.daily != null ? 'Back to Games' : 'Play again',
-            onAgain: widget.daily != null
-                ? _leaveDaily
-                : () => _start(_game!.puzzle.level, fresh: true),
-            onDone: widget.daily != null
-                ? _leaveDaily
-                : () => setState(() => _phase = _Phase.menu),
-          ),
-        },
+        ),
       ),
     );
   }

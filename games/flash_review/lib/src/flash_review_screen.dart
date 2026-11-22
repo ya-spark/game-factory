@@ -64,6 +64,41 @@ class _FlashReviewScreenState extends State<FlashReviewScreen> {
   void _start() =>
       setState(() => _phase = _s.finished ? _Phase.results : _Phase.card);
 
+  // ---- keyboard (docs/SPEC.md, Keyboard): Enter starts and flips, 1 or right = I knew it, 2 or left = Not yet,
+  // Esc leaves ----
+
+  void _onKey(GameInput i) {
+    if (i.repeat) return;
+    final a = i.action;
+    if (a == GameAction.exit) {
+      widget.onExit();
+      return;
+    }
+    switch (_phase) {
+      case _Phase.intro:
+        if (a == GameAction.action) _start();
+      case _Phase.card:
+        if (!_flipped) {
+          if (a == GameAction.action) setState(() => _flipped = true);
+        } else if (a == GameAction.pick1 || a == GameAction.right) {
+          _mark(true);
+        } else if (a == GameAction.pick2 || a == GameAction.left) {
+          _mark(false);
+        }
+      case _Phase.results:
+        if (a == GameAction.action) widget.onExit();
+    }
+  }
+
+  List<GameAction> get _hints => switch (_phase) {
+    _Phase.card when _flipped => const [
+      GameAction.pick1,
+      GameAction.pick2,
+      GameAction.exit,
+    ],
+    _ => const [GameAction.action, GameAction.exit],
+  };
+
   void _mark(bool knew) {
     _reader?.stop();
     final r = _s.answer(correct: knew);
@@ -105,11 +140,19 @@ class _FlashReviewScreenState extends State<FlashReviewScreen> {
         ),
       ),
       body: SafeArea(
-        child: switch (_phase) {
-          _Phase.intro => _intro(context),
-          _Phase.card => _card(context),
-          _Phase.results => _results(context),
-        },
+        child: KeyedBody(
+          onInput: _onKey,
+          hints: _hints,
+          words: const {
+            GameAction.pick1: 'knew it / not yet',
+            GameAction.action: 'go',
+          },
+          child: switch (_phase) {
+            _Phase.intro => _intro(context),
+            _Phase.card => _card(context),
+            _Phase.results => _results(context),
+          },
+        ),
       ),
     );
   }

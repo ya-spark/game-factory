@@ -71,6 +71,10 @@ class _WordBuilderScreenState extends State<WordBuilderScreen> {
   int _streak = 0;
   bool _scoreSent = false;
 
+  /// The tile under the keyboard cursor; shown once a key has been used.
+  int _cursor = 0;
+  bool _keyed = false;
+
   /// The correct spellings of the words missed in this round, shown after a miss.
   final List<String> _missed = [];
 
@@ -170,10 +174,52 @@ class _WordBuilderScreenState extends State<WordBuilderScreen> {
     });
   }
 
+  // ---- keyboard (docs/SPEC.md, Keyboard): arrows move over the letters, Enter adds the letter (or goes on),
+  // 1 check, 2 undo, 3 clear, Esc leaves ----
+
+  void _onKey(GameInput i) {
+    final a = i.action;
+    if (a == GameAction.exit) {
+      if (!i.repeat) widget.onExit();
+      return;
+    }
+    if (_s.finished && _result == null) {
+      if (!i.repeat && a == GameAction.action) widget.onExit();
+      return;
+    }
+    final r = _round;
+    if (_result != null) {
+      if (!i.repeat && a == GameAction.action) _next();
+      return;
+    }
+    if (r == null || r.current == null) return;
+    final n = r.current!.tiles.length;
+    final back = a == GameAction.left || a == GameAction.up;
+    final fwd = a == GameAction.right || a == GameAction.down;
+    if (back || fwd) {
+      setState(() {
+        _keyed = true;
+        _cursor = (_cursor + (back ? -1 : 1)) % n;
+      });
+    } else if (i.repeat) {
+      return;
+    } else if (a == GameAction.action) {
+      setState(() => _keyed = true);
+      if (!r.isUsed(_cursor) && !r.isGreyed(_cursor)) _tap(r, _cursor);
+    } else if (a == GameAction.pick1) {
+      if (r.built.isNotEmpty) _check(r);
+    } else if (a == GameAction.pick2) {
+      _undo(r);
+    } else if (a == GameAction.pick3) {
+      _clear(r);
+    }
+  }
+
   void _next() {
     setState(() {
       _result = null;
       _round = null;
+      _cursor = 0;
     });
     if (_s.finished && !_scoreSent) {
       _scoreSent = true;
@@ -198,18 +244,34 @@ class _WordBuilderScreenState extends State<WordBuilderScreen> {
         ),
       ),
       body: SafeArea(
-        child: done
-            ? MiniGameSummary(
-                summaryKey: WordBuilderIds.wordBuilderSummary,
-                starsKey: WordBuilderIds.wordBuilderStars,
-                doneKey: WordBuilderIds.wordBuilderNext,
-                correct: _s.report.correct,
-                answered: _s.report.answered,
-                stars: _s.report.stars,
-                showStars: _s.rewardsConfig.starsEnabled && !_study,
-                onDone: widget.onExit,
-              )
-            : _roundView(context, _s.items[shownIndex], shownIndex),
+        child: KeyedBody(
+          onInput: _onKey,
+          hints: const [
+            GameAction.left,
+            GameAction.right,
+            GameAction.action,
+            GameAction.pick1,
+            GameAction.pick2,
+            GameAction.pick3,
+            GameAction.exit,
+          ],
+          words: const {
+            GameAction.action: 'add letter',
+            GameAction.pick1: 'check, undo, clear',
+          },
+          child: done
+              ? MiniGameSummary(
+                  summaryKey: WordBuilderIds.wordBuilderSummary,
+                  starsKey: WordBuilderIds.wordBuilderStars,
+                  doneKey: WordBuilderIds.wordBuilderNext,
+                  correct: _s.report.correct,
+                  answered: _s.report.answered,
+                  stars: _s.report.stars,
+                  showStars: _s.rewardsConfig.starsEnabled && !_study,
+                  onDone: widget.onExit,
+                )
+              : _roundView(context, _s.items[shownIndex], shownIndex),
+        ),
       ),
     );
   }
@@ -401,7 +463,10 @@ class _WordBuilderScreenState extends State<WordBuilderScreen> {
           color: cs.secondaryContainer,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(14),
-            side: BorderSide(color: cs.outline),
+            side: BorderSide(
+              color: _keyed && _cursor == i ? cs.tertiary : cs.outline,
+              width: _keyed && _cursor == i ? 4 : 1,
+            ),
           ),
           child: InkWell(
             key: WordBuilderIds.wordBuilderTile(i),

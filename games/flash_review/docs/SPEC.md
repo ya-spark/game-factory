@@ -14,3 +14,8 @@ The text below was collected from the apps' docs when the game moved; refine it 
 ## From the app spec
 - Scout (youngest level): the round uses Flash review cards (flip, then "I knew it" or "Not yet"), no timer and no failing wording. "I knew it" counts as a correct answer and "Not yet" as a wrong one for the clear rule.
 - Younger level (Scout): Flash review cards; "I knew it" counts as correct, "Not yet" as wrong. Ranger and Champion: the Quick quiz, multiple-choice items only.
+
+## Keyboard (K1, 2026-11-22)
+- Enter starts and flips the card, then 1 or right is "I knew it" and 2 or left is "Not yet". Esc leaves the game.
+- Keys come from the shared key map (`docs/KEYBOARD.md` in game-factory; remappable; W A S D and Z X C V also play in a one-player game). Tab and Enter or Space press any button. Key hints show under the game on windows 600 dp and wider.
+- Tests: the keys are covered by a widget or unit test where the screen can be built on the VM (see `test/`).

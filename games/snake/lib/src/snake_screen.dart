@@ -57,6 +57,12 @@ class _SnakeScreenState extends State<SnakeScreen> {
           'Swipe to steer. Eat the food to grow. The snake speeds up as it '
           'grows. Do not hit the walls or yourself.',
       starScores: snakeStarScores,
+      hintActions: const [
+        GameAction.left,
+        GameAction.up,
+        GameAction.down,
+        GameAction.right,
+      ],
       coinsPerPoints: 20,
       onScore: widget.onScore,
       prefs: widget.prefs,
@@ -107,6 +113,7 @@ class _SnakePlayState extends State<_SnakePlay>
   @override
   void initState() {
     super.initState();
+    widget.run.onInput = _onKey;
     _ticker.start();
   }
 
@@ -130,6 +137,21 @@ class _SnakePlayState extends State<_SnakePlay>
   }
 
   void _turn(SnakeDir d) => _game.turn(d);
+
+  /// The arrows (and W A S D) steer (docs/KEYBOARD.md).
+  void _onKey(GameInput i) {
+    switch (i.action) {
+      case GameAction.left:
+        _turn(SnakeDir.left);
+      case GameAction.right:
+        _turn(SnakeDir.right);
+      case GameAction.up:
+        _turn(SnakeDir.up);
+      case GameAction.down:
+        _turn(SnakeDir.down);
+      default:
+    }
+  }
 
   void _onPanUpdate(DragUpdateDetails d) {
     _drag += d.delta;

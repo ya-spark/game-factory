@@ -10,3 +10,8 @@ The text below was collected from the apps' docs when the game moved; refine it 
 - Tips:
   - Find the first step before you start tapping.
   - Older levels add a gentle timer.
+
+## Keyboard (K1, 2026-11-22)
+- Left and right move over the tiles, Enter or up places the highlighted tile, 1 to 4 place that tile, Enter goes on after a round. Esc leaves the game.
+- Keys come from the shared key map (`docs/KEYBOARD.md` in game-factory; remappable; W A S D and Z X C V also play in a one-player game). Tab and Enter or Space press any button. Key hints show under the game on windows 600 dp and wider.
+- Tests: the keys are covered by a widget or unit test where the screen can be built on the VM (see `test/`).

@@ -64,6 +64,10 @@ class _SortBinsScreenState extends State<SortBinsScreen> {
   bool _lastWrong = false;
   GameReadAloud? _reader;
 
+  /// The bin under the keyboard cursor; shown once a key has been used.
+  int _cursor = 0;
+  bool _keyed = false;
+
   QuizSession get _s => widget.session;
   bool get _study => widget.mode == MiniGameMode.study;
 
@@ -115,9 +119,51 @@ class _SortBinsScreenState extends State<SortBinsScreen> {
     }
   }
 
+  // ---- keyboard (docs/SPEC.md, Keyboard): up and down (or left and right) move over the bins, Enter drops the
+  // item in the bin (or goes on), 1 to 4 drop it in that bin, Esc leaves ----
+
+  void _onKey(GameInput i) {
+    final a = i.action;
+    if (a == GameAction.exit) {
+      if (!i.repeat) widget.onExit();
+      return;
+    }
+    if (_s.finished && _result == null) {
+      if (!i.repeat && a == GameAction.action) widget.onExit();
+      return;
+    }
+    final r = _round;
+    if (_result != null) {
+      if (!i.repeat && a == GameAction.action) _next();
+      return;
+    }
+    if (r == null) return;
+    final n = r.bins.length;
+    final back = a == GameAction.left || a == GameAction.up;
+    final fwd = a == GameAction.right || a == GameAction.down;
+    if (back || fwd) {
+      setState(() {
+        _keyed = true;
+        _cursor = (_cursor + (back ? -1 : 1)) % n;
+      });
+    } else if (i.repeat) {
+      return;
+    } else if (a == GameAction.action) {
+      setState(() => _keyed = true);
+      _drop(r, _cursor);
+    } else if (a.pickNumber != null && a.pickNumber! <= n) {
+      setState(() {
+        _keyed = true;
+        _cursor = a.pickNumber! - 1;
+      });
+      _drop(r, _cursor);
+    }
+  }
+
   void _next() => setState(() {
     _result = null;
     _round = null;
+    _cursor = 0;
   });
 
   @override
@@ -137,18 +183,28 @@ class _SortBinsScreenState extends State<SortBinsScreen> {
         ),
       ),
       body: SafeArea(
-        child: done
-            ? MiniGameSummary(
-                summaryKey: SortBinsIds.sortSummary,
-                starsKey: SortBinsIds.sortStars,
-                doneKey: SortBinsIds.sortNext,
-                correct: _s.report.correct,
-                answered: _s.report.answered,
-                stars: _s.report.stars,
-                showStars: _s.rewardsConfig.starsEnabled && !_study,
-                onDone: widget.onExit,
-              )
-            : _roundView(context, _s.items[shownIndex], shownIndex),
+        child: KeyedBody(
+          onInput: _onKey,
+          hints: const [
+            GameAction.up,
+            GameAction.down,
+            GameAction.action,
+            GameAction.exit,
+          ],
+          words: const {GameAction.up: 'bins', GameAction.action: 'drop'},
+          child: done
+              ? MiniGameSummary(
+                  summaryKey: SortBinsIds.sortSummary,
+                  starsKey: SortBinsIds.sortStars,
+                  doneKey: SortBinsIds.sortNext,
+                  correct: _s.report.correct,
+                  answered: _s.report.answered,
+                  stars: _s.report.stars,
+                  showStars: _s.rewardsConfig.starsEnabled && !_study,
+                  onDone: widget.onExit,
+                )
+              : _roundView(context, _s.items[shownIndex], shownIndex),
+        ),
       ),
     );
   }
@@ -299,8 +355,12 @@ class _SortBinsScreenState extends State<SortBinsScreen> {
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(16),
               side: BorderSide(
-                color: candidates.isEmpty ? cs.outline : cs.primary,
-                width: candidates.isEmpty ? 1 : 3,
+                color: candidates.isNotEmpty
+                    ? cs.primary
+                    : (_keyed && _cursor == i ? cs.tertiary : cs.outline),
+                width: candidates.isNotEmpty || (_keyed && _cursor == i)
+                    ? 4
+                    : 1,
               ),
             ),
             child: InkWell(

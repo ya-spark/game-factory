@@ -57,6 +57,69 @@ class BlockPuzzleGame extends FlameGame {
 
   PuzzleLayout get layout => view.layout;
 
+  // ---- keyboard play (docs/SPEC.md, Keyboard): pick a tray piece, move it over the board, place it ----
+
+  /// True once a key has been used: the piece under the keyboard is drawn as a ghost on the board.
+  bool kbActive = false;
+
+  /// The tray slot chosen with the keyboard, and the board cell its top-left corner is over.
+  int kbSlot = 0;
+  (int, int) kbCell = (3, 3);
+
+  /// The keyboard piece, or null when its slot is empty.
+  Piece? get kbPiece => state.tray[kbSlot];
+
+  void _kbClamp() {
+    final p = kbPiece;
+    final n = state.board.size;
+    final h = p?.height ?? 1, w = p?.width ?? 1;
+    kbCell = (kbCell.$1.clamp(0, n - h), kbCell.$2.clamp(0, n - w));
+  }
+
+  /// Chooses tray slot [slot] (0 to 2); false when it is empty.
+  bool kbSelect(int slot) {
+    kbActive = true;
+    if (slot < 0 || slot >= GameState.traySlots || state.tray[slot] == null) {
+      return false;
+    }
+    kbSlot = slot;
+    _kbClamp();
+    onChanged?.call();
+    return true;
+  }
+
+  /// Moves the keyboard piece one cell.
+  void kbMove(int dr, int dc) {
+    kbActive = true;
+    if (kbPiece == null) kbSelect(_firstSlot());
+    kbCell = (kbCell.$1 + dr, kbCell.$2 + dc);
+    _kbClamp();
+    onChanged?.call();
+  }
+
+  int _firstSlot() {
+    for (var i = 0; i < GameState.traySlots; i++) {
+      if (state.tray[i] != null) return i;
+    }
+    return 0;
+  }
+
+  /// Places the keyboard piece where it is; false when it does not fit there.
+  bool kbPlace() {
+    kbActive = true;
+    final p = kbPiece;
+    if (p == null || state.isGameOver) return false;
+    final before = state.piecesPlaced;
+    _handlePlace(kbSlot, kbCell.$1, kbCell.$2);
+    final ok = state.piecesPlaced != before;
+    if (ok && kbPiece == null) {
+      kbSlot = _firstSlot();
+      _kbClamp();
+      onChanged?.call();
+    }
+    return ok;
+  }
+
   /// Current position in the theme rotation: changes every
   /// [ThemeRotation.themeEveryLines] cleared lines.
   int get themeIndex =>
@@ -382,6 +445,35 @@ class PuzzleView extends PositionComponent
           }
         }
       }
+    }
+
+    // Keyboard piece: a ghost on the board with an outline, red-edged when it does not fit.
+    final kp = game.kbActive && slot == null ? game.kbPiece : null;
+    if (kp != null && !game.state.isGameOver) {
+      final (r, c) = game.kbCell;
+      final fits = game.state.board.canPlace(kp, r, c);
+      final ghost = Paint()
+        ..color = theme.colorAt(kp.colorIndex).withAlpha(fits ? 130 : 60);
+      final edge = Paint()
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 3
+        ..color = fits ? const Color(0xFFFFFFFF) : const Color(0xFFE53935);
+      for (final (dr, dc) in kp.cells) {
+        final rect = Rect.fromLTWH(
+          layout.boardLeft + (c + dc) * cs,
+          layout.boardTop + (r + dr) * cs,
+          cs,
+          cs,
+        );
+        canvas.drawRect(rect, ghost);
+        canvas.drawRect(rect.deflate(1), edge);
+      }
+      final tc = layout.trayCenter(game.kbSlot);
+      canvas.drawCircle(
+        Offset(tc.$1, tc.$2 + kp.height * cs / 2 + 8),
+        4,
+        Paint()..color = const Color(0xFFFFFFFF),
+      );
     }
 
     // Boost targeting: Blast previews its 3x3 area under the finger, Hammer one cell.

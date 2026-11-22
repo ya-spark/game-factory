@@ -31,3 +31,8 @@ does not grow. Walls end the game, or wrap round when the menu setting "Walls wr
 
 ## Related lines
 - **New personal best**: one calm line ("New personal best in Snake: 120") in a snack bar, once per run, after the game screen has closed (never during play). It needs an
+
+## Keyboard (K1, 2026-11-22)
+- arrows (or W A S D) steer the snake. Arcade frame (game_core `ArcadeFrame`): Enter starts and plays again, Space or Esc pauses a round (Resume or Leave; Esc or Space or Enter resumes), Esc on the menu leaves, on the results goes to the menu. No pause button on screen.
+- Keys come from the shared key map (`docs/KEYBOARD.md` in game-factory; remappable; W A S D and Z X C V also play in a one-player game). Tab and Enter or Space press any button. Key hints show under the game on windows 600 dp and wider.
+- Tests: the keys are covered by a widget or unit test where the screen can be built on the VM (see `test/`).

@@ -33,6 +33,7 @@ class RunnerScreen extends StatelessWidget {
       starScores: runnerStarScores,
       coinsPerPoints: 25,
       hasContinue: true,
+      hintActions: const [GameAction.up],
       onScore: onScore,
       buildPlay: (context, run, round) => _RunnerPlay(
         key: ValueKey('runner.round.$round'),
@@ -62,7 +63,9 @@ class _RunnerPlayState extends State<_RunnerPlay>
   @override
   void initState() {
     super.initState();
-    widget.run.onContinue = _continue;
+    widget.run
+      ..onContinue = _continue
+      ..onInput = _onKey;
     _ticker.start();
   }
 
@@ -70,6 +73,14 @@ class _RunnerPlayState extends State<_RunnerPlay>
   void dispose() {
     _ticker.dispose();
     super.dispose();
+  }
+
+  /// Up or Enter jumps (docs/KEYBOARD.md; Space and Esc pause, in the frame).
+  void _onKey(GameInput i) {
+    if (i.repeat) return;
+    if (i.action == GameAction.up || i.action == GameAction.action) {
+      _game.jump();
+    }
   }
 
   void _continue() {

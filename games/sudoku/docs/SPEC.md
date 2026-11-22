@@ -47,3 +47,8 @@ Calm and untimed, 9 by 9. Rules are pure Dart in `lib/engine/minigames/sudoku/ru
 - **New personal best**: one calm line ("New personal best in Sudoku: 1200", or "New personal best: your fastest
 - **In the five hub-native games** (Sudoku, Solitaire, Ball sort, Mahjong, Merge) a Zen run means:
   - Unlimited hints at no cost in Sudoku, Solitaire (even a level with no hints) and Mahjong; Mahjong shuffles are
+
+## Keyboard (K1, 2026-11-22)
+- Arrows move over the squares, 1 to 9 fill the square (5 to 9 are read straight from the keyboard), Backspace, Delete or 0 erase, N toggles notes, Enter asks for a hint (the same three stages as the button). Menu: Enter or 1 to 4 pick the level (Resume when a puzzle is saved). The game has no timer, so no pause: Esc goes back (a game to its menu, the menu leaves; a Daily Challenge leaves).
+- Keys come from the shared key map (`docs/KEYBOARD.md` in game-factory; remappable; W A S D and Z X C V also play in a one-player game). Tab and Enter or Space press any button. Key hints show under the game on windows 600 dp and wider.
+- Tests: the keys are covered by a widget or unit test where the screen can be built on the VM (see `test/`).
